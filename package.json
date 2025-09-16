@@ -1,0 +1,44 @@
+{
+  "name": "com.theone.dynamicuserdifficulty",
+  "version": "1.0.0",
+  "displayName": "Dynamic User Difficulty Service",
+  "description": "Adaptive difficulty system that adjusts game difficulty based on player performance, play patterns, and session history.",
+  "unity": "2021.3",
+  "unityRelease": "0f1",
+  "documentationUrl": "https://github.com/theone-studio/dynamic-user-difficulty",
+  "changelogUrl": "https://github.com/theone-studio/dynamic-user-difficulty/CHANGELOG.md",
+  "licensesUrl": "https://github.com/theone-studio/dynamic-user-difficulty/LICENSE.md",
+  "dependencies": {
+    "com.theone.uitemplates": "1.0.0",
+    "com.theone.extensions": "1.0.0",
+    "com.cysharp.unitask": "2.3.0",
+    "jp.hadashikick.vcontainer": "1.16.0"
+  },
+  "keywords": [
+    "difficulty",
+    "adaptive",
+    "player-experience",
+    "retention",
+    "uitemplates",
+    "theone"
+  ],
+  "author": {
+    "name": "TheOne Studio",
+    "email": "support@theonestudio.com",
+    "url": "https://theonestudio.com"
+  },
+  "type": "library",
+  "hideInEditor": false,
+  "samples": [
+    {
+      "displayName": "Basic Integration",
+      "description": "Simple integration example with UITemplate",
+      "path": "Samples~/BasicIntegration"
+    },
+    {
+      "displayName": "Advanced Configuration",
+      "description": "Advanced configuration with custom difficulty curves",
+      "path": "Samples~/AdvancedConfiguration"
+    }
+  ]
+}

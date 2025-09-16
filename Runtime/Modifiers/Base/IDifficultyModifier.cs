@@ -1,0 +1,38 @@
+using TheOneStudio.DynamicUserDifficulty.Models;
+
+namespace TheOneStudio.DynamicUserDifficulty.Modifiers
+{
+    /// <summary>
+    /// Interface for all difficulty modifiers
+    /// </summary>
+    public interface IDifficultyModifier
+    {
+        /// <summary>
+        /// Unique name of the modifier
+        /// </summary>
+        string ModifierName { get; }
+
+        /// <summary>
+        /// Execution order priority (lower = earlier)
+        /// </summary>
+        int Priority { get; }
+
+        /// <summary>
+        /// Whether this modifier is currently active
+        /// </summary>
+        bool IsEnabled { get; set; }
+
+        /// <summary>
+        /// Calculates the difficulty adjustment for this modifier
+        /// </summary>
+        /// <param name="sessionData">Current session data</param>
+        /// <returns>The modifier result with adjustment value</returns>
+        ModifierResult Calculate(PlayerSessionData sessionData);
+
+        /// <summary>
+        /// Called after difficulty has been applied
+        /// </summary>
+        /// <param name="result">The applied difficulty result</param>
+        void OnApplied(DifficultyResult result);
+    }
+}

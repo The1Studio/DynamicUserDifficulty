@@ -1,0 +1,119 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Modifiers;
+using UnityEngine;
+
+namespace TheOneStudio.DynamicUserDifficulty.Calculators
+{
+    /// <summary>
+    /// Default implementation of difficulty calculator
+    /// </summary>
+    public class DifficultyCalculator : IDifficultyCalculator
+    {
+        private readonly DifficultyConfig config;
+        private readonly ModifierAggregator aggregator;
+
+        public DifficultyCalculator(DifficultyConfig config, ModifierAggregator aggregator)
+        {
+            this.config = config;
+            this.aggregator = aggregator;
+        }
+
+        public DifficultyResult Calculate(PlayerSessionData sessionData, IEnumerable<IDifficultyModifier> modifiers)
+        {
+            if (sessionData == null)
+            {
+                Debug.LogWarning("SessionData is null, returning default difficulty");
+                return new DifficultyResult
+                {
+                    PreviousDifficulty = config.DefaultDifficulty,
+                    NewDifficulty = config.DefaultDifficulty,
+                    PrimaryReason = "No session data"
+                };
+            }
+
+            var currentDifficulty = sessionData.CurrentDifficulty;
+
+            // Calculate all modifier results
+            var modifierResults = new List<ModifierResult>();
+            foreach (var modifier in modifiers)
+            {
+                if (modifier == null || !modifier.IsEnabled)
+                    continue;
+
+                try
+                {
+                    var result = modifier.Calculate(sessionData);
+                    if (result != null)
+                    {
+                        modifierResults.Add(result);
+
+                        if (config.EnableDebugLogs)
+                        {
+                            Debug.Log($"[DifficultyCalculator] {result.ModifierName}: {result.Value:F2} ({result.Reason})");
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Error calculating modifier {modifier.ModifierName}: {e.Message}");
+                }
+            }
+
+            // Aggregate all modifier values
+            var totalAdjustment = aggregator.Aggregate(modifierResults);
+
+            // Apply max change per session limit
+            totalAdjustment = Mathf.Clamp(
+                totalAdjustment,
+                -config.MaxChangePerSession,
+                config.MaxChangePerSession
+            );
+
+            // Calculate new difficulty
+            var newDifficulty = currentDifficulty + totalAdjustment;
+
+            // Clamp to valid range
+            newDifficulty = ClampDifficulty(newDifficulty);
+
+            // Create result
+            var result = new DifficultyResult
+            {
+                PreviousDifficulty = currentDifficulty,
+                NewDifficulty = newDifficulty,
+                AppliedModifiers = modifierResults,
+                CalculatedAt = DateTime.Now,
+                PrimaryReason = GetPrimaryReason(modifierResults)
+            };
+
+            if (config.EnableDebugLogs)
+            {
+                Debug.Log($"[DifficultyCalculator] Final: {currentDifficulty:F2} -> {newDifficulty:F2} " +
+                         $"(Change: {totalAdjustment:F2}, Reason: {result.PrimaryReason})");
+            }
+
+            return result;
+        }
+
+        private float ClampDifficulty(float value)
+        {
+            return Mathf.Clamp(value, config.MinDifficulty, config.MaxDifficulty);
+        }
+
+        private string GetPrimaryReason(List<ModifierResult> results)
+        {
+            if (results == null || results.Count == 0)
+                return "No change";
+
+            // Find the modifier with the largest absolute value
+            var primaryModifier = results
+                .OrderByDescending(r => Math.Abs(r.Value))
+                .FirstOrDefault();
+
+            return primaryModifier?.Reason ?? "No change";
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "name": "DynamicUserDifficulty.Tests",
+    "rootNamespace": "TheOneStudio.DynamicUserDifficulty.Tests",
+    "references": [
+        "DynamicUserDifficulty",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "VContainer",
+        "UniTask",
+        "TheOne.Extensions"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

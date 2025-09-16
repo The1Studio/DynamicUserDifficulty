@@ -1,0 +1,41 @@
+{
+    "name": "DynamicUserDifficulty",
+    "rootNamespace": "TheOneStudio.DynamicUserDifficulty",
+    "references": [
+        "GUID:8c4dbbca5b7b8488187bb3bae3e12871",
+        "GUID:1f36c98dd67184df3ba66c3f67f02fa5",
+        "GUID:c8f20f3c28fa3445c9833f51ffde5c51",
+        "GUID:6684cfdb5bb3f48e89c960b4a1c37c72",
+        "GUID:c8dc0db10e7074f42a666d2cf1187848",
+        "GUID:b0214a6008ed146ff8f122a6a9c2f6cc",
+        "GUID:40b39aeb088024dd2ab825a88c6c0230",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:9e24947de15b9834991c9d8411ea37cf",
+        "GUID:593a5b492d29ac6448b1ebf7f035ef33",
+        "GUID:84651a3751eca9349aac36a66bba901b"
+    ],
+    "referencedUnityAssemblies": [
+        "UITemplate.Scripts",
+        "UITemplate.Signal",
+        "UITemplate.LocalData",
+        "UITemplate.Blueprint",
+        "UITemplate.Config",
+        "GameFoundation.DI",
+        "GameFoundation.Signals",
+        "TheOne.Extensions",
+        "VContainer",
+        "UniTask",
+        "Screw3D"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "GDK_VCONTAINER"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
