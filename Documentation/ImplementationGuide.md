@@ -568,7 +568,26 @@ Add references to these Unity assemblies in your .asmdef:
 - Unity.Addressables
 - UnityEngine.UI
 
-### Step 8: Integration Points
+### Step 8: Editor Validation System
+
+The module includes an automatic validation system that helps developers set up the DifficultyConfig on Unity load:
+
+#### 8.1 DifficultyConfigValidator
+- **Auto-runs on Unity Editor load** using `[InitializeOnLoad]`
+- **Checks for missing DifficultyConfig** and prompts to create one
+- **Provides menu items** under `TheOne/Dynamic Difficulty/`
+  - Create Config
+  - Validate Setup
+  - Reset Validation Check
+
+#### 8.2 Configuration Popup
+When no DifficultyConfig is found, a helpful popup window appears:
+- Explains the need for configuration
+- Offers to create default config automatically
+- Places config in `Assets/Resources/Configs/DifficultyConfig.asset`
+- Option to skip checks with "Don't show again"
+
+### Step 9: Integration Points
 
 #### Signal Subscriptions Required
 ```csharp
@@ -634,7 +653,8 @@ Add references to these Unity assemblies in your .asmdef:
 9. **DI (1 file)**
    - DynamicDifficultyModule.cs
 
-10. **Editor (2 files)**
+10. **Editor (3 files)**
+    - DifficultyConfigValidator.cs
     - DifficultyDebugWindow.cs
     - ModifierConfigEditor.cs
 

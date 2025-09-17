@@ -237,21 +237,31 @@ DynamicUserDifficulty/
 
 ## Assembly Definition Requirements
 
-Create `DynamicUserDifficulty.asmdef`:
+The module has two assembly definitions:
+
+### Runtime Assembly (`DynamicUserDifficulty.asmdef`):
 ```json
 {
-    "name": "UITemplate.Services.DynamicUserDifficulty",
+    "name": "DynamicUserDifficulty",
+    "rootNamespace": "TheOneStudio.DynamicUserDifficulty",
     "references": [
-        "UITemplate.Scripts",
-        "UITemplate.Signal",
-        "UITemplate.LocalData",
-        "GameFoundation.DI",
-        "GameFoundation.Signals",
-        "Screw3D",
-        "TheOne.Extensions",
-        "VContainer",
-        "UniTask"
-    ]
+        "VContainer"
+    ],
+    "defineConstraints": [],
+    "autoReferenced": true
+}
+```
+**Note**: The assembly only requires VContainer as a dependency. The defineConstraints should be empty (not using GDK_VCONTAINER) to avoid compilation issues.
+
+### Editor Assembly (`Editor/DynamicUserDifficulty.Editor.asmdef`):
+```json
+{
+    "name": "DynamicUserDifficulty.Editor",
+    "rootNamespace": "TheOneStudio.DynamicUserDifficulty.Editor",
+    "references": [
+        "DynamicUserDifficulty"
+    ],
+    "includePlatforms": ["Editor"]
 }
 ```
 
