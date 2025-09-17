@@ -46,14 +46,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
 
                 try
                 {
-                    var result = modifier.Calculate(sessionData);
-                    if (result != null)
+                    var modifierResult = modifier.Calculate(sessionData);
+                    if (modifierResult != null)
                     {
-                        modifierResults.Add(result);
+                        modifierResults.Add(modifierResult);
 
                         if (config.EnableDebugLogs)
                         {
-                            Debug.Log($"[DifficultyCalculator] {result.ModifierName}: {result.Value:F2} ({result.Reason})");
+                            Debug.Log($"[DifficultyCalculator] {modifierResult.ModifierName}: {modifierResult.Value:F2} ({modifierResult.Reason})");
                         }
                     }
                 }

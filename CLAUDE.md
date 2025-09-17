@@ -35,6 +35,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Documentation Management
 - **[Documentation/README.md](Documentation/README.md)** - Documentation structure overview
 
+## 🚨 CRITICAL Unity Development Rules
+
+### ⚠️ **NEVER CREATE .meta FILES MANUALLY**
+**Unity generates .meta files automatically. Creating them manually causes compilation failures and GUID conflicts.**
+
+**❌ NEVER DO:**
+- Create .meta files yourself
+- Copy .meta files between projects
+- Edit .meta file GUIDs manually
+
+**✅ ALWAYS DO:**
+- Let Unity generate .meta files automatically
+- Delete corrupt .meta files and let Unity regenerate them
+- Use `Assets → Reimport All` to fix .meta file issues
+- When troubleshooting compilation: Delete all .meta files in package and let Unity regenerate
+
+**🔧 Emergency Fix for Compilation Issues:**
+```bash
+# Delete all .meta files in the module
+find Packages/com.theone.dynamicuserdifficulty -name "*.meta" -delete
+
+# Let Unity regenerate them
+Unity Editor → Assets → Reimport All
+```
+
+### 📦 New Modifier Implementation Requirements
+
+**When creating new difficulty modifiers, you MUST:**
+
+1. **Add Configuration Parameters**
+   - Add new parameter constants to `DifficultyConstants.cs`
+   - Update `DifficultyConfig.CreateDefault()` method
+   - Add parameter keys to `PARAM_*` constants section
+
+2. **Example for New Modifier:**
+```csharp
+// In DifficultyConstants.cs
+public const string PARAM_NEW_MODIFIER_THRESHOLD = "NewModifierThreshold";
+public const float NEW_MODIFIER_DEFAULT_VALUE = 1.0f;
+
+// In DifficultyConfig.cs CreateDefault() method
+config.SetParameter(DifficultyConstants.PARAM_NEW_MODIFIER_THRESHOLD,
+                   DifficultyConstants.NEW_MODIFIER_DEFAULT_VALUE);
+
+// In your modifier Calculate() method
+var threshold = GetParameter(DifficultyConstants.PARAM_NEW_MODIFIER_THRESHOLD,
+                           DifficultyConstants.NEW_MODIFIER_DEFAULT_VALUE);
+```
+
+3. **Register in DI Module**
+   - Add case in `DynamicDifficultyModule.RegisterModifierByType()`
+   - Use consistent modifier type string naming
+
 ## Module Overview
 
 The DynamicUserDifficulty service is a Unity module within the UITemplate framework for implementing adaptive difficulty based on player performance. It integrates with the existing Screw3D gameplay system and UITemplate's data controllers.

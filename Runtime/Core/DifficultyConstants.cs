@@ -10,6 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         public const float MAX_DIFFICULTY = 10f;
         public const float DEFAULT_DIFFICULTY = 3f;
         public const float DEFAULT_MAX_CHANGE_PER_SESSION = 2f;
+        public const float DEFAULT_MAX_CHANGE = 2f; // Alias for backwards compatibility
 
         // Config UI ranges for Inspector
         public const float CONFIG_MIN_RANGE = 1f;
