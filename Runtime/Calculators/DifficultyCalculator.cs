@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Calculators
 {
@@ -26,7 +26,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
         {
             if (sessionData == null)
             {
-                Debug.LogWarning("SessionData is null, returning default difficulty");
+                DifficultyLogger.LogWarning("SessionData is null, returning default difficulty");
                 return new DifficultyResult
                 {
                     PreviousDifficulty = config.DefaultDifficulty,
@@ -53,13 +53,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
 
                         if (config.EnableDebugLogs)
                         {
-                            Debug.Log($"[DifficultyCalculator] {modifierResult.ModifierName}: {modifierResult.Value:F2} ({modifierResult.Reason})");
+                            DifficultyLogger.Log($"[DifficultyCalculator] {modifierResult.ModifierName}: {modifierResult.Value:F2} ({modifierResult.Reason})");
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"Error calculating modifier {modifier.ModifierName}: {e.Message}");
+                    DifficultyLogger.LogError($"Error calculating modifier {modifier.ModifierName}: {e.Message}");
                 }
             }
 
@@ -91,7 +91,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
 
             if (config.EnableDebugLogs)
             {
-                Debug.Log($"[DifficultyCalculator] Final: {currentDifficulty:F2} -> {newDifficulty:F2} " +
+                DifficultyLogger.Log($"[DifficultyCalculator] Final: {currentDifficulty:F2} -> {newDifficulty:F2} " +
                          $"(Change: {totalAdjustment:F2}, Reason: {result.PrimaryReason})");
             }
 

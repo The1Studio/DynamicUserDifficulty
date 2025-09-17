@@ -2,7 +2,8 @@
     "name": "DynamicUserDifficulty",
     "rootNamespace": "TheOneStudio.DynamicUserDifficulty",
     "references": [
-        "VContainer"
+        "VContainer",
+        "TheOne.Logging"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

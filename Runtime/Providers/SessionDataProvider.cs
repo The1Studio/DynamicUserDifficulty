@@ -34,7 +34,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
         {
             if (data == null)
             {
-                Debug.LogWarning("Attempted to save null session data");
+                DifficultyLogger.LogWarning("Attempted to save null session data");
                 return;
             }
 
@@ -129,7 +129,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error loading session data: {e.Message}");
+                DifficultyLogger.LogError($"Error loading session data: {e.Message}");
                 return new PlayerSessionData();
             }
         }
@@ -152,7 +152,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error saving session data: {e.Message}");
+                DifficultyLogger.LogError($"Error saving session data: {e.Message}");
             }
         }
 

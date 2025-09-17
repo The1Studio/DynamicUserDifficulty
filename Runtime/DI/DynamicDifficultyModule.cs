@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Calculators;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Providers;
-using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
@@ -27,9 +27,10 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
         {
             if (config == null)
             {
-                Debug.LogError("[DynamicDifficultyModule] DifficultyConfig is null, skipping registration");
+                DifficultyLogger.LogError("[DynamicDifficultyModule] DifficultyConfig is null, skipping registration");
                 return;
             }
+
 
             // Register configuration
             builder.RegisterInstance(config);
@@ -56,7 +57,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             // Get modifier configs from DifficultyConfig
             if (config.ModifierConfigs == null || config.ModifierConfigs.Count == 0)
             {
-                Debug.LogWarning("[DynamicDifficultyModule] No modifier configs found");
+                DifficultyLogger.LogWarning("[DynamicDifficultyModule] No modifier configs found");
                 return;
             }
 
@@ -99,7 +100,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                     break;
 
                 default:
-                    Debug.LogWarning($"[DynamicDifficultyModule] Unknown modifier type: {modifierConfig.ModifierType}");
+                    DifficultyLogger.LogWarning($"[DynamicDifficultyModule] Unknown modifier type: {modifierConfig.ModifierType}");
                     break;
             }
         }
@@ -134,12 +135,12 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                     if (modifier != null)
                     {
                         difficultyService.RegisterModifier(modifier);
-                        Debug.Log($"[DynamicDifficultyInitializer] Registered modifier: {modifier.ModifierName}");
+                        DifficultyLogger.Log($"[DynamicDifficultyInitializer] Registered modifier: {modifier.ModifierName}");
                     }
                 }
             }
 
-            Debug.Log($"[DynamicDifficultyInitializer] Initialized with {modifiers?.Count() ?? 0} modifiers");
+            DifficultyLogger.Log($"[DynamicDifficultyInitializer] Initialized with {modifiers?.Count() ?? 0} modifiers");
         }
     }
 }

@@ -6,7 +6,6 @@ using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Providers;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Core
 {
@@ -45,12 +44,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
                 if (config.EnableDebugLogs)
                 {
-                    Debug.Log($"[DynamicDifficultyService] Initialized with difficulty: {CurrentDifficulty:F2}");
+                    DifficultyLogger.Log($"[DynamicDifficultyService] Initialized with difficulty: {CurrentDifficulty:F2}");
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DynamicDifficultyService] Failed to initialize: {e.Message}");
+                DifficultyLogger.LogError($"[DynamicDifficultyService] Failed to initialize: {e.Message}");
                 CurrentDifficulty = config.DefaultDifficulty;
             }
         }
@@ -71,7 +70,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
                 if (config.EnableDebugLogs)
                 {
-                    Debug.Log($"[DynamicDifficultyService] Calculated difficulty: " +
+                    DifficultyLogger.Log($"[DynamicDifficultyService] Calculated difficulty: " +
                              $"{result.PreviousDifficulty:F2} -> {result.NewDifficulty:F2}");
                 }
 
@@ -79,7 +78,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DynamicDifficultyService] Error calculating difficulty: {e.Message}");
+                DifficultyLogger.LogError($"[DynamicDifficultyService] Error calculating difficulty: {e.Message}");
 
                 // Return no change on error
                 return new DifficultyResult
@@ -95,7 +94,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         {
             if (result == null)
             {
-                Debug.LogWarning("[DynamicDifficultyService] Cannot apply null difficulty result");
+                DifficultyLogger.LogWarning("[DynamicDifficultyService] Cannot apply null difficulty result");
                 return;
             }
 
@@ -117,18 +116,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError($"[DynamicDifficultyService] Error in modifier OnApplied: {e.Message}");
+                        DifficultyLogger.LogError($"[DynamicDifficultyService] Error in modifier OnApplied: {e.Message}");
                     }
                 }
 
                 if (config.EnableDebugLogs)
                 {
-                    Debug.Log($"[DynamicDifficultyService] Applied difficulty: {result.NewDifficulty:F2}");
+                    DifficultyLogger.Log($"[DynamicDifficultyService] Applied difficulty: {result.NewDifficulty:F2}");
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DynamicDifficultyService] Error applying difficulty: {e.Message}");
+                DifficultyLogger.LogError($"[DynamicDifficultyService] Error applying difficulty: {e.Message}");
             }
         }
 
@@ -136,7 +135,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         {
             if (modifier == null)
             {
-                Debug.LogWarning("[DynamicDifficultyService] Cannot register null modifier");
+                DifficultyLogger.LogWarning("[DynamicDifficultyService] Cannot register null modifier");
                 return;
             }
 
@@ -146,7 +145,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
                 if (config.EnableDebugLogs)
                 {
-                    Debug.Log($"[DynamicDifficultyService] Registered modifier: {modifier.ModifierName}");
+                    DifficultyLogger.Log($"[DynamicDifficultyService] Registered modifier: {modifier.ModifierName}");
                 }
             }
         }
@@ -157,7 +156,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
             {
                 if (config.EnableDebugLogs)
                 {
-                    Debug.Log($"[DynamicDifficultyService] Unregistered modifier: {modifier.ModifierName}");
+                    DifficultyLogger.Log($"[DynamicDifficultyService] Unregistered modifier: {modifier.ModifierName}");
                 }
             }
         }
@@ -172,12 +171,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
                 if (config.EnableDebugLogs)
                 {
-                    Debug.Log("[DynamicDifficultyService] Session started");
+                    DifficultyLogger.Log("[DynamicDifficultyService] Session started");
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DynamicDifficultyService] Error on session start: {e.Message}");
+                DifficultyLogger.LogError($"[DynamicDifficultyService] Error on session start: {e.Message}");
             }
         }
 
@@ -188,7 +187,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
             if (config.EnableDebugLogs)
             {
-                Debug.Log($"[DynamicDifficultyService] Level {levelId} started at difficulty {CurrentDifficulty:F2}");
+                DifficultyLogger.Log($"[DynamicDifficultyService] Level {levelId} started at difficulty {CurrentDifficulty:F2}");
             }
         }
 
@@ -214,13 +213,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 if (config.EnableDebugLogs)
                 {
                     var result = won ? "won" : "lost";
-                    Debug.Log($"[DynamicDifficultyService] Level {currentLevelId} {result} " +
+                    DifficultyLogger.Log($"[DynamicDifficultyService] Level {currentLevelId} {result} " +
                              $"in {completionTime:F1}s (Streaks: W{sessionData.WinStreak}/L{sessionData.LossStreak})");
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DynamicDifficultyService] Error on level complete: {e.Message}");
+                DifficultyLogger.LogError($"[DynamicDifficultyService] Error on level complete: {e.Message}");
             }
         }
 
@@ -232,12 +231,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
                 if (config.EnableDebugLogs)
                 {
-                    Debug.Log($"[DynamicDifficultyService] Session ended: {endType}");
+                    DifficultyLogger.Log($"[DynamicDifficultyService] Session ended: {endType}");
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DynamicDifficultyService] Error on session end: {e.Message}");
+                DifficultyLogger.LogError($"[DynamicDifficultyService] Error on session end: {e.Message}");
             }
         }
 
