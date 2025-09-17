@@ -9,7 +9,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
     /// </summary>
     public class DynamicDifficultyInitializer : IStartable
     {
-        private readonly ILogger logger;
+        private readonly TheOne.Logging.ILogger logger;
         private readonly IDynamicDifficultyService difficultyService;
 
         public DynamicDifficultyInitializer(ILoggerManager loggerManager, IDynamicDifficultyService difficultyService)
@@ -22,8 +22,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
         {
             this.logger.Info("[DynamicDifficulty] Module initialized successfully");
 
-            // Auto-register modifiers
-            this.difficultyService.RegisterAllModifiers();
+            // Modifiers are registered via DI in DynamicDifficultyModule
         }
     }
 }

@@ -19,7 +19,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         private readonly IDifficultyCalculator calculator;
         private readonly DifficultyConfig config;
         private readonly List<IDifficultyModifier> modifiers;
-        private readonly ILogger logger;
+        private readonly TheOne.Logging.ILogger logger;
 
         private int currentLevelId;
         private DateTime levelStartTime;

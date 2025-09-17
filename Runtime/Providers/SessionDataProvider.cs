@@ -15,7 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
         private PlayerSessionData cachedData;
         private DateTime cacheTime;
         private readonly TimeSpan cacheExpiry = TimeSpan.FromMinutes(DifficultyConstants.CACHE_EXPIRY_MINUTES);
-        private readonly ILogger logger;
+        private readonly TheOne.Logging.ILogger logger;
 
         public SessionDataProvider(ILoggerManager loggerManager)
         {

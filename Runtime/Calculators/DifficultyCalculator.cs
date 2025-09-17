@@ -8,6 +8,8 @@ using TheOneStudio.DynamicUserDifficulty.Modifiers;
 
 namespace TheOneStudio.DynamicUserDifficulty.Calculators
 {
+    using UnityEngine;
+
     /// <summary>
     /// Default implementation of difficulty calculator
     /// </summary>
@@ -15,7 +17,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
     {
         private readonly DifficultyConfig config;
         private readonly ModifierAggregator aggregator;
-        private readonly ILogger logger;
+        private readonly TheOne.Logging.ILogger logger;
 
         public DifficultyCalculator(DifficultyConfig config, ModifierAggregator aggregator, ILoggerManager loggerManager)
         {

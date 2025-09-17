@@ -11,6 +11,7 @@ using VContainer.Unity;
 
 namespace TheOneStudio.DynamicUserDifficulty.DI
 {
+    // Fixed: Removed duplicate DynamicDifficultyInitializer class
     /// <summary>
     /// VContainer module for registering Dynamic Difficulty dependencies
     /// </summary>
@@ -103,44 +104,6 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                     Debug.LogWarning($"[DynamicDifficultyModule] Unknown modifier type: {modifierConfig.ModifierType}");
                     break;
             }
-        }
-    }
-
-    /// <summary>
-    /// Initializer that registers all modifiers with the service on startup
-    /// </summary>
-    public class DynamicDifficultyInitializer : IInitializable
-    {
-        private readonly IDynamicDifficultyService difficultyService;
-        private readonly IEnumerable<IDifficultyModifier> modifiers;
-
-        public DynamicDifficultyInitializer(
-            IDynamicDifficultyService difficultyService,
-            IEnumerable<IDifficultyModifier> modifiers)
-        {
-            this.difficultyService = difficultyService;
-            this.modifiers = modifiers;
-        }
-
-        public void Initialize()
-        {
-            // Initialize the service
-            this.difficultyService.Initialize();
-
-            // Register all modifiers
-            if (this.modifiers != null)
-            {
-                foreach (var modifier in this.modifiers)
-                {
-                    if (modifier != null)
-                    {
-                        this.difficultyService.RegisterModifier(modifier);
-                        // Log will be handled in the service
-                    }
-                }
-            }
-
-            // Log will be handled in the service
         }
     }
 }
