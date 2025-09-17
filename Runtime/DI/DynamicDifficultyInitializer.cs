@@ -12,17 +12,14 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
         private readonly ILogger logger;
         private readonly IDynamicDifficultyService difficultyService;
 
-        public DynamicDifficultyInitializer(ILogger logger, IDynamicDifficultyService difficultyService)
+        public DynamicDifficultyInitializer(ILoggerManager loggerManager, IDynamicDifficultyService difficultyService)
         {
-            this.logger = logger;
+            this.logger = loggerManager?.GetLogger(this) ?? throw new System.ArgumentNullException(nameof(loggerManager));
             this.difficultyService = difficultyService;
         }
 
         public void Start()
         {
-            // Initialize the static logger
-            DifficultyLogger.Initialize(logger);
-
             logger.Info("[DynamicDifficulty] Module initialized successfully");
 
             // Auto-register modifiers

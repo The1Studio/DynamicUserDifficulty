@@ -1,5 +1,6 @@
 using System;
 using Newtonsoft.Json;
+using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using UnityEngine;
@@ -14,6 +15,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
         private PlayerSessionData cachedData;
         private DateTime cacheTime;
         private readonly TimeSpan cacheExpiry = TimeSpan.FromMinutes(DifficultyConstants.CACHE_EXPIRY_MINUTES);
+        private readonly ILogger logger;
+
+        public SessionDataProvider(ILoggerManager loggerManager)
+        {
+            this.logger = loggerManager?.GetLogger(this) ?? throw new ArgumentNullException(nameof(loggerManager));
+        }
 
         public PlayerSessionData GetCurrentSession()
         {
@@ -34,7 +41,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
         {
             if (data == null)
             {
-                DifficultyLogger.LogWarning("Attempted to save null session data");
+                logger.Warning("Attempted to save null session data");
                 return;
             }
 
@@ -129,7 +136,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
             }
             catch (Exception e)
             {
-                DifficultyLogger.LogError($"Error loading session data: {e.Message}");
+                logger.Error($"Error loading session data: {e.Message}");
                 return new PlayerSessionData();
             }
         }
@@ -152,7 +159,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
             }
             catch (Exception e)
             {
-                DifficultyLogger.LogError($"Error saving session data: {e.Message}");
+                logger.Error($"Error saving session data: {e.Message}");
             }
         }
 

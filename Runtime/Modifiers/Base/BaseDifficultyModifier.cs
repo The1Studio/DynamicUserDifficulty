@@ -1,5 +1,4 @@
 using TheOneStudio.DynamicUserDifficulty.Configuration;
-using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using UnityEngine;
 
@@ -55,7 +54,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             if (config != null && Application.isEditor)
             {
-                DifficultyLogger.Log($"[{ModifierName}] {message}");
+                Debug.Log($"[{ModifierName}] {message}");
             }
         }
     }

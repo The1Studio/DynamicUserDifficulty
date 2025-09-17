@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
-using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 
@@ -15,18 +15,20 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
     {
         private readonly DifficultyConfig config;
         private readonly ModifierAggregator aggregator;
+        private readonly ILogger logger;
 
-        public DifficultyCalculator(DifficultyConfig config, ModifierAggregator aggregator)
+        public DifficultyCalculator(DifficultyConfig config, ModifierAggregator aggregator, ILoggerManager loggerManager)
         {
             this.config = config;
             this.aggregator = aggregator;
+            this.logger = loggerManager.GetLogger(this);
         }
 
         public DifficultyResult Calculate(PlayerSessionData sessionData, IEnumerable<IDifficultyModifier> modifiers)
         {
             if (sessionData == null)
             {
-                DifficultyLogger.LogWarning("SessionData is null, returning default difficulty");
+                logger.Warning("SessionData is null, returning default difficulty");
                 return new DifficultyResult
                 {
                     PreviousDifficulty = config.DefaultDifficulty,
@@ -53,13 +55,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
 
                         if (config.EnableDebugLogs)
                         {
-                            DifficultyLogger.Log($"[DifficultyCalculator] {modifierResult.ModifierName}: {modifierResult.Value:F2} ({modifierResult.Reason})");
+                            logger.Info($"[DifficultyCalculator] {modifierResult.ModifierName}: {modifierResult.Value:F2} ({modifierResult.Reason})");
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    DifficultyLogger.LogError($"Error calculating modifier {modifier.ModifierName}: {e.Message}");
+                    logger.Error($"Error calculating modifier {modifier.ModifierName}: {e.Message}");
                 }
             }
 
@@ -91,7 +93,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
 
             if (config.EnableDebugLogs)
             {
-                DifficultyLogger.Log($"[DifficultyCalculator] Final: {currentDifficulty:F2} -> {newDifficulty:F2} " +
+                logger.Info($"[DifficultyCalculator] Final: {currentDifficulty:F2} -> {newDifficulty:F2} " +
                          $"(Change: {totalAdjustment:F2}, Reason: {result.PrimaryReason})");
             }
 
