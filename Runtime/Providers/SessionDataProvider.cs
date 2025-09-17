@@ -13,7 +13,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
     {
         private PlayerSessionData cachedData;
         private DateTime cacheTime;
-        private readonly TimeSpan cacheExpiry = TimeSpan.FromMinutes(5);
+        private readonly TimeSpan cacheExpiry = TimeSpan.FromMinutes(DifficultyConstants.CACHE_EXPIRY_MINUTES);
 
         public PlayerSessionData GetCurrentSession()
         {

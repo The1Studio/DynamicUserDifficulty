@@ -21,11 +21,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 return ModifierResult.NoChange();
 
             var hoursSincePlay = (DateTime.Now - sessionData.LastPlayTime).TotalHours;
-            var decayPerDay = GetParameter("DecayPerDay", 0.5f);
-            var maxDecay = GetParameter("MaxDecay", 2f);
-            var graceHours = GetParameter("GraceHours", DifficultyConstants.DEFAULT_GRACE_HOURS);
+            var decayPerDay = GetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY);
+            var maxDecay = GetParameter(DifficultyConstants.PARAM_MAX_DECAY, DifficultyConstants.TIME_DECAY_DEFAULT_MAX);
+            var graceHours = GetParameter(DifficultyConstants.PARAM_GRACE_HOURS, DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS);
 
-            float value = 0f;
+            float value = DifficultyConstants.ZERO_VALUE;
             string reason = "Recently played";
 
             if (hoursSincePlay > graceHours)
@@ -41,24 +41,24 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 value = Mathf.Max(value, -maxDecay);
 
                 // Apply response curve if configured
-                if (maxDecay > 0)
+                if (maxDecay > DifficultyConstants.ZERO_VALUE)
                 {
                     var normalizedValue = Mathf.Abs(value) / maxDecay;
                     value = -ApplyCurve(normalizedValue) * maxDecay;
                 }
 
                 // Format reason based on duration
-                if (daysAway < 1)
+                if (daysAway < 1f)
                 {
                     reason = $"Away for {hoursSincePlay:F1} hours";
                 }
-                else if (daysAway < 7)
+                else if (daysAway < DifficultyConstants.TIME_DECAY_WEEK_THRESHOLD)
                 {
                     reason = $"Away for {daysAway:F1} days";
                 }
                 else
                 {
-                    var weeks = daysAway / 7;
+                    var weeks = daysAway / DifficultyConstants.DAYS_IN_WEEK;
                     reason = $"Away for {weeks:F1} weeks";
                 }
 
@@ -75,7 +75,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                     ["hours_away"] = hoursSincePlay,
                     ["days_away"] = hoursSincePlay / DifficultyConstants.HOURS_IN_DAY,
                     ["grace_hours"] = graceHours,
-                    ["applied"] = value < 0
+                    ["applied"] = value < DifficultyConstants.ZERO_VALUE
                 }
             };
         }

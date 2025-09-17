@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TheOneStudio.DynamicUserDifficulty.Core;
 
 namespace TheOneStudio.DynamicUserDifficulty.Models
 {
@@ -27,7 +28,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         public static ModifierResult NoChange()
         {
-            return new ModifierResult("NoChange", 0f, "No change required");
+            return new ModifierResult("NoChange", DifficultyConstants.ZERO_VALUE, "No change required");
         }
     }
 }

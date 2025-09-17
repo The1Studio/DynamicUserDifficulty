@@ -1,4 +1,5 @@
 using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using UnityEngine;
 
@@ -18,11 +19,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             if (sessionData == null)
                 return ModifierResult.NoChange();
 
-            var lossThreshold = GetParameter("LossThreshold", 2f);
-            var stepSize = GetParameter("StepSize", 0.3f);
-            var maxReduction = GetParameter("MaxReduction", 1.5f);
+            var lossThreshold = GetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD, DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD);
+            var stepSize = GetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE);
+            var maxReduction = GetParameter(DifficultyConstants.PARAM_MAX_REDUCTION, DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION);
 
-            float value = 0f;
+            float value = DifficultyConstants.ZERO_VALUE;
             string reason = "No loss streak";
 
             if (sessionData.LossStreak >= lossThreshold)
@@ -34,7 +35,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 value = Mathf.Max(value, -maxReduction);
 
                 // Apply response curve if configured
-                if (maxReduction > 0)
+                if (maxReduction > DifficultyConstants.ZERO_VALUE)
                 {
                     var normalizedValue = Mathf.Abs(value) / maxReduction;
                     value = -ApplyCurve(normalizedValue) * maxReduction;
@@ -54,7 +55,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 {
                     ["streak"] = sessionData.LossStreak,
                     ["threshold"] = lossThreshold,
-                    ["applied"] = value < 0
+                    ["applied"] = value < DifficultyConstants.ZERO_VALUE
                 }
             };
         }

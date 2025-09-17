@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TheOneStudio.DynamicUserDifficulty.Core;
 
 namespace TheOneStudio.DynamicUserDifficulty.Models
 {
@@ -9,7 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
     [Serializable]
     public class PlayerSessionData
     {
-        public float CurrentDifficulty { get; set; } = 3f;
+        public float CurrentDifficulty { get; set; } = DifficultyConstants.DEFAULT_DIFFICULTY;
         public int WinStreak { get; set; }
         public int LossStreak { get; set; }
         public DateTime LastPlayTime { get; set; }
@@ -18,11 +19,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         public PlayerSessionData()
         {
-            CurrentDifficulty = 3f;
+            CurrentDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
             WinStreak = 0;
             LossStreak = 0;
             LastPlayTime = DateTime.Now;
-            RecentSessions = new Queue<SessionInfo>(10);
+            RecentSessions = new Queue<SessionInfo>(DifficultyConstants.MAX_RECENT_SESSIONS);
         }
 
         public void RecordWin(int levelId, float duration)
@@ -49,7 +50,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         private void AddRecentSession(SessionInfo session)
         {
-            if (RecentSessions.Count >= 10)
+            if (RecentSessions.Count >= DifficultyConstants.MAX_RECENT_SESSIONS)
             {
                 RecentSessions.Dequeue();
             }

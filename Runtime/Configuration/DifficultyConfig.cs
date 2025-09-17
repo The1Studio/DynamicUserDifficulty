@@ -11,16 +11,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
     public class DifficultyConfig : ScriptableObject
     {
         [Header("Difficulty Range")]
-        [SerializeField, Range(1f, 10f)]
+        [SerializeField, Range(DifficultyConstants.CONFIG_MIN_RANGE, DifficultyConstants.CONFIG_MAX_RANGE)]
         private float minDifficulty = DifficultyConstants.MIN_DIFFICULTY;
 
-        [SerializeField, Range(1f, 10f)]
+        [SerializeField, Range(DifficultyConstants.CONFIG_MIN_RANGE, DifficultyConstants.CONFIG_MAX_RANGE)]
         private float maxDifficulty = DifficultyConstants.MAX_DIFFICULTY;
 
-        [SerializeField, Range(1f, 10f)]
+        [SerializeField, Range(DifficultyConstants.CONFIG_MIN_RANGE, DifficultyConstants.CONFIG_MAX_RANGE)]
         private float defaultDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
 
-        [SerializeField, Range(0.5f, 5f)]
+        [SerializeField, Range(DifficultyConstants.CONFIG_CHANGE_MIN_RANGE, DifficultyConstants.CONFIG_CHANGE_MAX_RANGE)]
         private float maxChangePerSession = DifficultyConstants.DEFAULT_MAX_CHANGE;
 
         [Header("Modifiers")]
@@ -55,10 +55,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             var config = CreateInstance<DifficultyConfig>();
 
             // Set default values
-            config.minDifficulty = 1f;
-            config.maxDifficulty = 10f;
-            config.defaultDifficulty = 3f;
-            config.maxChangePerSession = 2f;
+            config.minDifficulty = DifficultyConstants.MIN_DIFFICULTY;
+            config.maxDifficulty = DifficultyConstants.MAX_DIFFICULTY;
+            config.defaultDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
+            config.maxChangePerSession = DifficultyConstants.DEFAULT_MAX_CHANGE_PER_SESSION;
 
             // Add default modifiers
             config.modifierConfigs = new List<ModifierConfig>
@@ -75,37 +75,37 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         private static ModifierConfig CreateWinStreakConfig()
         {
             var config = new ModifierConfig();
-            config.SetParameter("WinThreshold", 3f);
-            config.SetParameter("StepSize", 0.5f);
-            config.SetParameter("MaxBonus", 2f);
+            config.SetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD, DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD);
+            config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE);
+            config.SetParameter(DifficultyConstants.PARAM_MAX_BONUS, DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS);
             return config;
         }
 
         private static ModifierConfig CreateLossStreakConfig()
         {
             var config = new ModifierConfig();
-            config.SetParameter("LossThreshold", 2f);
-            config.SetParameter("StepSize", 0.3f);
-            config.SetParameter("MaxReduction", 1.5f);
+            config.SetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD, DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD);
+            config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE);
+            config.SetParameter(DifficultyConstants.PARAM_MAX_REDUCTION, DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION);
             return config;
         }
 
         private static ModifierConfig CreateTimeDecayConfig()
         {
             var config = new ModifierConfig();
-            config.SetParameter("DecayPerDay", 0.5f);
-            config.SetParameter("MaxDecay", 2f);
-            config.SetParameter("GraceHours", 6f);
+            config.SetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY);
+            config.SetParameter(DifficultyConstants.PARAM_MAX_DECAY, DifficultyConstants.TIME_DECAY_DEFAULT_MAX);
+            config.SetParameter(DifficultyConstants.PARAM_GRACE_HOURS, DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS);
             return config;
         }
 
         private static ModifierConfig CreateRageQuitConfig()
         {
             var config = new ModifierConfig();
-            config.SetParameter("RageQuitThreshold", 30f);
-            config.SetParameter("RageQuitReduction", 1f);
-            config.SetParameter("QuitReduction", 0.5f);
-            config.SetParameter("MidPlayReduction", 0.3f);
+            config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD, DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD);
+            config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION, DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION);
+            config.SetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION, DifficultyConstants.QUIT_DEFAULT_REDUCTION);
+            config.SetParameter(DifficultyConstants.PARAM_MID_PLAY_REDUCTION, DifficultyConstants.MID_PLAY_DEFAULT_REDUCTION);
             return config;
         }
 

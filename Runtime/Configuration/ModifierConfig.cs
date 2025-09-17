@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Configuration
@@ -14,10 +15,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         [Header("Basic Settings")]
         [SerializeField] private string modifierType;
         [SerializeField] private bool enabled = true;
-        [SerializeField] private int priority = 0;
+        [SerializeField] private int priority = DifficultyConstants.DEFAULT_MODIFIER_PRIORITY;
 
         [Header("Response Curve")]
-        [SerializeField] private AnimationCurve responseCurve = AnimationCurve.Linear(0, 0, 1, 1);
+        [SerializeField] private AnimationCurve responseCurve = AnimationCurve.Linear(
+            DifficultyConstants.CURVE_START_TIME,
+            DifficultyConstants.CURVE_START_VALUE,
+            DifficultyConstants.CURVE_END_TIME,
+            DifficultyConstants.CURVE_END_VALUE);
 
         [Header("Parameters")]
         [SerializeField] private List<ModifierParameter> parameters = new List<ModifierParameter>();
@@ -31,7 +36,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         /// <summary>
         /// Gets a parameter value by key
         /// </summary>
-        public float GetParameter(string key, float defaultValue = 0f)
+        public float GetParameter(string key, float defaultValue = DifficultyConstants.ZERO_VALUE)
         {
             var param = parameters?.FirstOrDefault(p => p.Key == key);
             return param?.Value ?? defaultValue;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TheOneStudio.DynamicUserDifficulty.Core;
 
 namespace TheOneStudio.DynamicUserDifficulty.Models
 {
@@ -44,6 +45,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         public float TotalAdjustment => NewDifficulty - PreviousDifficulty;
 
-        public bool HasChanged => Math.Abs(TotalAdjustment) > 0.01f;
+        public bool HasChanged => Math.Abs(TotalAdjustment) > DifficultyConstants.EPSILON;
     }
 }

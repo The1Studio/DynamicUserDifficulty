@@ -20,17 +20,17 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 return new ModifierResult
                 {
                     ModifierName = ModifierName,
-                    Value = 0f,
+                    Value = DifficultyConstants.ZERO_VALUE,
                     Reason = "No previous session"
                 };
             }
 
-            var rageQuitThreshold = GetParameter("RageQuitThreshold", DifficultyConstants.RAGE_QUIT_SECONDS);
-            var rageQuitReduction = GetParameter("RageQuitReduction", 1f);
-            var quitReduction = GetParameter("QuitReduction", 0.5f);
-            var midPlayReduction = GetParameter("MidPlayReduction", 0.3f);
+            var rageQuitThreshold = GetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD, DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD);
+            var rageQuitReduction = GetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION, DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION);
+            var quitReduction = GetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION, DifficultyConstants.QUIT_DEFAULT_REDUCTION);
+            var midPlayReduction = GetParameter(DifficultyConstants.PARAM_MID_PLAY_REDUCTION, DifficultyConstants.MID_PLAY_DEFAULT_REDUCTION);
 
-            float value = 0f;
+            float value = DifficultyConstants.ZERO_VALUE;
             string reason = "Normal session end";
             var lastSession = sessionData.LastSession;
 
@@ -57,7 +57,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                     break;
 
                 case SessionEndType.Timeout:
-                    value = -midPlayReduction * 0.5f;
+                    value = -midPlayReduction * DifficultyConstants.MID_PLAY_PARTIAL_MULTIPLIER;
                     reason = "Session timeout";
                     break;
 

@@ -9,7 +9,6 @@
   "changelogUrl": "https://github.com/theone-studio/dynamic-user-difficulty/CHANGELOG.md",
   "licensesUrl": "https://github.com/theone-studio/dynamic-user-difficulty/LICENSE.md",
   "dependencies": {
-    "com.theone.uitemplates": "1.0.0",
     "com.theone.extensions": "1.0.0",
     "com.cysharp.unitask": "2.3.0",
     "jp.hadashikick.vcontainer": "1.16.0"
