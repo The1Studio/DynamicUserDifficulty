@@ -13,8 +13,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
         /// Calculates the new difficulty based on session data and modifiers
         /// </summary>
         /// <param name="sessionData">Current player session data</param>
-        /// <param name="this.modifiers">Collection of difficulty this.modifiers to apply</param>
-        /// <returns>Result containing the calculated difficulty and applied this.modifiers</returns>
-        DifficultyResult Calculate(PlayerSessionData sessionData, IEnumerable<IDifficultyModifier> this.modifiers);
+        /// <param name="modifiers">Collection of difficulty modifiers to apply</param>
+        /// <returns>Result containing the calculated difficulty and applied modifiers</returns>
+        DifficultyResult Calculate(PlayerSessionData sessionData, IEnumerable<IDifficultyModifier> modifiers);
     }
 }

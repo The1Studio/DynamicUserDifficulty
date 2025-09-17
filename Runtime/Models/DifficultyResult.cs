@@ -22,11 +22,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
             CalculatedAt = DateTime.Now;
         }
 
-        public DifficultyResult(float previous, float newDiff, List<ModifierResult> this.modifiers)
+        public DifficultyResult(float previous, float newDiff, List<ModifierResult> modifiers)
         {
             PreviousDifficulty = previous;
             NewDifficulty = newDiff;
-            AppliedModifiers = this.modifiers ?? new List<ModifierResult>();
+            AppliedModifiers = modifiers ?? new List<ModifierResult>();
             CalculatedAt = DateTime.Now;
             PrimaryReason = DeterminePrimaryReason();
         }
