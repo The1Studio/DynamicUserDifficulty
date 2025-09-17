@@ -20,10 +20,10 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
 
         public void Start()
         {
-            logger.Info("[DynamicDifficulty] Module initialized successfully");
+            this.logger.Info("[DynamicDifficulty] Module initialized successfully");
 
             // Auto-register modifiers
-            difficultyService.RegisterAllModifiers();
+            this.difficultyService.RegisterAllModifiers();
         }
     }
 }

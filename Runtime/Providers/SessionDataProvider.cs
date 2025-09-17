@@ -25,29 +25,29 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
         public PlayerSessionData GetCurrentSession()
         {
             // Check cache
-            if (cachedData != null && DateTime.Now - cacheTime < cacheExpiry)
+            if (this.cachedData != null && DateTime.Now - this.cacheTime < this.cacheExpiry)
             {
-                return cachedData;
+                return this.cachedData;
             }
 
             // Load from PlayerPrefs
-            cachedData = LoadFromPlayerPrefs();
-            cacheTime = DateTime.Now;
+            this.cachedData = LoadFromPlayerPrefs();
+            this.cacheTime = DateTime.Now;
 
-            return cachedData;
+            return this.cachedData;
         }
 
         public void SaveSession(PlayerSessionData data)
         {
             if (data == null)
             {
-                logger.Warning("Attempted to save null session data");
+                this.logger.Warning("Attempted to save null session data");
                 return;
             }
 
             // Update cache
-            cachedData = data;
-            cacheTime = DateTime.Now;
+            this.cachedData = data;
+            this.cacheTime = DateTime.Now;
 
             // Save to PlayerPrefs
             SaveToPlayerPrefs(data);
@@ -87,7 +87,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
         public void ClearData()
         {
             // Clear cache
-            cachedData = null;
+            this.cachedData = null;
 
             // Clear PlayerPrefs
             PlayerPrefs.DeleteKey(DifficultyConstants.PREFS_CURRENT_DIFFICULTY);
@@ -136,7 +136,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
             }
             catch (Exception e)
             {
-                logger.Error($"Error loading session data: {e.Message}");
+                this.logger.Error($"Error loading session data: {e.Message}");
                 return new PlayerSessionData();
             }
         }
@@ -159,14 +159,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
             }
             catch (Exception e)
             {
-                logger.Error($"Error saving session data: {e.Message}");
+                this.logger.Error($"Error saving session data: {e.Message}");
             }
         }
 
         public void Dispose()
         {
             // Clear cache on dispose
-            cachedData = null;
+            this.cachedData = null;
         }
     }
 }

@@ -55,14 +55,14 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
         private void RegisterModifiers(IContainerBuilder builder)
         {
             // Get modifier configs from DifficultyConfig
-            if (config.ModifierConfigs == null || config.ModifierConfigs.Count == 0)
+            if (this.config.ModifierConfigs == null || this.config.ModifierConfigs.Count == 0)
             {
                 Debug.LogWarning("[DynamicDifficultyModule] No modifier configs found");
                 return;
             }
 
             // Register each configured modifier
-            foreach (var modifierConfig in config.ModifierConfigs)
+            foreach (var modifierConfig in this.config.ModifierConfigs)
             {
                 if (modifierConfig == null)
                     continue;
@@ -125,16 +125,16 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
         public void Initialize()
         {
             // Initialize the service
-            difficultyService.Initialize();
+            this.difficultyService.Initialize();
 
             // Register all modifiers
-            if (modifiers != null)
+            if (this.modifiers != null)
             {
-                foreach (var modifier in modifiers)
+                foreach (var modifier in this.modifiers)
                 {
                     if (modifier != null)
                     {
-                        difficultyService.RegisterModifier(modifier);
+                        this.difficultyService.RegisterModifier(modifier);
                         // Log will be handled in the service
                     }
                 }

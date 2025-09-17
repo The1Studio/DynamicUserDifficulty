@@ -28,11 +28,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
         {
             if (sessionData == null)
             {
-                logger.Warning("SessionData is null, returning default difficulty");
+                this.logger.Warning("SessionData is null, returning default difficulty");
                 return new DifficultyResult
                 {
-                    PreviousDifficulty = config.DefaultDifficulty,
-                    NewDifficulty = config.DefaultDifficulty,
+                    PreviousDifficulty = this.config.DefaultDifficulty,
+                    NewDifficulty = this.config.DefaultDifficulty,
                     PrimaryReason = "No session data"
                 };
             }
@@ -53,26 +53,26 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
                     {
                         modifierResults.Add(modifierResult);
 
-                        if (config.EnableDebugLogs)
+                        if (this.config.EnableDebugLogs)
                         {
-                            logger.Info($"[DifficultyCalculator] {modifierResult.ModifierName}: {modifierResult.Value:F2} ({modifierResult.Reason})");
+                            this.logger.Info($"[DifficultyCalculator] {modifierResult.ModifierName}: {modifierResult.Value:F2} ({modifierResult.Reason})");
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    logger.Error($"Error calculating modifier {modifier.ModifierName}: {e.Message}");
+                    this.logger.Error($"Error calculating modifier {modifier.ModifierName}: {e.Message}");
                 }
             }
 
             // Aggregate all modifier values
-            var totalAdjustment = aggregator.Aggregate(modifierResults);
+            var totalAdjustment = this.aggregator.Aggregate(modifierResults);
 
             // Apply max change per session limit
             totalAdjustment = Mathf.Clamp(
                 totalAdjustment,
-                -config.MaxChangePerSession,
-                config.MaxChangePerSession
+                -this.config.MaxChangePerSession,
+                this.config.MaxChangePerSession
             );
 
             // Calculate new difficulty
@@ -91,9 +91,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
                 PrimaryReason = GetPrimaryReason(modifierResults)
             };
 
-            if (config.EnableDebugLogs)
+            if (this.config.EnableDebugLogs)
             {
-                logger.Info($"[DifficultyCalculator] Final: {currentDifficulty:F2} -> {newDifficulty:F2} " +
+                this.logger.Info($"[DifficultyCalculator] Final: {currentDifficulty:F2} -> {newDifficulty:F2} " +
                          $"(Change: {totalAdjustment:F2}, Reason: {result.PrimaryReason})");
             }
 
@@ -102,7 +102,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
 
         private float ClampDifficulty(float value)
         {
-            return Mathf.Clamp(value, config.MinDifficulty, config.MaxDifficulty);
+            return Mathf.Clamp(value, this.config.MinDifficulty, this.config.MaxDifficulty);
         }
 
         private string GetPrimaryReason(List<ModifierResult> results)

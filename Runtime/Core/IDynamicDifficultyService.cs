@@ -21,7 +21,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         /// <summary>
         /// Calculates new difficulty based on current session data
         /// </summary>
-        /// <returns>Result containing new difficulty and applied modifiers</returns>
+        /// <returns>Result containing new difficulty and applied this.modifiers</returns>
         DifficultyResult CalculateDifficulty();
 
         /// <summary>

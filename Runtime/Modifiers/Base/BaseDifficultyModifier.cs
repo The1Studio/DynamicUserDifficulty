@@ -43,7 +43,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         protected float ApplyCurve(float input)
         {
             if (config?.ResponseCurve != null)
-                return config.ResponseCurve.Evaluate(Mathf.Clamp01(input));
+                return this.config.ResponseCurve.Evaluate(Mathf.Clamp01(input));
             return input;
         }
 
