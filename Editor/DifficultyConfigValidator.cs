@@ -5,6 +5,8 @@ using TheOneStudio.DynamicUserDifficulty.Configuration;
 
 namespace TheOneStudio.DynamicUserDifficulty.Editor
 {
+    using TheOneStudio.DynamicUserDifficulty.Core;
+
     /// <summary>
     /// Editor validator that checks for DifficultyConfig existence on Unity load
     /// and helps developers create it if missing

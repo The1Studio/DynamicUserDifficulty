@@ -5,6 +5,8 @@ using System.IO;
 
 namespace TheOneStudio.DynamicUserDifficulty.Editor
 {
+    using TheOneStudio.DynamicUserDifficulty.Core;
+
     /// <summary>
     /// Editor tool for creating DifficultyConfig assets
     /// </summary>

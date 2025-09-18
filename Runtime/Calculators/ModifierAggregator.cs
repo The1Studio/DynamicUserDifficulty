@@ -62,7 +62,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
         /// <summary>
         /// Alternative aggregation with diminishing returns
         /// </summary>
-        public float AggregateDiminishing(List<ModifierResult> results, float diminishFactor = DifficultyConstants.DEFAULT_DIMINISHING_FACTOR)
+        public float AggregateDiminishing(List<ModifierResult> results, float diminishFactor = 0.5f)
         {
             if (results == null || results.Count == 0)
                 return DifficultyConstants.ZERO_VALUE;
