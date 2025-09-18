@@ -151,5 +151,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         // ========== RESET VALUES ==========
         /// <summary>Value used to reset win/loss streaks to zero</summary>
         public const int STREAK_RESET_VALUE = 0;
+        // ========== FOLDER NAMES ==========
+        /// <summary>Base Assets folder name for Unity folder operations</summary>
+        public const string FOLDER_NAME_ASSETS = "Assets";
+        
+        /// <summary>Resources folder name for Unity folder operations</summary>
+        public const string FOLDER_NAME_RESOURCES = "Resources";
+        
+        /// <summary>Configs folder name for Unity folder operations</summary>
+        public const string FOLDER_NAME_CONFIGS = "Configs";
+
+        // ========== INTEGRATION PATHS ==========
+        /// <summary>Path to GameLifetimeScope for integration validation</summary>
+        public const string INTEGRATION_GAMELIFETIMESCOPE_PATH = "Assets/Scripts/GameLifetimeScope.cs";
     }
 }

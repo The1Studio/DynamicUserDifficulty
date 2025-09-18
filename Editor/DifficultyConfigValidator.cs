@@ -66,12 +66,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
             // Ensure directories exist
             if (!AssetDatabase.IsValidFolder(RESOURCES_PATH))
             {
-                AssetDatabase.CreateFolder("Assets", "Resources");
+                AssetDatabase.CreateFolder(DifficultyConstants.FOLDER_NAME_ASSETS, DifficultyConstants.FOLDER_NAME_RESOURCES);
             }
 
             if (!AssetDatabase.IsValidFolder(CONFIGS_PATH))
             {
-                AssetDatabase.CreateFolder(RESOURCES_PATH, "Configs");
+                AssetDatabase.CreateFolder(RESOURCES_PATH, DifficultyConstants.FOLDER_NAME_CONFIGS);
             }
 
             // Create the config asset
@@ -142,7 +142,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
             }
 
             // Check if integrated in GameLifetimeScope
-            var gameLifetimeScopePath = "Assets/Scripts/GameLifetimeScope.cs";
+            var gameLifetimeScopePath = DifficultyConstants.INTEGRATION_GAMELIFETIMESCOPE_PATH;
             if (File.Exists(gameLifetimeScopePath))
             {
                 var content = File.ReadAllText(gameLifetimeScopePath);

@@ -161,6 +161,18 @@ DifficultyConstants.DEFAULT_AGGREGATION_WEIGHT // 1f
 DifficultyConstants.DEFAULT_DIMINISHING_FACTOR // 0.5f
 ```
 
+### 📁 **Folder Names**
+```csharp
+DifficultyConstants.FOLDER_NAME_ASSETS      // "Assets"
+DifficultyConstants.FOLDER_NAME_RESOURCES   // "Resources"
+DifficultyConstants.FOLDER_NAME_CONFIGS     // "Configs"
+```
+
+### 🔗 **Integration Paths**
+```csharp
+DifficultyConstants.INTEGRATION_GAMELIFETIMESCOPE_PATH // "Assets/Scripts/GameLifetimeScope.cs"
+```
+
 ### 💾 **PlayerPrefs Keys**
 ```csharp
 DifficultyConstants.PREFS_CURRENT_DIFFICULTY // "DUD_CurrentDifficulty"
