@@ -88,6 +88,98 @@ var threshold = GetParameter(DifficultyConstants.PARAM_NEW_MODIFIER_THRESHOLD,
    - Add case in `DynamicDifficultyModule.RegisterModifierByType()`
    - Use consistent modifier type string naming
 
+## 📋 Constants Reference (`DifficultyConstants.cs`)
+
+The module uses centralized constants to eliminate hardcoding. All configurable values, paths, and identifiers are defined in `Runtime/Core/DifficultyConstants.cs`.
+
+### 🎯 **Modifier Type Names**
+Use these constants instead of hardcoded strings:
+```csharp
+DifficultyConstants.MODIFIER_TYPE_WIN_STREAK    // "WinStreak"
+DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK   // "LossStreak"
+DifficultyConstants.MODIFIER_TYPE_TIME_DECAY    // "TimeDecay"
+DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT     // "RageQuit"
+```
+
+### 📂 **Resource and Asset Paths**
+**Resources Loading (Runtime):**
+```csharp
+DifficultyConstants.RESOURCES_PATH_GAMECONFIGS  // "GameConfigs/DifficultyConfig"
+DifficultyConstants.RESOURCES_PATH_CONFIGS      // "Configs/DifficultyConfig"
+DifficultyConstants.RESOURCES_PATH_ROOT         // "DifficultyConfig"
+```
+
+**Asset Paths (Editor):**
+```csharp
+DifficultyConstants.ASSET_PATH_GAMECONFIGS      // "Assets/Resources/GameConfigs/DifficultyConfig.asset"
+DifficultyConstants.ASSET_PATH_CONFIGS          // "Assets/Resources/Configs/DifficultyConfig.asset"
+DifficultyConstants.ASSET_PATH_ROOT             // "Assets/Resources/DifficultyConfig.asset"
+```
+
+**Directory Paths:**
+```csharp
+DifficultyConstants.ASSET_DIRECTORY_RESOURCES    // "Assets/Resources"
+DifficultyConstants.ASSET_DIRECTORY_GAMECONFIGS  // "Assets/Resources/GameConfigs"
+DifficultyConstants.ASSET_DIRECTORY_CONFIGS      // "Assets/Resources/Configs"
+```
+
+### 🎨 **Unity Menu Paths**
+```csharp
+DifficultyConstants.MENU_CREATE_ASSET    // "DynamicDifficulty/Config"
+DifficultyConstants.MENU_CREATE_CONFIG   // "Tools/Dynamic Difficulty/Create Default Config"
+DifficultyConstants.MENU_FIND_CONFIG     // "Tools/Dynamic Difficulty/Find Config"
+```
+
+### 📅 **DateTime Formats**
+```csharp
+DifficultyConstants.DATETIME_FORMAT_DATE // "yyyy-MM-dd" (daily tracking)
+DifficultyConstants.DATETIME_FORMAT_ISO  // "O" (precise serialization)
+```
+
+### ⚙️ **Configuration Values**
+**Difficulty Range:**
+```csharp
+DifficultyConstants.MIN_DIFFICULTY               // 1f
+DifficultyConstants.MAX_DIFFICULTY               // 10f
+DifficultyConstants.DEFAULT_DIFFICULTY           // 3f
+DifficultyConstants.DEFAULT_MAX_CHANGE_PER_SESSION // 2f
+```
+
+**Modifier Defaults:**
+```csharp
+DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD    // 3f
+DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD   // 2f
+DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS  // 6f
+DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD        // 30f
+```
+
+**Common Values:**
+```csharp
+DifficultyConstants.ZERO_VALUE              // 0f
+DifficultyConstants.STREAK_RESET_VALUE      // 0
+DifficultyConstants.DEFAULT_AGGREGATION_WEIGHT // 1f
+DifficultyConstants.DEFAULT_DIMINISHING_FACTOR // 0.5f
+```
+
+### 💾 **PlayerPrefs Keys**
+```csharp
+DifficultyConstants.PREFS_CURRENT_DIFFICULTY // "DUD_CurrentDifficulty"
+DifficultyConstants.PREFS_WIN_STREAK         // "DUD_WinStreak"
+DifficultyConstants.PREFS_LOSS_STREAK        // "DUD_LossStreak"
+DifficultyConstants.PREFS_SESSION_DATA       // "DUD_SessionData"
+```
+
+### 🔑 **Parameter Keys**
+```csharp
+DifficultyConstants.PARAM_WIN_THRESHOLD      // "WinThreshold"
+DifficultyConstants.PARAM_STEP_SIZE          // "StepSize"
+DifficultyConstants.PARAM_MAX_BONUS          // "MaxBonus"
+DifficultyConstants.PARAM_DECAY_PER_DAY      // "DecayPerDay"
+// ... and more
+```
+
+**⚠️ Important:** Always use these constants instead of hardcoded values. This ensures consistency, maintainability, and prevents typos that could cause runtime issues.
+
 ## Module Overview
 
 The DynamicUserDifficulty service is a Unity module within the UITemplate framework for implementing adaptive difficulty based on player performance. It integrates with the existing Screw3D gameplay system and UITemplate's data controllers.

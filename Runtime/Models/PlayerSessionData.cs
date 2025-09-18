@@ -20,8 +20,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         public PlayerSessionData()
         {
             CurrentDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
-            WinStreak = 0;
-            LossStreak = 0;
+            WinStreak = DifficultyConstants.STREAK_RESET_VALUE;
+            LossStreak = DifficultyConstants.STREAK_RESET_VALUE;
             LastPlayTime = DateTime.Now;
             RecentSessions = new Queue<SessionInfo>(DifficultyConstants.MAX_RECENT_SESSIONS);
         }
@@ -29,7 +29,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         public void RecordWin(int levelId, float duration)
         {
             WinStreak++;
-            LossStreak = 0;
+            LossStreak = DifficultyConstants.STREAK_RESET_VALUE;
             LastPlayTime = DateTime.Now;
 
             var session = new SessionInfo(levelId, true, duration, SessionEndType.CompletedWin);
@@ -40,7 +40,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         public void RecordLoss(int levelId, float duration)
         {
             LossStreak++;
-            WinStreak = 0;
+            WinStreak = DifficultyConstants.STREAK_RESET_VALUE;
             LastPlayTime = DateTime.Now;
 
             var session = new SessionInfo(levelId, false, duration, SessionEndType.CompletedLoss);
@@ -59,8 +59,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         public void ResetStreaks()
         {
-            WinStreak = 0;
-            LossStreak = 0;
+            WinStreak = DifficultyConstants.STREAK_RESET_VALUE;
+            LossStreak = DifficultyConstants.STREAK_RESET_VALUE;
         }
     }
 }

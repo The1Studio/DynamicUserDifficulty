@@ -10,14 +10,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
     /// </summary>
     public static class DifficultyConfigCreator
     {
-        [MenuItem("Tools/Dynamic Difficulty/Create Default Config")]
+        [MenuItem(DifficultyConstants.MENU_CREATE_CONFIG)]
         public static void CreateDefaultConfig()
         {
-            // Possible paths to try
+            // Possible paths to try using constants
             string[] possiblePaths = {
-                "Assets/Resources/GameConfigs/DifficultyConfig.asset",
-                "Assets/Resources/Configs/DifficultyConfig.asset",
-                "Assets/Resources/DifficultyConfig.asset"
+                DifficultyConstants.ASSET_PATH_GAMECONFIGS,
+                DifficultyConstants.ASSET_PATH_CONFIGS,
+                DifficultyConstants.ASSET_PATH_ROOT
             };
 
             // Check if any config already exists
@@ -30,7 +30,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
                     Selection.activeObject = existingConfig;
                     EditorGUIUtility.PingObject(existingConfig);
                     EditorUtility.DisplayDialog("Config Already Exists",
-                        $"DifficultyConfig already exists at:\n{path}", "OK");
+                        $"DifficultyConfig already exists at:\\n{path}", "OK");
                     return;
                 }
             }
@@ -63,18 +63,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
             // Show success message
             EditorUtility.DisplayDialog(
                 "Config Created Successfully",
-                $"DifficultyConfig created at:\n{targetPath}\n\nYou can now customize the settings in the Inspector.",
+                $"DifficultyConfig created at:\\n{targetPath}\\n\\nYou can now customize the settings in the Inspector.",
                 "OK");
         }
 
-        [MenuItem("Tools/Dynamic Difficulty/Find Config")]
+        [MenuItem(DifficultyConstants.MENU_FIND_CONFIG)]
         public static void FindConfig()
         {
-            // Try to find existing config
+            // Try to find existing config using constants
             string[] possiblePaths = {
-                "Assets/Resources/GameConfigs/DifficultyConfig.asset",
-                "Assets/Resources/Configs/DifficultyConfig.asset",
-                "Assets/Resources/DifficultyConfig.asset"
+                DifficultyConstants.ASSET_PATH_GAMECONFIGS,
+                DifficultyConstants.ASSET_PATH_CONFIGS,
+                DifficultyConstants.ASSET_PATH_ROOT
             };
 
             foreach (var path in possiblePaths)
@@ -93,7 +93,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
             Debug.LogWarning("[DynamicDifficulty] DifficultyConfig not found in any standard location");
             if (EditorUtility.DisplayDialog(
                 "Config Not Found",
-                "DifficultyConfig not found in Resources.\nWould you like to create a default configuration?",
+                "DifficultyConfig not found in Resources.\\nWould you like to create a default configuration?",
                 "Create Config",
                 "Cancel"))
             {

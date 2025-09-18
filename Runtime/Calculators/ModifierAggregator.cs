@@ -18,7 +18,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
         public virtual float Aggregate(List<ModifierResult> results)
         {
             if (results == null || results.Count == 0)
-                return 0f;
+                return DifficultyConstants.ZERO_VALUE;
 
             // Default strategy: Sum all modifier values
             return results.Sum(r => r.Value);
@@ -30,19 +30,20 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
         public float AggregateWeighted(List<ModifierResult> results, Dictionary<string, float> weights)
         {
             if (results == null || results.Count == 0)
-                return 0f;
+                return DifficultyConstants.ZERO_VALUE;
 
-            float totalValue = 0f;
-            float totalWeight = 0f;
+            float totalValue = DifficultyConstants.ZERO_VALUE;
+            float totalWeight = DifficultyConstants.ZERO_VALUE;
 
             foreach (var result in results)
             {
-                float weight = weights?.GetValueOrDefault(result.ModifierName, 1f) ?? 1f;
+                float weight = weights?.GetValueOrDefault(result.ModifierName, DifficultyConstants.DEFAULT_AGGREGATION_WEIGHT) 
+                              ?? DifficultyConstants.DEFAULT_AGGREGATION_WEIGHT;
                 totalValue += result.Value * weight;
                 totalWeight += weight;
             }
 
-            return totalWeight > 0 ? totalValue / totalWeight : 0f;
+            return totalWeight > DifficultyConstants.ZERO_VALUE ? totalValue / totalWeight : DifficultyConstants.ZERO_VALUE;
         }
 
         /// <summary>
@@ -51,25 +52,25 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
         public float AggregateMax(List<ModifierResult> results)
         {
             if (results == null || results.Count == 0)
-                return 0f;
+                return DifficultyConstants.ZERO_VALUE;
 
             var maxResult = results.OrderByDescending(r => Mathf.Abs(r.Value)).FirstOrDefault();
-            return maxResult?.Value ?? 0f;
+            return maxResult?.Value ?? DifficultyConstants.ZERO_VALUE;
         }
 
         /// <summary>
         /// Alternative aggregation with diminishing returns
         /// </summary>
-        public float AggregateDiminishing(List<ModifierResult> results, float diminishFactor = 0.5f)
+        public float AggregateDiminishing(List<ModifierResult> results, float diminishFactor = DifficultyConstants.DEFAULT_DIMINISHING_FACTOR)
         {
             if (results == null || results.Count == 0)
-                return 0f;
+                return DifficultyConstants.ZERO_VALUE;
 
             // Sort by absolute value (largest first)
             var sortedResults = results.OrderByDescending(r => Mathf.Abs(r.Value)).ToList();
 
-            float total = 0f;
-            float currentFactor = 1f;
+            float total = DifficultyConstants.ZERO_VALUE;
+            float currentFactor = DifficultyConstants.DEFAULT_AGGREGATION_WEIGHT;
 
             foreach (var result in sortedResults)
             {

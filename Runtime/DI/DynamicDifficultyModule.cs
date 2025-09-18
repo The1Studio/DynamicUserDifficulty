@@ -91,25 +91,25 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
         {
             switch (modifierConfig.ModifierType)
             {
-                case "WinStreak":
+                case DifficultyConstants.MODIFIER_TYPE_WIN_STREAK:
                     builder.Register<WinStreakModifier>(Lifetime.Singleton)
                         .WithParameter(modifierConfig)
                         .As<IDifficultyModifier>();
                     break;
 
-                case "LossStreak":
+                case DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK:
                     builder.Register<LossStreakModifier>(Lifetime.Singleton)
                         .WithParameter(modifierConfig)
                         .As<IDifficultyModifier>();
                     break;
 
-                case "TimeDecay":
+                case DifficultyConstants.MODIFIER_TYPE_TIME_DECAY:
                     builder.Register<TimeDecayModifier>(Lifetime.Singleton)
                         .WithParameter(modifierConfig)
                         .As<IDifficultyModifier>();
                     break;
 
-                case "RageQuit":
+                case DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT:
                     builder.Register<RageQuitModifier>(Lifetime.Singleton)
                         .WithParameter(modifierConfig)
                         .As<IDifficultyModifier>();
@@ -123,11 +123,11 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
 
         private DifficultyConfig LoadConfigFromResources()
         {
-            // Try multiple common paths
+            // Try multiple common paths using constants
             string[] possiblePaths = {
-                "GameConfigs/DifficultyConfig",
-                "Configs/DifficultyConfig", 
-                "DifficultyConfig"
+                DifficultyConstants.RESOURCES_PATH_GAMECONFIGS,
+                DifficultyConstants.RESOURCES_PATH_CONFIGS, 
+                DifficultyConstants.RESOURCES_PATH_ROOT
             };
 
             foreach (var path in possiblePaths)

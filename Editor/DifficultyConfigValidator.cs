@@ -12,9 +12,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
     [InitializeOnLoad]
     public static class DifficultyConfigValidator
     {
-        private const string RESOURCES_PATH = "Assets/Resources";
-        private const string CONFIGS_PATH = "Assets/Resources/Configs";
-        private const string CONFIG_ASSET_PATH = "Assets/Resources/Configs/DifficultyConfig.asset";
+        // Use constants instead of hardcoded paths
+        private static readonly string RESOURCES_PATH = DifficultyConstants.ASSET_DIRECTORY_RESOURCES;
+        private static readonly string CONFIGS_PATH = DifficultyConstants.ASSET_DIRECTORY_CONFIGS;
+        private static readonly string CONFIG_ASSET_PATH = DifficultyConstants.ASSET_PATH_CONFIGS;
         private const string PREF_KEY_SKIP_CHECK = "DynamicDifficulty_SkipConfigCheck";
         private const string PREF_KEY_LAST_CHECK = "DynamicDifficulty_LastConfigCheck";
 
@@ -26,7 +27,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
 
             // Check only once per session
             var lastCheck = EditorPrefs.GetString(PREF_KEY_LAST_CHECK, "");
-            var currentSession = System.DateTime.Now.ToString("yyyy-MM-dd");
+            var currentSession = System.DateTime.Now.ToString(DifficultyConstants.DATETIME_FORMAT_DATE);
             if (lastCheck == currentSession)
                 return;
 
@@ -45,7 +46,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
 
             // Check if any DifficultyConfig exists anywhere in the project
             var guids = AssetDatabase.FindAssets("t:DifficultyConfig");
-            if (guids.Length > 0)
+            if (guids.Length > DifficultyConstants.STREAK_RESET_VALUE)
             {
                 Debug.Log($"[DynamicDifficulty] Found existing DifficultyConfig at: {AssetDatabase.GUIDToAssetPath(guids[0])}");
                 return;
@@ -130,7 +131,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
                 messages.AppendLine("✅ DifficultyConfig found");
 
                 // Validate config settings
-                if (config.ModifierConfigs == null || config.ModifierConfigs.Count == 0)
+                if (config.ModifierConfigs == null || config.ModifierConfigs.Count == DifficultyConstants.STREAK_RESET_VALUE)
                 {
                     messages.AppendLine("⚠️ No modifiers configured");
                 }

@@ -88,5 +88,68 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         public const string PARAM_RAGE_QUIT_REDUCTION = "RageQuitReduction";
         public const string PARAM_QUIT_REDUCTION = "QuitReduction";
         public const string PARAM_MID_PLAY_REDUCTION = "MidPlayReduction";
+
+        // ========== MODIFIER TYPE NAMES ==========
+        /// <summary>Identifier for Win Streak modifier in configurations</summary>
+        public const string MODIFIER_TYPE_WIN_STREAK = "WinStreak";
+        
+        /// <summary>Identifier for Loss Streak modifier in configurations</summary>
+        public const string MODIFIER_TYPE_LOSS_STREAK = "LossStreak";
+        
+        /// <summary>Identifier for Time Decay modifier in configurations</summary>
+        public const string MODIFIER_TYPE_TIME_DECAY = "TimeDecay";
+        
+        /// <summary>Identifier for Rage Quit modifier in configurations</summary>
+        public const string MODIFIER_TYPE_RAGE_QUIT = "RageQuit";
+
+        // ========== RESOURCE PATHS ==========
+        /// <summary>Resources path for DifficultyConfig in GameConfigs folder</summary>
+        public const string RESOURCES_PATH_GAMECONFIGS = "GameConfigs/DifficultyConfig";
+        
+        /// <summary>Resources path for DifficultyConfig in Configs folder</summary>
+        public const string RESOURCES_PATH_CONFIGS = "Configs/DifficultyConfig";
+        
+        /// <summary>Resources path for DifficultyConfig in root Resources folder</summary>
+        public const string RESOURCES_PATH_ROOT = "DifficultyConfig";
+        
+        // ========== ASSET PATHS ==========
+        /// <summary>Primary asset path for DifficultyConfig (recommended location)</summary>
+        public const string ASSET_PATH_GAMECONFIGS = "Assets/Resources/GameConfigs/DifficultyConfig.asset";
+        
+        /// <summary>Alternative asset path for DifficultyConfig in Configs folder</summary>
+        public const string ASSET_PATH_CONFIGS = "Assets/Resources/Configs/DifficultyConfig.asset";
+        
+        /// <summary>Fallback asset path for DifficultyConfig in root Resources</summary>
+        public const string ASSET_PATH_ROOT = "Assets/Resources/DifficultyConfig.asset";
+        
+        /// <summary>Base Resources directory path</summary>
+        public const string ASSET_DIRECTORY_RESOURCES = "Assets/Resources";
+        
+        /// <summary>GameConfigs directory path (recommended for config assets)</summary>
+        public const string ASSET_DIRECTORY_GAMECONFIGS = "Assets/Resources/GameConfigs";
+        
+        /// <summary>Alternative Configs directory path</summary>
+        public const string ASSET_DIRECTORY_CONFIGS = "Assets/Resources/Configs";
+
+        // ========== UNITY MENU PATHS ==========
+        /// <summary>Unity Create Asset menu path for DifficultyConfig</summary>
+        public const string MENU_CREATE_ASSET = "DynamicDifficulty/Config";
+        
+        /// <summary>Unity Editor menu path for creating default config</summary>
+        public const string MENU_CREATE_CONFIG = "Tools/Dynamic Difficulty/Create Default Config";
+        
+        /// <summary>Unity Editor menu path for finding existing config</summary>
+        public const string MENU_FIND_CONFIG = "Tools/Dynamic Difficulty/Find Config";
+
+        // ========== DATETIME FORMATS ==========
+        /// <summary>Date format for daily session tracking (yyyy-MM-dd)</summary>
+        public const string DATETIME_FORMAT_DATE = "yyyy-MM-dd";
+        
+        /// <summary>ISO 8601 format for precise datetime serialization</summary>
+        public const string DATETIME_FORMAT_ISO = "O";
+
+        // ========== RESET VALUES ==========
+        /// <summary>Value used to reset win/loss streaks to zero</summary>
+        public const int STREAK_RESET_VALUE = 0;
     }
 }

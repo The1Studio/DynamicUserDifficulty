@@ -7,7 +7,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
     /// <summary>
     /// Main configuration ScriptableObject for difficulty settings
     /// </summary>
-    [CreateAssetMenu(fileName = "DifficultyConfig", menuName = "DynamicDifficulty/Config")]
+    [CreateAssetMenu(fileName = "DifficultyConfig", menuName = DifficultyConstants.MENU_CREATE_ASSET)]
     public class DifficultyConfig : ScriptableObject
     {
         [Header("Difficulty Range")]
