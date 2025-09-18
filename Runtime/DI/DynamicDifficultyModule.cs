@@ -28,13 +28,28 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
         {
             if (config == null)
             {
-                Debug.LogError("[DynamicDifficultyModule] DifficultyConfig is null, skipping registration");
-                return;
+                // Try to load config from Resources
+                var loadedConfig = LoadConfigFromResources();
+                if (loadedConfig != null)
+                {
+                    Debug.Log("[DynamicDifficultyModule] Found DifficultyConfig in Resources, using it");
+                    // Update the config reference
+                    System.Reflection.FieldInfo configField = this.GetType().GetField("config", 
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    configField?.SetValue(this, loadedConfig);
+                }
+                else
+                {
+                    Debug.LogError("[DynamicDifficultyModule] DifficultyConfig is null and not found in Resources. " +
+                                   "Please create a DifficultyConfig asset at Resources/GameConfigs/DifficultyConfig or " +
+                                   "use Tools > Dynamic Difficulty > Create Default Config. " +
+                                   "Skipping Dynamic Difficulty registration.");
+                    return;
+                }
             }
 
-
             // Register configuration
-            builder.RegisterInstance(config);
+            builder.RegisterInstance(this.config);
 
             // Register core service
             builder.Register<IDynamicDifficultyService, DynamicDifficultyService>(Lifetime.Singleton);
@@ -104,6 +119,30 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                     Debug.LogWarning($"[DynamicDifficultyModule] Unknown modifier type: {modifierConfig.ModifierType}");
                     break;
             }
+        }
+
+        private DifficultyConfig LoadConfigFromResources()
+        {
+            // Try multiple common paths
+            string[] possiblePaths = {
+                "GameConfigs/DifficultyConfig",
+                "Configs/DifficultyConfig", 
+                "DifficultyConfig"
+            };
+
+            foreach (var path in possiblePaths)
+            {
+                var config = Resources.Load<DifficultyConfig>(path);
+                if (config != null)
+                {
+                    Debug.Log($"[DynamicDifficultyModule] Loaded DifficultyConfig from Resources/{path}");
+                    return config;
+                }
+            }
+
+            Debug.LogWarning("[DynamicDifficultyModule] DifficultyConfig not found in Resources. Checked paths: " + 
+                           string.Join(", ", possiblePaths));
+            return null;
         }
     }
 }
