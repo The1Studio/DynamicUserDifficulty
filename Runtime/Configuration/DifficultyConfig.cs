@@ -75,6 +75,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         private static ModifierConfig CreateWinStreakConfig()
         {
             var config = new ModifierConfig();
+            config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK);
             config.SetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD, DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD);
             config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE);
             config.SetParameter(DifficultyConstants.PARAM_MAX_BONUS, DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS);
@@ -84,6 +85,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         private static ModifierConfig CreateLossStreakConfig()
         {
             var config = new ModifierConfig();
+            config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK);
             config.SetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD, DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD);
             config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE);
             config.SetParameter(DifficultyConstants.PARAM_MAX_REDUCTION, DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION);
@@ -93,6 +95,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         private static ModifierConfig CreateTimeDecayConfig()
         {
             var config = new ModifierConfig();
+            config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY);
             config.SetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY);
             config.SetParameter(DifficultyConstants.PARAM_MAX_DECAY, DifficultyConstants.TIME_DECAY_DEFAULT_MAX);
             config.SetParameter(DifficultyConstants.PARAM_GRACE_HOURS, DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS);
@@ -102,6 +105,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         private static ModifierConfig CreateRageQuitConfig()
         {
             var config = new ModifierConfig();
+            config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT);
             config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD, DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD);
             config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION, DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION);
             config.SetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION, DifficultyConstants.QUIT_DEFAULT_REDUCTION);

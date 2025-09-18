@@ -60,6 +60,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
                 parameters.Add(new ModifierParameter { Key = key, Value = value });
             }
         }
+
+        /// <summary>
+        /// Sets the modifier type
+        /// </summary>
+        public void SetModifierType(string type)
+        {
+            modifierType = type;
+        }
     }
 
     /// <summary>
