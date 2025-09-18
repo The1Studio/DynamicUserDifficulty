@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Core;
+using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using VContainer.Unity;
 
 namespace TheOneStudio.DynamicUserDifficulty.DI
@@ -11,18 +13,43 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
     {
         private readonly TheOne.Logging.ILogger logger;
         private readonly IDynamicDifficultyService difficultyService;
+        private readonly IEnumerable<IDifficultyModifier> modifiers;
 
-        public DynamicDifficultyInitializer(ILoggerManager loggerManager, IDynamicDifficultyService difficultyService)
+        public DynamicDifficultyInitializer(
+            ILoggerManager loggerManager,
+            IDynamicDifficultyService difficultyService,
+            IEnumerable<IDifficultyModifier> modifiers)
         {
             this.logger = loggerManager?.GetLogger(this) ?? throw new System.ArgumentNullException(nameof(loggerManager));
             this.difficultyService = difficultyService;
+            this.modifiers = modifiers;
         }
 
         public void Start()
         {
-            this.logger.Info("[DynamicDifficulty] Module initialized successfully");
+            // Initialize the service
+            this.difficultyService.Initialize();
 
-            // Modifiers are registered via DI in DynamicDifficultyModule
+            // Register all modifiers that were registered in DI
+            if (this.modifiers != null)
+            {
+                int registeredCount = 0;
+                foreach (var modifier in this.modifiers)
+                {
+                    if (modifier != null)
+                    {
+                        this.difficultyService.RegisterModifier(modifier);
+                        registeredCount++;
+                        this.logger.Info($"[DynamicDifficulty] Registered modifier: {modifier.ModifierName}");
+                    }
+                }
+
+                this.logger.Info($"[DynamicDifficulty] Module initialized with {registeredCount} modifiers");
+            }
+            else
+            {
+                this.logger.Info("[DynamicDifficulty] Module initialized with no modifiers");
+            }
         }
     }
 }
