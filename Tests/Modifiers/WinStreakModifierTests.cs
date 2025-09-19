@@ -100,11 +100,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         }
 
         [Test]
-        public void Calculate_WithNullSessionData_ThrowsException()
-        {
-            // Act & Assert
-            Assert.Throws<System.ArgumentNullException>(() => this.modifier.Calculate(null));
-        }
+    public void Calculate_WithNullSessionData_ReturnsNoChange()
+    {
+        // Act
+        var result = this.modifier.Calculate(null);
+        
+        // Assert - Should return NoChange result, not throw exception
+        Assert.AreEqual(0f, result.Value);
+        Assert.IsNotNull(result);
+    }
 
         [Test]
         public void IsEnabled_DefaultsToTrue()

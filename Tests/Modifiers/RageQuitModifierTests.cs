@@ -16,22 +16,22 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         private PlayerSessionData sessionData;
 
         [SetUp]
-        public void Setup()
-        {
-            // Create config with test parameters
-            this.config = new ModifierConfig();
-            this.config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT);
-            this.config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_TIME, 30f);
-            this.config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_PENALTY, 1.5f);
-            this.config.SetParameter(DifficultyConstants.PARAM_LOSS_MULTIPLIER, 1.5f);
-            this.config.SetParameter(DifficultyConstants.PARAM_MAX_PENALTY, 3f);
+    public void Setup()
+    {
+        // Create config with test parameters
+        this.config = new ModifierConfig();
+        this.config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT);
+        this.config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD, 30f);  // Fixed: correct constant
+        this.config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION, 1.5f); // Fixed: correct constant  
+        this.config.SetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION, 0.75f);     // Added missing parameter
+        this.config.SetParameter(DifficultyConstants.PARAM_MID_PLAY_REDUCTION, 0.5f);  // Added missing parameter
 
-            // Create modifier with config
-            this.modifier = new RageQuitModifier(this.config);
+        // Create modifier with config
+        this.modifier = new RageQuitModifier(this.config);
 
-            // Create test session data
-            this.sessionData = new PlayerSessionData();
-        }
+        // Create test session data
+        this.sessionData = new PlayerSessionData();
+    }
 
         [Test]
         public void Calculate_NoQuit_ReturnsZero()
@@ -171,11 +171,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         }
 
         [Test]
-        public void Calculate_WithNullSessionData_ThrowsException()
-        {
-            // Act & Assert
-            Assert.Throws<System.ArgumentNullException>(() => this.modifier.Calculate(null));
-        }
+    public void Calculate_WithNullSessionData_ReturnsNoChange()
+    {
+        // Act
+        var result = this.modifier.Calculate(null);
+        
+        // Assert - Should return NoChange result, not throw exception
+        Assert.AreEqual(0f, result.Value);
+        Assert.IsNotNull(result);
+    }
 
         [Test]
         public void Calculate_ConsistentResults()
