@@ -14,10 +14,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
     [InitializeOnLoad]
     public static class DifficultyConfigValidator
     {
-        // Use constants instead of hardcoded paths
+        // Use constants instead of hardcoded paths - Updated to use GameConfigs
         private static readonly string RESOURCES_PATH = DifficultyConstants.ASSET_DIRECTORY_RESOURCES;
-        private static readonly string CONFIGS_PATH = DifficultyConstants.ASSET_DIRECTORY_CONFIGS;
-        private static readonly string CONFIG_ASSET_PATH = DifficultyConstants.ASSET_PATH_CONFIGS;
+        private static readonly string CONFIGS_PATH = DifficultyConstants.ASSET_DIRECTORY_GAMECONFIGS;
+        private static readonly string CONFIG_ASSET_PATH = DifficultyConstants.ASSET_PATH_GAMECONFIGS;
         private const string PREF_KEY_SKIP_CHECK = "DynamicDifficulty_SkipConfigCheck";
         private const string PREF_KEY_LAST_CHECK = "DynamicDifficulty_LastConfigCheck";
 
@@ -73,7 +73,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
 
             if (!AssetDatabase.IsValidFolder(CONFIGS_PATH))
             {
-                AssetDatabase.CreateFolder(RESOURCES_PATH, DifficultyConstants.FOLDER_NAME_CONFIGS);
+                AssetDatabase.CreateFolder(RESOURCES_PATH, "GameConfigs");
             }
 
             // Create the config asset

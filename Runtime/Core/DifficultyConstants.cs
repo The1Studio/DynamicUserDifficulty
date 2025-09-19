@@ -134,12 +134,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         // ========== UNITY MENU PATHS ==========
         /// <summary>Unity Create Asset menu path for DifficultyConfig</summary>
         public const string MENU_CREATE_ASSET = "DynamicDifficulty/Config";
-        
-        /// <summary>Unity Editor menu path for creating default config</summary>
-        public const string MENU_CREATE_CONFIG = "Tools/Dynamic Difficulty/Create Default Config";
-        
-        /// <summary>Unity Editor menu path for finding existing config</summary>
-        public const string MENU_FIND_CONFIG = "Tools/Dynamic Difficulty/Find Config";
 
         // ========== DATETIME FORMATS ==========
         /// <summary>Date format for daily session tracking (yyyy-MM-dd)</summary>

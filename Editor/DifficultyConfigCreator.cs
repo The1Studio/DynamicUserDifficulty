@@ -12,7 +12,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
     /// </summary>
     public static class DifficultyConfigCreator
     {
-        [MenuItem(DifficultyConstants.MENU_CREATE_CONFIG)]
         public static void CreateDefaultConfig()
         {
             // Possible paths to try using constants
@@ -69,7 +68,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
                 "OK");
         }
 
-        [MenuItem(DifficultyConstants.MENU_FIND_CONFIG)]
         public static void FindConfig()
         {
             // Try to find existing config using constants
