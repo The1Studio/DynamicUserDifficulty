@@ -33,12 +33,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
             if (results == null || results.Count == 0)
                 return DifficultyConstants.ZERO_VALUE;
 
-            float totalValue = DifficultyConstants.ZERO_VALUE;
-            float totalWeight = DifficultyConstants.ZERO_VALUE;
+            var totalValue = DifficultyConstants.ZERO_VALUE;
+            var totalWeight = DifficultyConstants.ZERO_VALUE;
 
             foreach (var result in results)
             {
-                float weight = weights?.GetValueOrDefault(result.ModifierName, DifficultyConstants.DEFAULT_AGGREGATION_WEIGHT) 
+                var weight = weights?.GetValueOrDefault(result.ModifierName, DifficultyConstants.DEFAULT_AGGREGATION_WEIGHT)
                               ?? DifficultyConstants.DEFAULT_AGGREGATION_WEIGHT;
                 totalValue += result.Value * weight;
                 totalWeight += weight;
@@ -70,8 +70,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
             // Sort by absolute value (largest first)
             var sortedResults = results.OrderByDescending(r => Mathf.Abs(r.Value)).ToList();
 
-            float total = DifficultyConstants.ZERO_VALUE;
-            float currentFactor = DifficultyConstants.DEFAULT_AGGREGATION_WEIGHT;
+            var total = DifficultyConstants.ZERO_VALUE;
+            var currentFactor = DifficultyConstants.DEFAULT_AGGREGATION_WEIGHT;
 
             foreach (var result in sortedResults)
             {

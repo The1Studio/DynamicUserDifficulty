@@ -26,15 +26,15 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
 
         public void Install(IContainerBuilder builder)
         {
-            if (config == null)
+            if (this.config == null)
             {
                 // Try to load config from Resources
-                var loadedConfig = LoadConfigFromResources();
+                var loadedConfig = this.LoadConfigFromResources();
                 if (loadedConfig != null)
                 {
                     Debug.Log("[DynamicDifficultyModule] Found DifficultyConfig in Resources, using it");
                     // Update the config reference
-                    System.Reflection.FieldInfo configField = this.GetType().GetField("config", 
+                    var configField = this.GetType().GetField("config",
                         System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     configField?.SetValue(this, loadedConfig);
                 }
@@ -62,7 +62,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             builder.Register<ModifierAggregator>(Lifetime.Singleton);
 
             // Register modifiers
-            RegisterModifiers(builder);
+            this.RegisterModifiers(builder);
 
             // Register initializer to auto-register modifiers
             builder.RegisterEntryPoint<DynamicDifficultyInitializer>();
@@ -83,7 +83,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                 if (modifierConfig == null)
                     continue;
 
-                RegisterModifierByType(builder, modifierConfig);
+                this.RegisterModifierByType(builder, modifierConfig);
             }
         }
 
@@ -126,7 +126,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             // Try multiple common paths using constants
             string[] possiblePaths = {
                 DifficultyConstants.RESOURCES_PATH_GAMECONFIGS,
-                DifficultyConstants.RESOURCES_PATH_CONFIGS, 
+                DifficultyConstants.RESOURCES_PATH_CONFIGS,
                 DifficultyConstants.RESOURCES_PATH_ROOT
             };
 
@@ -140,7 +140,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                 }
             }
 
-            Debug.LogWarning("[DynamicDifficultyModule] DifficultyConfig not found in Resources. Checked paths: " + 
+            Debug.LogWarning("[DynamicDifficultyModule] DifficultyConfig not found in Resources. Checked paths: " +
                            string.Join(", ", possiblePaths));
             return null;
         }

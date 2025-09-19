@@ -11,7 +11,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
     /// </summary>
     public class DynamicDifficultyInitializer : IStartable
     {
-        private readonly TheOne.Logging.ILogger logger;
+        private readonly ILogger logger;
         private readonly IDynamicDifficultyService difficultyService;
         private readonly IEnumerable<IDifficultyModifier> modifiers;
 
@@ -33,7 +33,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             // Register all modifiers that were registered in DI
             if (this.modifiers != null)
             {
-                int registeredCount = 0;
+                var registeredCount = 0;
                 foreach (var modifier in this.modifiers)
                 {
                     if (modifier != null)

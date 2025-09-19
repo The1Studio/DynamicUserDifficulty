@@ -15,7 +15,7 @@
 
 ### IDynamicDifficultyService
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Core`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Core`
 
 The main service interface for managing dynamic difficulty.
 
@@ -70,7 +70,7 @@ void OnLevelComplete(bool won, float completionTime)
 
 ### PlayerSessionData
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
 
 Stores player session information for difficulty calculation.
 
@@ -85,7 +85,7 @@ Stores player session information for difficulty calculation.
 
 ### SessionInfo
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
 
 Information about a single game session.
 
@@ -100,7 +100,7 @@ Information about a single game session.
 
 ### SessionEndType
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
 
 Enum describing how a session ended.
 
@@ -115,7 +115,7 @@ Enum describing how a session ended.
 
 ### ModifierResult
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
 
 Result from a single modifier calculation.
 
@@ -128,7 +128,7 @@ Result from a single modifier calculation.
 
 ### DifficultyResult
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
 
 Complete result of difficulty calculation.
 
@@ -146,7 +146,7 @@ Complete result of difficulty calculation.
 
 ### IDifficultyModifier
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
 Interface for all difficulty modifiers.
 
@@ -163,7 +163,7 @@ Interface for all difficulty modifiers.
 
 ### BaseDifficultyModifier
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
 Abstract base class for modifiers.
 
@@ -185,6 +185,8 @@ protected float ApplyCurve(float input)
 
 #### WinStreakModifier
 
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
+
 Increases difficulty based on consecutive wins.
 
 **Parameters:**
@@ -195,6 +197,8 @@ Increases difficulty based on consecutive wins.
 | MaxBonus | 2.0 | Maximum difficulty increase |
 
 #### LossStreakModifier
+
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
 Decreases difficulty based on consecutive losses.
 
@@ -207,6 +211,8 @@ Decreases difficulty based on consecutive losses.
 
 #### TimeDecayModifier
 
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
+
 Reduces difficulty based on time since last play.
 
 **Parameters:**
@@ -217,6 +223,8 @@ Reduces difficulty based on time since last play.
 | GraceHours | 6 | Hours before decay starts |
 
 #### RageQuitModifier
+
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
 Reduces difficulty when rage quit is detected.
 
@@ -233,7 +241,7 @@ Reduces difficulty when rage quit is detected.
 
 ### IDifficultyCalculator
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Calculators`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Calculators`
 
 Interface for difficulty calculation logic.
 
@@ -245,6 +253,8 @@ DifficultyResult Calculate(
 
 ### DifficultyCalculator
 
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Calculators`
+
 Default implementation that:
 1. Runs all enabled modifiers
 2. Aggregates results
@@ -253,15 +263,35 @@ Default implementation that:
 
 ### ModifierAggregator
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Calculators`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Calculators`
 
-Aggregates multiple modifier results.
+Aggregates multiple modifier results with various strategies.
 
+#### Methods
+
+##### Aggregate(List<ModifierResult>)
 ```csharp
 float Aggregate(List<ModifierResult> results)
 ```
+Default strategy: Sums all modifier values
 
-Default: Sums all modifier values
+##### AggregateWeighted(List<ModifierResult>, float[])
+```csharp
+float AggregateWeighted(List<ModifierResult> results, float[] weights)
+```
+Calculates weighted average of modifier values
+
+##### AggregateMax(List<ModifierResult>)
+```csharp
+float AggregateMax(List<ModifierResult> results)
+```
+Returns the modifier with maximum absolute value
+
+##### AggregateDiminishing(List<ModifierResult>, float)
+```csharp
+float AggregateDiminishing(List<ModifierResult> results, float diminishingFactor = 0.5f)
+```
+Applies diminishing returns to prevent extreme values
 
 ---
 
@@ -269,7 +299,7 @@ Default: Sums all modifier values
 
 ### ISessionDataProvider
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Providers`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Providers`
 
 Interface for session data persistence.
 
@@ -281,7 +311,9 @@ Interface for session data persistence.
 | UpdateLossStreak(int) | void | Updates loss streak |
 | RecordSessionEnd(SessionEndType) | void | Records how session ended |
 
-### SessionDataProvider
+### PlayerPrefsDataProvider
+
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Providers`
 
 Default implementation using Unity PlayerPrefs.
 
@@ -298,7 +330,7 @@ Default implementation using Unity PlayerPrefs.
 
 ### DifficultyConfig
 
-**Namespace:** `TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Configuration`
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Configuration`
 
 ScriptableObject for difficulty settings.
 
@@ -311,7 +343,29 @@ ScriptableObject for difficulty settings.
 | ModifierConfigs | List<ModifierConfig> | Empty | Modifier configurations |
 | EnableDebugLogs | bool | false | Enable debug logging |
 
+#### Methods
+
+##### CreateDefault()
+```csharp
+public static DifficultyConfig CreateDefault()
+```
+Creates a new configuration with default settings.
+
+##### GetModifierConfig(string)
+```csharp
+public ModifierConfig GetModifierConfig(string modifierType)
+```
+Gets configuration for a specific modifier type.
+
+##### SetParameter(string, float)
+```csharp
+public void SetParameter(string key, float value)
+```
+Sets a global parameter value.
+
 ### ModifierConfig
+
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Configuration`
 
 Configuration for individual modifiers.
 
@@ -322,6 +376,62 @@ Configuration for individual modifiers.
 | Priority | int | Execution order |
 | ResponseCurve | AnimationCurve | Value transformation |
 | Parameters | List<ModifierParameter> | Custom parameters |
+
+#### Methods
+
+##### SetModifierType(string)
+```csharp
+public void SetModifierType(string type)
+```
+Sets the modifier type using DifficultyConstants.
+
+##### SetParameter(string, float)
+```csharp
+public void SetParameter(string key, float value)
+```
+Sets a parameter for this modifier.
+
+##### GetParameter(string, float)
+```csharp
+public float GetParameter(string key, float defaultValue = 0f)
+```
+Gets a parameter value with fallback.
+
+---
+
+## Core Constants
+
+### DifficultyConstants
+
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Core`
+
+Centralized constants for the entire system.
+
+#### Modifier Type Names
+```csharp
+public const string MODIFIER_TYPE_WIN_STREAK = "WinStreak";
+public const string MODIFIER_TYPE_LOSS_STREAK = "LossStreak";
+public const string MODIFIER_TYPE_TIME_DECAY = "TimeDecay";
+public const string MODIFIER_TYPE_RAGE_QUIT = "RageQuit";
+```
+
+#### Parameter Keys
+```csharp
+public const string PARAM_WIN_THRESHOLD = "WinThreshold";
+public const string PARAM_STEP_SIZE = "StepSize";
+public const string PARAM_MAX_BONUS = "MaxBonus";
+public const string PARAM_DECAY_PER_DAY = "DecayPerDay";
+// ... and more
+```
+
+#### Default Values
+```csharp
+public const float MIN_DIFFICULTY = 1f;
+public const float MAX_DIFFICULTY = 10f;
+public const float DEFAULT_DIFFICULTY = 3f;
+public const float WIN_STREAK_DEFAULT_THRESHOLD = 3f;
+// ... and more
+```
 
 ---
 
@@ -381,6 +491,8 @@ public class SpeedModifier : BaseDifficultyModifier
 {
     public override string ModifierName => "Speed";
 
+    public SpeedModifier(ModifierConfig config) : base(config) { }
+
     public override ModifierResult Calculate(PlayerSessionData data)
     {
         // Custom logic
@@ -417,6 +529,7 @@ float pieceComplexity = currentDifficulty / 10f;
 | NullReferenceException | Config not loaded | Ensure DifficultyConfig in Resources |
 | ArgumentOutOfRangeException | Invalid difficulty | Check min/max bounds |
 | InvalidOperationException | Service not initialized | Call Initialize() first |
+| ArgumentNullException | Null modifier or data | Validate inputs before calls |
 
 ### Debug Mode
 
@@ -429,4 +542,5 @@ Enable debug logs in DifficultyConfig to see:
 ---
 
 *API Version: 1.0.0*
-*Last Updated: 2025-09-16*
+*Last Updated: 2025-01-19*
+*Namespace: TheOneStudio.DynamicUserDifficulty.*

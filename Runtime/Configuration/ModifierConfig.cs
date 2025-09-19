@@ -27,18 +27,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         [Header("Parameters")]
         [SerializeField] private List<ModifierParameter> parameters = new List<ModifierParameter>();
 
-        public string ModifierType => modifierType;
-        public bool Enabled => enabled;
-        public int Priority => priority;
-        public AnimationCurve ResponseCurve => responseCurve;
-        public List<ModifierParameter> Parameters => parameters;
+        public string                  ModifierType  => this.modifierType;
+        public bool                    Enabled       => this.enabled;
+        public int                     Priority      => this.priority;
+        public AnimationCurve          ResponseCurve => this.responseCurve;
+        public List<ModifierParameter> Parameters    => this.parameters;
 
         /// <summary>
         /// Gets a parameter value by key
         /// </summary>
         public float GetParameter(string key, float defaultValue = DifficultyConstants.ZERO_VALUE)
         {
-            var param = parameters?.FirstOrDefault(p => p.Key == key);
+            var param = this.parameters?.FirstOrDefault(p => p.Key == key);
             return param?.Value ?? defaultValue;
         }
 
@@ -47,17 +47,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         /// </summary>
         public void SetParameter(string key, float value)
         {
-            if (parameters == null)
-                parameters = new List<ModifierParameter>();
+            if (this.parameters == null) this.parameters = new List<ModifierParameter>();
 
-            var param = parameters.FirstOrDefault(p => p.Key == key);
+            var param = this.parameters.FirstOrDefault(p => p.Key == key);
             if (param != null)
             {
                 param.Value = value;
             }
             else
             {
-                parameters.Add(new ModifierParameter { Key = key, Value = value });
+                this.parameters.Add(new ModifierParameter { Key = key, Value = value });
             }
         }
 
@@ -66,7 +65,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         /// </summary>
         public void SetModifierType(string type)
         {
-            modifierType = type;
+            this.modifierType = type;
         }
     }
 
@@ -81,13 +80,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
 
         public string Key
         {
-            get => key;
-            set => key = value;
+            get => this.key;
+            set => this.key = value;
         }
 
         public float Value
         {
-            get => value;
+            get => this.value;
             set => this.value = value;
         }
 

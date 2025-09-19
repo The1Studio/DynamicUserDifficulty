@@ -44,17 +44,17 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
             try
             {
                 var sessionData = this.dataProvider.GetCurrentSession();
-                CurrentDifficulty = sessionData?.CurrentDifficulty ?? this.config.DefaultDifficulty;
+                this.CurrentDifficulty = sessionData?.CurrentDifficulty ?? this.config.DefaultDifficulty;
 
                 if (this.config.EnableDebugLogs)
                 {
-                    this.logger.Info($"[DynamicDifficultyService] Initialized with difficulty: {CurrentDifficulty:F2}");
+                    this.logger.Info($"[DynamicDifficultyService] Initialized with difficulty: {this.CurrentDifficulty:F2}");
                 }
             }
             catch (Exception e)
             {
                 this.logger.Error($"[DynamicDifficultyService] Failed to initialize: {e.Message}");
-                CurrentDifficulty = this.config.DefaultDifficulty;
+                this.CurrentDifficulty = this.config.DefaultDifficulty;
             }
         }
 
@@ -65,7 +65,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 var sessionData = this.dataProvider.GetCurrentSession();
 
                 // Get enabled modifiers sorted by priority
-                var enabledModifiers = modifiers
+                var enabledModifiers = this.modifiers
                     .Where(m => m != null && m.IsEnabled)
                     .OrderBy(m => m.Priority);
 
@@ -87,9 +87,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 // Return no change on error
                 return new DifficultyResult
                 {
-                    PreviousDifficulty = CurrentDifficulty,
-                    NewDifficulty = CurrentDifficulty,
-                    PrimaryReason = "Calculation error"
+                    PreviousDifficulty = this.CurrentDifficulty,
+                    NewDifficulty      = this.CurrentDifficulty,
+                    PrimaryReason      = "Calculation error"
                 };
             }
         }
@@ -104,7 +104,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
             try
             {
-                CurrentDifficulty = result.NewDifficulty;
+                this.CurrentDifficulty = result.NewDifficulty;
 
                 // Update session data
                 var sessionData = this.dataProvider.GetCurrentSession();
@@ -170,8 +170,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
             try
             {
                 // Calculate difficulty at session start
-                var result = CalculateDifficulty();
-                ApplyDifficulty(result);
+                var result = this.CalculateDifficulty();
+                this.ApplyDifficulty(result);
 
                 if (this.config.EnableDebugLogs)
                 {
@@ -191,7 +191,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
             if (this.config.EnableDebugLogs)
             {
-                this.logger.Info($"[DynamicDifficultyService] Level {levelId} started at difficulty {CurrentDifficulty:F2}");
+                this.logger.Info($"[DynamicDifficultyService] Level {levelId} started at difficulty {this.CurrentDifficulty:F2}");
             }
         }
 

@@ -19,19 +19,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             {
                 return new ModifierResult
                 {
-                    ModifierName = ModifierName,
-                    Value = DifficultyConstants.ZERO_VALUE,
-                    Reason = "No previous session"
+                    ModifierName = this.ModifierName,
+                    Value        = DifficultyConstants.ZERO_VALUE,
+                    Reason       = "No previous session"
                 };
             }
 
-            var rageQuitThreshold = GetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD, DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD);
-            var rageQuitReduction = GetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION, DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION);
-            var quitReduction = GetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION, DifficultyConstants.QUIT_DEFAULT_REDUCTION);
-            var midPlayReduction = GetParameter(DifficultyConstants.PARAM_MID_PLAY_REDUCTION, DifficultyConstants.MID_PLAY_DEFAULT_REDUCTION);
+            var rageQuitThreshold = this.GetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD, DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD);
+            var rageQuitReduction = this.GetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION, DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION);
+            var quitReduction     = this.GetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION, DifficultyConstants.QUIT_DEFAULT_REDUCTION);
+            var midPlayReduction  = this.GetParameter(DifficultyConstants.PARAM_MID_PLAY_REDUCTION, DifficultyConstants.MID_PLAY_DEFAULT_REDUCTION);
 
-            float value = DifficultyConstants.ZERO_VALUE;
-            string reason = "Normal session end";
+            var value = DifficultyConstants.ZERO_VALUE;
+            var reason = "Normal session end";
             var lastSession = sessionData.LastSession;
 
             switch (lastSession.EndType)
@@ -42,7 +42,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                     {
                         value = -rageQuitReduction;
                         reason = $"Rage quit detected (played only {lastSession.PlayDuration:F0}s)";
-                        LogDebug($"Rage quit: {lastSession.PlayDuration}s < {rageQuitThreshold}s threshold");
+                        this.LogDebug($"Rage quit: {lastSession.PlayDuration}s < {rageQuitThreshold}s threshold");
                     }
                     else
                     {
@@ -69,9 +69,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 
             return new ModifierResult
             {
-                ModifierName = ModifierName,
-                Value = value,
-                Reason = reason,
+                ModifierName = this.ModifierName,
+                Value        = value,
+                Reason       = reason,
                 Metadata =
                 {
                     ["last_session_type"] = lastSession.EndType.ToString(),

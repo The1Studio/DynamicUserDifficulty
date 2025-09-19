@@ -19,12 +19,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             if (sessionData == null)
                 return ModifierResult.NoChange();
 
-            var lossThreshold = GetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD, DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD);
-            var stepSize = GetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE);
-            var maxReduction = GetParameter(DifficultyConstants.PARAM_MAX_REDUCTION, DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION);
+            var lossThreshold = this.GetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD, DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD);
+            var stepSize      = this.GetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE);
+            var maxReduction  = this.GetParameter(DifficultyConstants.PARAM_MAX_REDUCTION, DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION);
 
-            float value = DifficultyConstants.ZERO_VALUE;
-            string reason = "No loss streak";
+            var value = DifficultyConstants.ZERO_VALUE;
+            var reason = "No loss streak";
 
             if (sessionData.LossStreak >= lossThreshold)
             {
@@ -38,19 +38,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 if (maxReduction > DifficultyConstants.ZERO_VALUE)
                 {
                     var normalizedValue = Mathf.Abs(value) / maxReduction;
-                    value = -ApplyCurve(normalizedValue) * maxReduction;
+                    value = -this.ApplyCurve(normalizedValue) * maxReduction;
                 }
 
                 reason = $"Loss streak: {sessionData.LossStreak} consecutive losses";
 
-                LogDebug($"Loss streak {sessionData.LossStreak} -> adjustment {value:F2}");
+                this.LogDebug($"Loss streak {sessionData.LossStreak} -> adjustment {value:F2}");
             }
 
             return new ModifierResult
             {
-                ModifierName = ModifierName,
-                Value = value,
-                Reason = reason,
+                ModifierName = this.ModifierName,
+                Value        = value,
+                Reason       = reason,
                 Metadata =
                 {
                     ["streak"] = sessionData.LossStreak,

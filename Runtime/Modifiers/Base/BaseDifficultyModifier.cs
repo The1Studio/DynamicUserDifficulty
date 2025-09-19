@@ -12,8 +12,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         protected readonly ModifierConfig config;
 
         public abstract string ModifierName { get; }
-        public virtual int Priority => config?.Priority ?? 0;
-        public bool IsEnabled { get; set; }
+        public virtual  int    Priority     => this.config?.Priority ?? 0;
+        public          bool   IsEnabled    { get; set; }
 
         protected BaseDifficultyModifier(ModifierConfig config)
         {
@@ -34,7 +34,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         /// </summary>
         protected float GetParameter(string key, float defaultValue = 0f)
         {
-            return config?.GetParameter(key, defaultValue) ?? defaultValue;
+            return this.config?.GetParameter(key, defaultValue) ?? defaultValue;
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         /// </summary>
         protected float ApplyCurve(float input)
         {
-            if (config?.ResponseCurve != null)
+            if (this.config?.ResponseCurve != null)
                 return this.config.ResponseCurve.Evaluate(Mathf.Clamp01(input));
             return input;
         }
@@ -52,9 +52,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         /// </summary>
         protected void LogDebug(string message)
         {
-            if (config != null && Application.isEditor)
+            if (this.config != null && Application.isEditor)
             {
-                Debug.Log($"[{ModifierName}] {message}");
+                Debug.Log($"[{this.ModifierName}] {message}");
             }
         }
     }

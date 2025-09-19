@@ -18,33 +18,33 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         public DifficultyResult()
         {
-            AppliedModifiers = new List<ModifierResult>();
-            CalculatedAt = DateTime.Now;
+            this.AppliedModifiers = new List<ModifierResult>();
+            this.CalculatedAt        = DateTime.Now;
         }
 
         public DifficultyResult(float previous, float newDiff, List<ModifierResult> modifiers)
         {
-            PreviousDifficulty = previous;
-            NewDifficulty = newDiff;
-            AppliedModifiers = modifiers ?? new List<ModifierResult>();
-            CalculatedAt = DateTime.Now;
-            PrimaryReason = DeterminePrimaryReason();
+            this.PreviousDifficulty = previous;
+            this.NewDifficulty      = newDiff;
+            this.AppliedModifiers   = modifiers ?? new List<ModifierResult>();
+            this.CalculatedAt       = DateTime.Now;
+            this.PrimaryReason      = this.DeterminePrimaryReason();
         }
 
         private string DeterminePrimaryReason()
         {
-            if (AppliedModifiers == null || AppliedModifiers.Count == 0)
+            if (this.AppliedModifiers == null || this.AppliedModifiers.Count == 0)
                 return "No change";
 
-            var primaryModifier = AppliedModifiers
+            var primaryModifier = this.AppliedModifiers
                 .OrderByDescending(m => Math.Abs(m.Value))
                 .FirstOrDefault();
 
             return primaryModifier?.Reason ?? "No change";
         }
 
-        public float TotalAdjustment => NewDifficulty - PreviousDifficulty;
+        public float TotalAdjustment => this.NewDifficulty - this.PreviousDifficulty;
 
-        public bool HasChanged => Math.Abs(TotalAdjustment) > DifficultyConstants.EPSILON;
+        public bool HasChanged => Math.Abs(this.TotalAdjustment) > DifficultyConstants.EPSILON;
     }
 }

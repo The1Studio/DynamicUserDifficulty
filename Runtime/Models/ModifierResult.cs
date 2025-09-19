@@ -15,15 +15,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         public ModifierResult()
         {
-            Metadata = new Dictionary<string, object>();
+            this.Metadata = new Dictionary<string, object>();
         }
 
         public ModifierResult(string name, float value, string reason)
         {
-            ModifierName = name;
-            Value = value;
-            Reason = reason;
-            Metadata = new Dictionary<string, object>();
+            this.ModifierName = name;
+            this.Value        = value;
+            this.Reason       = reason;
+            this.Metadata        = new Dictionary<string, object>();
         }
 
         public static ModifierResult NoChange()

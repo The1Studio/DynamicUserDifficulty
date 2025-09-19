@@ -32,19 +32,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         private bool enableDebugLogs = false;
 
         // Properties
-        public float MinDifficulty => minDifficulty;
-        public float MaxDifficulty => maxDifficulty;
-        public float DefaultDifficulty => defaultDifficulty;
-        public float MaxChangePerSession => maxChangePerSession;
-        public List<ModifierConfig> ModifierConfigs => modifierConfigs;
-        public bool EnableDebugLogs => enableDebugLogs;
+        public float                MinDifficulty       => this.minDifficulty;
+        public float                MaxDifficulty       => this.maxDifficulty;
+        public float                DefaultDifficulty   => this.defaultDifficulty;
+        public float                MaxChangePerSession => this.maxChangePerSession;
+        public List<ModifierConfig> ModifierConfigs     => this.modifierConfigs;
+        public bool                 EnableDebugLogs     => this.enableDebugLogs;
 
         /// <summary>
         /// Gets a modifier configuration by type
         /// </summary>
         public ModifierConfig GetModifierConfig(string modifierType)
         {
-            return modifierConfigs?.Find(m => m.ModifierType == modifierType);
+            return this.modifierConfigs?.Find(m => m.ModifierType == modifierType);
         }
 
         /// <summary>
@@ -116,12 +116,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         private void OnValidate()
         {
             // Ensure min <= default <= max
-            if (defaultDifficulty < minDifficulty)
-                defaultDifficulty = minDifficulty;
-            if (defaultDifficulty > maxDifficulty)
-                defaultDifficulty = maxDifficulty;
-            if (minDifficulty > maxDifficulty)
-                minDifficulty = maxDifficulty;
+            if (this.defaultDifficulty < this.minDifficulty) this.defaultDifficulty = this.minDifficulty;
+            if (this.defaultDifficulty > this.maxDifficulty) this.defaultDifficulty = this.maxDifficulty;
+            if (this.minDifficulty > this.maxDifficulty) this.minDifficulty         = this.maxDifficulty;
         }
     }
 }

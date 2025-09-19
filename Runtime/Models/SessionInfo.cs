@@ -17,19 +17,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         public SessionInfo()
         {
-            StartTime = DateTime.Now;
-            EndTime = DateTime.Now;
-            EndType = SessionEndType.QuitDuringPlay;
+            this.StartTime = DateTime.Now;
+            this.EndTime   = DateTime.Now;
+            this.EndType      = SessionEndType.QuitDuringPlay;
         }
 
         public SessionInfo(int levelId, bool won, float duration, SessionEndType endType)
         {
-            StartTime = DateTime.Now.AddSeconds(-duration);
-            EndTime = DateTime.Now;
-            EndType = endType;
-            LevelId = levelId;
-            PlayDuration = duration;
-            Won = won;
+            this.StartTime    = DateTime.Now.AddSeconds(-duration);
+            this.EndTime      = DateTime.Now;
+            this.EndType      = endType;
+            this.LevelId      = levelId;
+            this.PlayDuration = duration;
+            this.Won             = won;
         }
     }
 }

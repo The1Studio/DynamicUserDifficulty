@@ -37,8 +37,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
             }
 
             // Use the first path as default
-            string targetPath = possiblePaths[0];
-            string directory = Path.GetDirectoryName(targetPath);
+            var targetPath = possiblePaths[0];
+            var directory = Path.GetDirectoryName(targetPath);
 
             // Ensure directory exists
             if (!Directory.Exists(directory))

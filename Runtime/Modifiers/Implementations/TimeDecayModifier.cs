@@ -21,12 +21,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 return ModifierResult.NoChange();
 
             var hoursSincePlay = (DateTime.Now - sessionData.LastPlayTime).TotalHours;
-            var decayPerDay = GetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY);
-            var maxDecay = GetParameter(DifficultyConstants.PARAM_MAX_DECAY, DifficultyConstants.TIME_DECAY_DEFAULT_MAX);
-            var graceHours = GetParameter(DifficultyConstants.PARAM_GRACE_HOURS, DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS);
+            var decayPerDay    = this.GetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY);
+            var maxDecay       = this.GetParameter(DifficultyConstants.PARAM_MAX_DECAY, DifficultyConstants.TIME_DECAY_DEFAULT_MAX);
+            var graceHours     = this.GetParameter(DifficultyConstants.PARAM_GRACE_HOURS, DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS);
 
-            float value = DifficultyConstants.ZERO_VALUE;
-            string reason = "Recently played";
+            var value = DifficultyConstants.ZERO_VALUE;
+            var reason = "Recently played";
 
             if (hoursSincePlay > graceHours)
             {
@@ -44,7 +44,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 if (maxDecay > DifficultyConstants.ZERO_VALUE)
                 {
                     var normalizedValue = Mathf.Abs(value) / maxDecay;
-                    value = -ApplyCurve(normalizedValue) * maxDecay;
+                    value = -this.ApplyCurve(normalizedValue) * maxDecay;
                 }
 
                 // Format reason based on duration
@@ -62,14 +62,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                     reason = $"Away for {weeks:F1} weeks";
                 }
 
-                LogDebug($"Time decay: {hoursSincePlay:F1} hours -> {value:F2} adjustment");
+                this.LogDebug($"Time decay: {hoursSincePlay:F1} hours -> {value:F2} adjustment");
             }
 
             return new ModifierResult
             {
-                ModifierName = ModifierName,
-                Value = value,
-                Reason = reason,
+                ModifierName = this.ModifierName,
+                Value        = value,
+                Reason       = reason,
                 Metadata =
                 {
                     ["hours_away"] = hoursSincePlay,

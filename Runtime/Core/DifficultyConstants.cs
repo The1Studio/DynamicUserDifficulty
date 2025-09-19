@@ -88,6 +88,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         public const string PARAM_RAGE_QUIT_REDUCTION = "RageQuitReduction";
         public const string PARAM_QUIT_REDUCTION = "QuitReduction";
         public const string PARAM_MID_PLAY_REDUCTION = "MidPlayReduction";
+        public const string PARAM_RAGE_QUIT_TIME = "RageQuitTime";
+        public const string PARAM_RAGE_QUIT_PENALTY = "RageQuitPenalty";
+        public const string PARAM_LOSS_MULTIPLIER = "LossMultiplier";
+        public const string PARAM_MAX_PENALTY = "MaxPenalty";
+        public const string PARAM_GRACE_PERIOD_HOURS = "GracePeriodHours";
 
         // ========== MODIFIER TYPE NAMES ==========
         /// <summary>Identifier for Win Streak modifier in configurations</summary>

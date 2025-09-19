@@ -31,8 +31,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
             }
 
             // Load from PlayerPrefs
-            this.cachedData = LoadFromPlayerPrefs();
-            this.cacheTime = DateTime.Now;
+            this.cachedData = this.LoadFromPlayerPrefs();
+            this.cacheTime  = DateTime.Now;
 
             return this.cachedData;
         }
@@ -50,28 +50,28 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
             this.cacheTime = DateTime.Now;
 
             // Save to PlayerPrefs
-            SaveToPlayerPrefs(data);
+            this.SaveToPlayerPrefs(data);
         }
 
         public void UpdateWinStreak(int streak)
         {
-            var data = GetCurrentSession();
+            var data = this.GetCurrentSession();
             data.WinStreak = streak;
             data.LossStreak = 0; // Reset loss streak on win
-            SaveSession(data);
+            this.SaveSession(data);
         }
 
         public void UpdateLossStreak(int streak)
         {
-            var data = GetCurrentSession();
+            var data = this.GetCurrentSession();
             data.LossStreak = streak;
             data.WinStreak = 0; // Reset win streak on loss
-            SaveSession(data);
+            this.SaveSession(data);
         }
 
         public void RecordSessionEnd(SessionEndType endType)
         {
-            var data = GetCurrentSession();
+            var data = this.GetCurrentSession();
 
             if (data.LastSession != null)
             {
@@ -81,7 +81,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
             }
 
             data.LastPlayTime = DateTime.Now;
-            SaveSession(data);
+            this.SaveSession(data);
         }
 
         public void ClearData()

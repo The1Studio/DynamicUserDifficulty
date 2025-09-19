@@ -19,12 +19,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             if (sessionData == null)
                 return ModifierResult.NoChange();
 
-            var winThreshold = GetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD, DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD);
-            var stepSize = GetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE);
-            var maxBonus = GetParameter(DifficultyConstants.PARAM_MAX_BONUS, DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS);
+            var winThreshold = this.GetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD, DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD);
+            var stepSize     = this.GetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE);
+            var maxBonus     = this.GetParameter(DifficultyConstants.PARAM_MAX_BONUS, DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS);
 
-            float value = DifficultyConstants.ZERO_VALUE;
-            string reason = "No win streak";
+            var value = DifficultyConstants.ZERO_VALUE;
+            var reason = "No win streak";
 
             if (sessionData.WinStreak >= winThreshold)
             {
@@ -37,19 +37,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 // Apply response curve if configured
                 if (maxBonus > DifficultyConstants.ZERO_VALUE)
                 {
-                    value = ApplyCurve(value / maxBonus) * maxBonus;
+                    value = this.ApplyCurve(value / maxBonus) * maxBonus;
                 }
 
                 reason = $"Win streak: {sessionData.WinStreak} consecutive wins";
 
-                LogDebug($"Win streak {sessionData.WinStreak} -> adjustment {value:F2}");
+                this.LogDebug($"Win streak {sessionData.WinStreak} -> adjustment {value:F2}");
             }
 
             return new ModifierResult
             {
-                ModifierName = ModifierName,
-                Value = value,
-                Reason = reason,
+                ModifierName = this.ModifierName,
+                Value        = value,
+                Reason       = reason,
                 Metadata =
                 {
                     ["streak"] = sessionData.WinStreak,

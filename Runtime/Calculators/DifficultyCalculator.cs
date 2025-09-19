@@ -81,7 +81,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
             var newDifficulty = currentDifficulty + totalAdjustment;
 
             // Clamp to valid range
-            newDifficulty = ClampDifficulty(newDifficulty);
+            newDifficulty = this.ClampDifficulty(newDifficulty);
 
             // Create result
             var result = new DifficultyResult
@@ -90,7 +90,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
                 NewDifficulty = newDifficulty,
                 AppliedModifiers = modifierResults,
                 CalculatedAt = DateTime.Now,
-                PrimaryReason = GetPrimaryReason(modifierResults)
+                PrimaryReason = this.GetPrimaryReason(modifierResults)
             };
 
             if (this.config.EnableDebugLogs)

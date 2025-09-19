@@ -88,7 +88,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
             var config = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(CONFIG_ASSET_PATH);
             if (config != null)
             {
-                bool recreate = EditorUtility.DisplayDialog(
+                var recreate = EditorUtility.DisplayDialog(
                     "Config Already Exists",
                     "A DifficultyConfig already exists. Do you want to select it?",
                     "Select Existing",
@@ -110,7 +110,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
         public static void ValidateSetup()
         {
             var messages = new System.Text.StringBuilder();
-            bool hasErrors = false;
+            var hasErrors = false;
 
             // Check config exists
             var config = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(CONFIG_ASSET_PATH);
@@ -217,7 +217,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
             GUILayout.Space(20);
 
             // Don't show again checkbox
-            dontShowAgain = EditorGUILayout.Toggle("Don't show this again", dontShowAgain);
+            this.dontShowAgain = EditorGUILayout.Toggle("Don't show this again", this.dontShowAgain);
 
             GUILayout.Space(20);
 
@@ -227,11 +227,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
 
             if (GUILayout.Button("Later", GUILayout.Width(100), GUILayout.Height(30)))
             {
-                if (dontShowAgain)
+                if (this.dontShowAgain)
                 {
                     EditorPrefs.SetBool("DynamicDifficulty_SkipConfigCheck", true);
                 }
-                Close();
+                this.Close();
             }
 
             GUILayout.Space(10);
@@ -249,7 +249,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
                     "OK"
                 );
 
-                Close();
+                this.Close();
             }
             GUI.backgroundColor = Color.white;
 

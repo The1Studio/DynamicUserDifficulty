@@ -17,50 +17,59 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         public SessionInfo LastSession { get; set; }
         public Queue<SessionInfo> RecentSessions { get; set; }
 
+        // Additional properties for service compatibility
+        public int TotalWins { get; set; }
+        public int TotalLosses { get; set; }
+        public int SessionCount { get; set; }
+        public DateTime LastSessionTime { get; set; }
+        public float SessionLength { get; set; }
+        public QuitType? QuitType { get; set; }
+        public float CurrentProgress { get; set; }
+
         public PlayerSessionData()
         {
-            CurrentDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
-            WinStreak = DifficultyConstants.STREAK_RESET_VALUE;
-            LossStreak = DifficultyConstants.STREAK_RESET_VALUE;
-            LastPlayTime = DateTime.Now;
-            RecentSessions = new Queue<SessionInfo>(DifficultyConstants.MAX_RECENT_SESSIONS);
+            this.CurrentDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
+            this.WinStreak         = DifficultyConstants.STREAK_RESET_VALUE;
+            this.LossStreak        = DifficultyConstants.STREAK_RESET_VALUE;
+            this.LastPlayTime      = DateTime.Now;
+            this.RecentSessions       = new Queue<SessionInfo>(DifficultyConstants.MAX_RECENT_SESSIONS);
         }
 
         public void RecordWin(int levelId, float duration)
         {
-            WinStreak++;
-            LossStreak = DifficultyConstants.STREAK_RESET_VALUE;
-            LastPlayTime = DateTime.Now;
+            this.WinStreak++;
+            this.LossStreak = DifficultyConstants.STREAK_RESET_VALUE;
+            this.LastPlayTime  = DateTime.Now;
 
             var session = new SessionInfo(levelId, true, duration, SessionEndType.CompletedWin);
-            LastSession = session;
-            AddRecentSession(session);
+            this.LastSession = session;
+            this.AddRecentSession(session);
         }
 
         public void RecordLoss(int levelId, float duration)
         {
-            LossStreak++;
-            WinStreak = DifficultyConstants.STREAK_RESET_VALUE;
-            LastPlayTime = DateTime.Now;
+            this.LossStreak++;
+            this.WinStreak = DifficultyConstants.STREAK_RESET_VALUE;
+            this.LastPlayTime = DateTime.Now;
 
             var session = new SessionInfo(levelId, false, duration, SessionEndType.CompletedLoss);
-            LastSession = session;
-            AddRecentSession(session);
+            this.LastSession = session;
+            this.AddRecentSession(session);
         }
 
         private void AddRecentSession(SessionInfo session)
         {
-            if (RecentSessions.Count >= DifficultyConstants.MAX_RECENT_SESSIONS)
+            if (this.RecentSessions.Count >= DifficultyConstants.MAX_RECENT_SESSIONS)
             {
-                RecentSessions.Dequeue();
+                this.RecentSessions.Dequeue();
             }
-            RecentSessions.Enqueue(session);
+            this.RecentSessions.Enqueue(session);
         }
 
         public void ResetStreaks()
         {
-            WinStreak = DifficultyConstants.STREAK_RESET_VALUE;
-            LossStreak = DifficultyConstants.STREAK_RESET_VALUE;
+            this.WinStreak = DifficultyConstants.STREAK_RESET_VALUE;
+            this.LossStreak   = DifficultyConstants.STREAK_RESET_VALUE;
         }
     }
 }
