@@ -61,17 +61,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         }
 
         [Test]
-        public void Calculate_AboveThreshold_ReturnsProportionalIncrease()
-        {
-            // Arrange
-            this.sessionData.WinStreak = 5; // 2 above threshold
+    public void Calculate_AboveThreshold_ReturnsProportionalIncrease()
+    {
+        // Arrange
+        this.sessionData.WinStreak = 5; // 2 above threshold
 
-            // Act
-            var result = this.modifier.Calculate(this.sessionData);
+        // Act
+        var result = this.modifier.Calculate(this.sessionData);
 
-            // Assert
-            Assert.AreEqual(1.0f, result.Value); // Two step sizes (0.5 * 2)
-        }
+        // Assert
+        // (5 - 3 + 1) * 0.5 = 3 * 0.5 = 1.5
+        Assert.AreEqual(1.5f, result.Value);
+    }
 
         [Test]
         public void Calculate_RespectsMaxBonus()

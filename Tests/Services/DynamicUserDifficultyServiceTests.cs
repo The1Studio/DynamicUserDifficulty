@@ -203,22 +203,22 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Services
         }
 
         [Test]
-        public void GetDifficultyStats_ReturnsValidStats()
-        {
-            // Arrange
-            this.service.RecordWin();
-            this.service.RecordWin();
-            this.service.RecordLoss();
+    public void GetDifficultyStats_ReturnsValidStats()
+    {
+        // Arrange
+        this.service.RecordWin();
+        this.service.RecordWin();
+        this.service.RecordLoss();
 
-            // Act
-            var stats = this.service.GetDifficultyStats();
+        // Act
+        var stats = this.service.GetDifficultyStats();
 
-            // Assert
-            Assert.IsNotNull(stats);
-            Assert.AreEqual(2, stats["WinStreak"]);
-            Assert.AreEqual(0, stats["LossStreak"]);
-            Assert.AreEqual(this.service.CurrentDifficulty, stats["CurrentDifficulty"]);
-        }
+        // Assert
+        Assert.IsNotNull(stats);
+        Assert.AreEqual(0f, stats["WinStreak"]);  // Reset by loss
+        Assert.AreEqual(1f, stats["LossStreak"]); // One loss
+        Assert.AreEqual(this.service.CurrentDifficulty, stats["CurrentDifficulty"]);
+    }
 
         [Test]
         public void UpdateDifficulty_ClampsToValidRange()
