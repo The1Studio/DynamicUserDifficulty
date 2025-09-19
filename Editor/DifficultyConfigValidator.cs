@@ -19,21 +19,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
         private static readonly string CONFIGS_PATH = DifficultyConstants.ASSET_DIRECTORY_GAMECONFIGS;
         private static readonly string CONFIG_ASSET_PATH = DifficultyConstants.ASSET_PATH_GAMECONFIGS;
         private const string PREF_KEY_SKIP_CHECK = "DynamicDifficulty_SkipConfigCheck";
-        private const string PREF_KEY_LAST_CHECK = "DynamicDifficulty_LastConfigCheck";
 
         static DifficultyConfigValidator()
         {
             // Check if we should skip the check
             if (EditorPrefs.GetBool(PREF_KEY_SKIP_CHECK, false))
                 return;
-
-            // Check only once per session
-            var lastCheck = EditorPrefs.GetString(PREF_KEY_LAST_CHECK, "");
-            var currentSession = System.DateTime.Now.ToString(DifficultyConstants.DATETIME_FORMAT_DATE);
-            if (lastCheck == currentSession)
-                return;
-
-            EditorPrefs.SetString(PREF_KEY_LAST_CHECK, currentSession);
 
             // Delay the check to ensure Unity is fully loaded
             EditorApplication.delayCall += CheckForDifficultyConfig;
@@ -170,7 +161,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
         public static void ResetValidationCheck()
         {
             EditorPrefs.DeleteKey(PREF_KEY_SKIP_CHECK);
-            EditorPrefs.DeleteKey(PREF_KEY_LAST_CHECK);
             Debug.Log("[DynamicDifficulty] Validation check reset. Will check on next Unity load.");
         }
     }
