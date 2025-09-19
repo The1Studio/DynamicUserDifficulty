@@ -1,6 +1,6 @@
 # Dynamic User Difficulty - Integration Guide
 
-## Table of Contents
+## 📋 Table of Contents
 1. [Quick Start](#quick-start)
 2. [UITemplate Integration](#uitemplates-integration)
 3. [Screw3D Integration](#screw3d-integration)
@@ -9,6 +9,21 @@
 6. [Configuration Setup](#configuration-setup)
 7. [Common Integration Patterns](#common-integration-patterns)
 8. [Troubleshooting](#troubleshooting)
+9. [Complete Integration Example](#complete-integration-example)
+
+## 🔥 Important: Complete Screw3D Integration Available
+
+A **full working implementation** for Screw3D has been created at:
+- **Location**: `Assets/Scripts/Services/Difficulty/`
+- **Documentation**: `Assets/Scripts/Services/Difficulty/INTEGRATION_EXAMPLE.md`
+- **Components**:
+  - `DifficultyGameplayAdapter.cs` - Converts difficulty to gameplay parameters
+  - `DifficultyGameplayBridge.cs` - Connects to Screw3D signals
+  - `LevelDifficultyModifier.cs` - Modifies levels when loaded
+  - `Screw3DServiceExtension.cs` - Integration helpers
+  - `DifficultyDebugUI.cs` - Debug interface (F9 to toggle)
+
+See the [Complete Integration Example](#complete-integration-example) section at the bottom for details.
 
 ## Quick Start
 
@@ -434,6 +449,69 @@ public class DifficultyAnalytics
         });
     }
 }
+```
+
+## Complete Integration Example
+
+### 🎮 Screw3D Full Integration
+
+A complete, production-ready integration has been implemented for the Screw3D project. This includes all necessary components, adapters, and UI elements.
+
+#### Implementation Files
+
+Located at `Assets/Scripts/Services/Difficulty/`:
+
+1. **DifficultyGameplayAdapter.cs**
+   - Translates difficulty (1-10) to gameplay parameters
+   - Provides color counts, time limits, hints, score multipliers
+   - Returns level ranges and reward multipliers
+
+2. **DifficultyGameplayBridge.cs**
+   - Connects to Screw3D signals (Win/Loss/Progress)
+   - Automatically tracks player performance
+   - Publishes DifficultyChangedSignal when difficulty adjusts
+
+3. **LevelDifficultyModifier.cs**
+   - Modifies ScrewColorRandomizer when levels load
+   - Adjusts piece physics based on difficulty
+   - Stores metadata for tracking
+
+4. **Screw3DServiceExtension.cs**
+   - Helper service for easy integration
+   - Provides methods for scores, hints, rewards
+   - Manages difficulty-aware gameplay
+
+5. **DifficultyDebugUI.cs**
+   - Press F9 to toggle debug interface
+   - Shows current difficulty, parameters, stats
+   - Test buttons for simulating wins/losses (Editor only)
+
+#### Documentation
+
+See **`Assets/Scripts/Services/Difficulty/INTEGRATION_EXAMPLE.md`** for:
+- Complete code examples with full implementation
+- Step-by-step integration walkthrough
+- Real game flow diagrams
+- Testing scenarios and patterns
+- Troubleshooting guide
+
+#### Quick Usage
+
+```csharp
+// The system works automatically once enabled!
+
+// 1. Enable flag
+Add THEONE_DYNAMIC_DIFFICULTY to Scripting Define Symbols
+
+// 2. Play the game
+- Difficulty adjusts based on wins/losses
+- Colors, time, hints all adapt automatically
+- Press F9 to see debug info
+
+// 3. Access in code (if needed)
+[Inject] Screw3DServiceExtension extension;
+var timeLimit = extension.GetAdjustedTimeLimit();
+var score = extension.GetAdjustedScore(baseScore);
 ```
 
 ## Configuration Setup
