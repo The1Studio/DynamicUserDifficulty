@@ -38,7 +38,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
             this.modifiers = modifiers?.ToList() ?? new List<IDifficultyModifier>();
             this.logger = loggerManager?.GetLogger(this);
 
-            this.logger?.Info($"[DynamicDifficultyService] Initialized with {this.modifiers.Count} modifiers");
+            this.logger?.Info($"[DynamicDifficultyService] Initialized stateless service with {this.modifiers.Count} modifiers");
         }
 
         public DifficultyResult CalculateDifficulty(float currentDifficulty, PlayerSessionData sessionData)
@@ -78,9 +78,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 {
                     NewDifficulty = currentDifficulty,
                     PreviousDifficulty = currentDifficulty,
-                    TotalChange = 0f,
-                    ModifierResults = new List<ModifierResult>(),
-                    Timestamp = DateTime.Now
+                    AppliedModifiers = new List<ModifierResult>(),
+                    CalculatedAt = DateTime.Now,
+                    PrimaryReason = "Calculation error"
                 };
             }
         }
@@ -99,13 +99,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 WinStreak = winStreak,
                 LossStreak = lossStreak,
                 LastPlayTime = DateTime.Now.AddHours(-hoursSinceLastPlay),
-                LastQuitType = lastQuitType ?? QuitType.Normal,
-                TotalSessionsPlayed = 1,
-                Sessions = new List<SessionInfo>()
+                QuitType = lastQuitType,
+                SessionCount = 1
             };
 
             var result = this.CalculateDifficulty(currentDifficulty, sessionData);
-            return result.TotalChange;
+            return result.TotalAdjustment;
         }
 
         public float GetDefaultDifficulty()

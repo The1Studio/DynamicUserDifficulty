@@ -5,7 +5,7 @@ An intelligent, modular difficulty adjustment system for Unity games that adapts
 [![Unity](https://img.shields.io/badge/Unity-2021.3%2B-blue.svg)](https://unity.com)
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](package.json)
 [![License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-143%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-119%20passing-brightgreen.svg)](#testing)
 [![Coverage](https://img.shields.io/badge/coverage-~92%25-brightgreen.svg)](#testing)
 
 ## 📋 Table of Contents
