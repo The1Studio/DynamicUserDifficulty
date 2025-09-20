@@ -15,7 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
     {
         [SerializeReference]
         [Tooltip("List of modifier configurations. Use + to add new configs.")]
-        private List<IModifierConfig> configs = new List<IModifierConfig>();
+        private List<BaseModifierConfig> configs = new List<BaseModifierConfig>();
 
         /// <summary>
         /// Gets a strongly-typed configuration for a specific modifier type
@@ -39,7 +39,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         /// </summary>
         public void SetConfig(IModifierConfig config)
         {
-            if (config == null) return;
+            if (config == null || !(config is BaseModifierConfig baseConfig)) return;
 
             // Remove existing config of the same type
             this.configs?.RemoveAll(c => c?.ModifierType == config.ModifierType);
@@ -47,9 +47,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             // Add new config
             if (this.configs == null)
             {
-                this.configs = new List<IModifierConfig>();
+                this.configs = new List<BaseModifierConfig>();
             }
-            this.configs.Add(config);
+            this.configs.Add(baseConfig);
         }
 
         /// <summary>
@@ -76,19 +76,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         /// <summary>
         /// Gets all configurations
         /// </summary>
-        public IReadOnlyList<IModifierConfig> AllConfigs => this.configs ?? new List<IModifierConfig>();
+        public IReadOnlyList<IModifierConfig> AllConfigs => this.configs?.Cast<IModifierConfig>().ToList() ?? new List<IModifierConfig>();
 
         /// <summary>
         /// Initializes with default configurations
         /// </summary>
         public void InitializeDefaults()
         {
-            this.configs = new List<IModifierConfig>
+            this.configs = new List<BaseModifierConfig>
             {
-                new WinStreakConfig().CreateDefault(),
-                new LossStreakConfig().CreateDefault(),
-                new TimeDecayConfig().CreateDefault(),
-                new RageQuitConfig().CreateDefault()
+                (WinStreakConfig)new WinStreakConfig().CreateDefault(),
+                (LossStreakConfig)new LossStreakConfig().CreateDefault(),
+                (TimeDecayConfig)new TimeDecayConfig().CreateDefault(),
+                (RageQuitConfig)new RageQuitConfig().CreateDefault()
             };
         }
 

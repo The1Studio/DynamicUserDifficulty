@@ -8,10 +8,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// Configuration for Loss Streak modifier with type-safe properties
     /// </summary>
     [Serializable]
-    public class LossStreakConfig : IModifierConfig
+    public class LossStreakConfig : BaseModifierConfig
     {
-        [SerializeField] private bool isEnabled = true;
-        [SerializeField] private int priority = 2;
 
         [Header("Loss Streak Settings")]
         [SerializeField, Range(1, 10)]
@@ -26,26 +24,21 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         [Tooltip("Maximum difficulty reduction from loss streaks")]
         private float maxReduction = DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION;
 
-        // IModifierConfig implementation
-        public string ModifierType => DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK;
-        public bool IsEnabled => this.isEnabled;
-        public int Priority => this.priority;
+        // BaseModifierConfig implementation
+        public override string ModifierType => DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK;
 
         // Type-safe properties
         public float LossThreshold => this.lossThreshold;
         public float StepSize => this.stepSize;
         public float MaxReduction => this.maxReduction;
 
-        public IModifierConfig CreateDefault()
+        public override IModifierConfig CreateDefault()
         {
-            return new LossStreakConfig
-            {
-                isEnabled = true,
-                priority = 2,
-                lossThreshold = DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD,
-                stepSize = DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE,
-                maxReduction = DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION
-            };
+            var config = new LossStreakConfig();
+            config.SetEnabled(true);
+            config.SetPriority(2);
+            // Field values are already set to defaults via DifficultyConstants
+            return config;
         }
     }
 }

@@ -8,10 +8,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// Configuration for Rage Quit modifier with type-safe properties
     /// </summary>
     [Serializable]
-    public class RageQuitConfig : IModifierConfig
+    public class RageQuitConfig : BaseModifierConfig
     {
-        [SerializeField] private bool isEnabled = true;
-        [SerializeField] private int priority = 4;
 
         [Header("Rage Quit Settings")]
         [SerializeField, Range(5f, 120f)]
@@ -30,10 +28,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         [Tooltip("Difficulty reduction for mid-play quit")]
         private float midPlayReduction = DifficultyConstants.MID_PLAY_DEFAULT_REDUCTION;
 
-        // IModifierConfig implementation
-        public string ModifierType => DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT;
-        public bool IsEnabled => this.isEnabled;
-        public int Priority => this.priority;
+        // BaseModifierConfig implementation
+        public override string ModifierType => DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT;
 
         // Type-safe properties
         public float RageQuitThreshold => this.rageQuitThreshold;
@@ -41,17 +37,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         public float QuitReduction => this.quitReduction;
         public float MidPlayReduction => this.midPlayReduction;
 
-        public IModifierConfig CreateDefault()
+        public override IModifierConfig CreateDefault()
         {
-            return new RageQuitConfig
-            {
-                isEnabled = true,
-                priority = 4,
-                rageQuitThreshold = DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD,
-                rageQuitReduction = DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION,
-                quitReduction = DifficultyConstants.QUIT_DEFAULT_REDUCTION,
-                midPlayReduction = DifficultyConstants.MID_PLAY_DEFAULT_REDUCTION
-            };
+            var config = new RageQuitConfig();
+            config.SetEnabled(true);
+            config.SetPriority(4);
+            // Field values are already set to defaults via DifficultyConstants
+            return config;
         }
     }
 }

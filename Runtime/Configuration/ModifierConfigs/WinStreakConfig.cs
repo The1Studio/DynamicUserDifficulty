@@ -8,10 +8,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// Configuration for Win Streak modifier with type-safe properties
     /// </summary>
     [Serializable]
-    public class WinStreakConfig : IModifierConfig
+    public class WinStreakConfig : BaseModifierConfig
     {
-        [SerializeField] private bool isEnabled = true;
-        [SerializeField] private int priority = 1;
 
         [Header("Win Streak Settings")]
         [SerializeField, Range(1, 10)]
@@ -26,26 +24,21 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         [Tooltip("Maximum difficulty increase from win streaks")]
         private float maxBonus = DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS;
 
-        // IModifierConfig implementation
-        public string ModifierType => DifficultyConstants.MODIFIER_TYPE_WIN_STREAK;
-        public bool IsEnabled => this.isEnabled;
-        public int Priority => this.priority;
+        // BaseModifierConfig implementation
+        public override string ModifierType => DifficultyConstants.MODIFIER_TYPE_WIN_STREAK;
 
         // Type-safe properties
         public float WinThreshold => this.winThreshold;
         public float StepSize => this.stepSize;
         public float MaxBonus => this.maxBonus;
 
-        public IModifierConfig CreateDefault()
+        public override IModifierConfig CreateDefault()
         {
-            return new WinStreakConfig
-            {
-                isEnabled = true,
-                priority = 1,
-                winThreshold = DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD,
-                stepSize = DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE,
-                maxBonus = DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS
-            };
+            var config = new WinStreakConfig();
+            config.SetEnabled(true);
+            config.SetPriority(1);
+            // Field values are already set to defaults via DifficultyConstants
+            return config;
         }
     }
 }
