@@ -21,10 +21,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
             this.config = DifficultyConfig.CreateDefault();
 
             // Initialize session data
-            this.sessionData = new PlayerSessionData();
+            this.sessionData = new();
 
             // Create difficulty manager
-            this.difficultyManager = new DifficultyManager(this.config);
+            this.difficultyManager = new(this.config);
         }
 
         [TearDown]
@@ -57,7 +57,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
             this.difficultyManager.SetDifficulty(currentDifficulty);
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(this.sessionData, new List<ModifierResult>());
+            float result = this.difficultyManager.CalculateDifficulty(this.sessionData, new());
 
             // Assert
             Assert.AreEqual(currentDifficulty, result);
@@ -72,7 +72,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
 
             var modifierResults = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "TestModifier", Value = 1.5f }
+                new() { ModifierName = "TestModifier", Value = 1.5f },
             };
 
             // Act
@@ -91,7 +91,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
 
             var modifierResults = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "TestModifier", Value = -1.5f }
+                new() { ModifierName = "TestModifier", Value = -1.5f },
             };
 
             // Act
@@ -109,7 +109,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
 
             var modifierResults = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "TestModifier", Value = -10f }
+                new() { ModifierName = "TestModifier", Value = -10f },
             };
 
             // Act
@@ -128,7 +128,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
 
             var modifierResults = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "TestModifier", Value = 10f }
+                new() { ModifierName = "TestModifier", Value = 10f },
             };
 
             // Act
@@ -149,7 +149,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
 
             var modifierResults = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "TestModifier", Value = 5f } // Try to add 5
+                new() { ModifierName = "TestModifier", Value = 5f }, // Try to add 5
             };
 
             // Act

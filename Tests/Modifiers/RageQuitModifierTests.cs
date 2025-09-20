@@ -58,7 +58,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider = new MockRageQuitProvider();
 
             // Create modifier with typed config and provider
-            this.modifier = new RageQuitModifier(this.config, this.mockProvider);
+            this.modifier = new RageQuitModifier(this.config, this.mockProvider, null);
 
             // Create test session data
             this.sessionData = new PlayerSessionData();

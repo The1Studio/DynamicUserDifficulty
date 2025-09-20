@@ -50,7 +50,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider = new MockWinStreakProviderForLoss();
 
             // Create modifier with typed config and provider
-            this.modifier = new LossStreakModifier(this.config, this.mockProvider);
+            this.modifier = new LossStreakModifier(this.config, this.mockProvider, null);
 
             // Create test session data
             this.sessionData = new PlayerSessionData();

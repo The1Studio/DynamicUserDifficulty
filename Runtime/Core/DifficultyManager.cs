@@ -14,7 +14,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         private readonly DifficultyConfig config;
         private float currentDifficulty;
 
-        public float CurrentDifficulty => currentDifficulty;
+        public float CurrentDifficulty => this.currentDifficulty;
 
         /// <summary>
         /// Default constructor using default difficulty
@@ -45,7 +45,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         /// <returns>New difficulty value</returns>
         public float AdjustDifficulty(float currentDifficulty, float adjustment, float minDifficulty, float maxDifficulty)
         {
-            float newDifficulty = currentDifficulty + adjustment;
+            var newDifficulty = currentDifficulty + adjustment;
             return Mathf.Clamp(newDifficulty, minDifficulty, maxDifficulty);
         }
 
@@ -70,7 +70,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         /// <returns>Current difficulty level category</returns>
         public DifficultyLevel GetDifficultyLevel()
         {
-            return GetDifficultyLevel(currentDifficulty);
+            return this.GetDifficultyLevel(this.currentDifficulty);
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         /// <param name="difficulty">New difficulty value</param>
         public void SetDifficulty(float difficulty)
         {
-            currentDifficulty = Mathf.Clamp(difficulty, DifficultyConstants.MIN_DIFFICULTY, DifficultyConstants.MAX_DIFFICULTY);
+            this.currentDifficulty = Mathf.Clamp(difficulty, DifficultyConstants.MIN_DIFFICULTY, DifficultyConstants.MAX_DIFFICULTY);
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         /// <returns>Calculated difficulty value</returns>
         public float CalculateDifficulty(PlayerSessionData sessionData, List<ModifierResult> modifierResults)
         {
-            float totalAdjustment = 0f;
+            var totalAdjustment = 0f;
 
             if (modifierResults != null)
             {
@@ -100,17 +100,17 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 }
             }
 
-            float newDifficulty = currentDifficulty + totalAdjustment;
+            var newDifficulty = this.currentDifficulty + totalAdjustment;
 
             // Apply max change per session if config is available
-            if (config != null)
+            if (this.config != null)
             {
-                float maxChange = config.MaxChangePerSession;
-                float actualChange = newDifficulty - currentDifficulty;
+                var maxChange    = this.config.MaxChangePerSession;
+                var actualChange = newDifficulty - this.currentDifficulty;
 
                 if (Mathf.Abs(actualChange) > maxChange)
                 {
-                    newDifficulty = currentDifficulty + Mathf.Sign(actualChange) * maxChange;
+                    newDifficulty = this.currentDifficulty + Mathf.Sign(actualChange) * maxChange;
                 }
             }
 
@@ -123,10 +123,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         /// <param name="difficulty">Difficulty value to apply</param>
         public void ApplyDifficulty(float difficulty)
         {
-            float min = config?.MinDifficulty ?? DifficultyConstants.MIN_DIFFICULTY;
-            float max = config?.MaxDifficulty ?? DifficultyConstants.MAX_DIFFICULTY;
+            var min = this.config?.MinDifficulty ?? DifficultyConstants.MIN_DIFFICULTY;
+            var max = this.config?.MaxDifficulty ?? DifficultyConstants.MAX_DIFFICULTY;
 
-            currentDifficulty = Mathf.Clamp(difficulty, min, max);
+            this.currentDifficulty = Mathf.Clamp(difficulty, min, max);
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         /// </summary>
         public void ResetDifficulty()
         {
-            currentDifficulty = config?.DefaultDifficulty ?? DifficultyConstants.DEFAULT_DIFFICULTY;
+            this.currentDifficulty = this.config?.DefaultDifficulty ?? DifficultyConstants.DEFAULT_DIFFICULTY;
         }
     }
 }

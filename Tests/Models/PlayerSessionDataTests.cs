@@ -13,7 +13,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Models
         [SetUp]
         public void Setup()
         {
-            this.sessionData = new PlayerSessionData();
+            this.sessionData = new();
         }
 
         [Test]

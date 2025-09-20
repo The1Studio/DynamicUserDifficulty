@@ -3,6 +3,7 @@
     "rootNamespace": "TheOneStudio.DynamicUserDifficulty.Tests",
     "references": [
         "DynamicUserDifficulty",
+        "TheOne.Logging",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

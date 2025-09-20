@@ -14,7 +14,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
         [SetUp]
         public void Setup()
         {
-            this.aggregator = new ModifierAggregator();
+            this.aggregator = new();
         }
 
         [Test]
@@ -46,7 +46,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             // Arrange
             var results = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "Test", Value = 2.5f }
+                new() { ModifierName = "Test", Value = 2.5f },
             };
 
             // Act
@@ -62,9 +62,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             // Arrange
             var results = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "Test1", Value = 1.5f },
-                new ModifierResult { ModifierName = "Test2", Value = 2.0f },
-                new ModifierResult { ModifierName = "Test3", Value = -0.5f }
+                new() { ModifierName = "Test1", Value = 1.5f },
+                new() { ModifierName = "Test2", Value = 2.0f },
+                new() { ModifierName = "Test3", Value = -0.5f },
             };
 
             // Act
@@ -107,14 +107,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             // Arrange
             var results = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "Test1", Value = 2.0f },
-                new ModifierResult { ModifierName = "Test2", Value = 4.0f }
+                new() { ModifierName = "Test1", Value = 2.0f },
+                new() { ModifierName = "Test2", Value = 4.0f },
             };
 
             var weights = new Dictionary<string, float>
             {
                 { "Test1", 1.0f },
-                { "Test2", 2.0f }
+                { "Test2", 2.0f },
             };
 
             // Act
@@ -131,13 +131,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             // Arrange
             var results = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "Test1", Value = 2.0f },
-                new ModifierResult { ModifierName = "Test2", Value = 4.0f }
+                new() { ModifierName = "Test1", Value = 2.0f },
+                new() { ModifierName = "Test2", Value = 4.0f },
             };
 
             var weights = new Dictionary<string, float>
             {
-                { "Test1", 2.0f } // Test2 missing, should use default weight (1.0)
+                { "Test1", 2.0f }, // Test2 missing, should use default weight (1.0)
             };
 
             // Act
@@ -154,8 +154,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             // Arrange
             var results = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "Test1", Value = 2.0f },
-                new ModifierResult { ModifierName = "Test2", Value = 4.0f }
+                new() { ModifierName = "Test1", Value = 2.0f },
+                new() { ModifierName = "Test2", Value = 4.0f },
             };
 
             // Act
@@ -195,9 +195,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             // Arrange
             var results = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "Test1", Value = 2.0f },
-                new ModifierResult { ModifierName = "Test2", Value = -3.0f },
-                new ModifierResult { ModifierName = "Test3", Value = 1.5f }
+                new() { ModifierName = "Test1", Value = 2.0f },
+                new() { ModifierName = "Test2", Value = -3.0f },
+                new() { ModifierName = "Test3", Value = 1.5f },
             };
 
             // Act
@@ -236,9 +236,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             // Arrange
             var results = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "Test1", Value = 4.0f },
-                new ModifierResult { ModifierName = "Test2", Value = 2.0f },
-                new ModifierResult { ModifierName = "Test3", Value = 1.0f }
+                new() { ModifierName = "Test1", Value = 4.0f },
+                new() { ModifierName = "Test2", Value = 2.0f },
+                new() { ModifierName = "Test3", Value = 1.0f },
             };
 
             // Act
@@ -256,8 +256,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             // Arrange
             var results = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "Test1", Value = 3.0f },
-                new ModifierResult { ModifierName = "Test2", Value = 2.0f }
+                new() { ModifierName = "Test1", Value = 3.0f },
+                new() { ModifierName = "Test2", Value = 2.0f },
             };
 
             // Act
@@ -274,8 +274,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             // Arrange
             var results = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "Test1", Value = 0f },
-                new ModifierResult { ModifierName = "Test2", Value = 0f }
+                new() { ModifierName = "Test1", Value = 0f },
+                new() { ModifierName = "Test2", Value = 0f },
             };
 
             // Act & Assert
@@ -291,8 +291,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             // Arrange
             var results = new List<ModifierResult>
             {
-                new ModifierResult { ModifierName = "Test1", Value = 2.0f },
-                new ModifierResult { ModifierName = "Test2", Value = -1.0f }
+                new() { ModifierName = "Test1", Value = 2.0f },
+                new() { ModifierName = "Test2", Value = -1.0f },
             };
 
             // Act & Assert

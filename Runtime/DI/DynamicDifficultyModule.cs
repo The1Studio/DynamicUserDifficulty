@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Calculators;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
@@ -20,10 +21,12 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
     public class DynamicDifficultyModule : IInstaller
     {
         private readonly DifficultyConfig config;
+        private readonly ILoggerManager loggerManager;
 
-        public DynamicDifficultyModule(DifficultyConfig config = null)
+        public DynamicDifficultyModule(DifficultyConfig config = null, ILoggerManager loggerManager = null)
         {
             this.config = config;
+            this.loggerManager = loggerManager;
         }
 
         public void Install(IContainerBuilder builder)
@@ -33,6 +36,12 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
 
             // Register configuration
             builder.RegisterInstance(actualConfig);
+
+            // Register logger manager if provided
+            if (this.loggerManager != null)
+            {
+                builder.RegisterInstance(this.loggerManager);
+            }
 
             // Register core services
             builder.Register<IDynamicDifficultyService, DynamicDifficultyService>(Lifetime.Singleton);
@@ -44,7 +53,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             // The game determines which modifiers are active by implementing the corresponding provider interfaces
             this.RegisterAllModifiers(builder);
 
-            Debug.Log("[DynamicDifficultyModule] All difficulty modifiers registered. Active modifiers depend on which provider interfaces are implemented.");
+            UnityEngine.Debug.Log("[DynamicDifficultyModule] All difficulty modifiers registered. Active modifiers depend on which provider interfaces are implemented.");
         }
 
         /// <summary>
@@ -87,7 +96,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                 .WithParameter(rageQuitConfig)
                 .As<IDifficultyModifier>();
 
-            Debug.Log("[DynamicDifficultyModule] Registered 4 difficulty modifiers with typed configs: WinStreak, LossStreak, TimeDecay, RageQuit");
+            UnityEngine.Debug.Log("[DynamicDifficultyModule] Registered 4 difficulty modifiers with typed configs: WinStreak, LossStreak, TimeDecay, RageQuit");
         }
 
         // Removed CreateModifierConfig method - now using typed configs directly
@@ -98,11 +107,11 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             var config = Resources.Load<DifficultyConfig>(DifficultyConstants.CONFIG_RESOURCES_PATH);
             if (config != null)
             {
-                Debug.Log($"[DynamicDifficultyModule] Loaded DifficultyConfig from Resources/{DifficultyConstants.CONFIG_RESOURCES_PATH}");
+                UnityEngine.Debug.Log($"[DynamicDifficultyModule] Loaded DifficultyConfig from Resources/{DifficultyConstants.CONFIG_RESOURCES_PATH}");
                 return config;
             }
 
-            Debug.LogWarning($"[DynamicDifficultyModule] DifficultyConfig not found at: {DifficultyConstants.CONFIG_RESOURCES_PATH}. " +
+            UnityEngine.Debug.LogWarning($"[DynamicDifficultyModule] DifficultyConfig not found at: {DifficultyConstants.CONFIG_RESOURCES_PATH}. " +
                            "Creating default configuration.");
             return ScriptableObject.CreateInstance<DifficultyConfig>();
         }

@@ -56,7 +56,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             if (this.config != null && Application.isEditor)
             {
-                Debug.Log($"[{this.ModifierName}] {message}");
+                UnityEngine.Debug.Log($"[{this.ModifierName}] {message}");
             }
         }
     }

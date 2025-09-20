@@ -1,3 +1,4 @@
+using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
@@ -18,7 +19,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT;
 
         // Constructor for typed config
-        public RageQuitModifier(RageQuitConfig config, IRageQuitProvider rageQuitProvider) : base(config)
+        public RageQuitModifier(RageQuitConfig config, IRageQuitProvider rageQuitProvider, ILoggerManager loggerManager = null) : base(config, loggerManager)
         {
             this.rageQuitProvider = rageQuitProvider ?? throw new System.ArgumentNullException(nameof(rageQuitProvider));
         }
@@ -90,7 +91,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[RageQuitModifier] Error calculating: {e.Message}");
+                this.logger?.Error($"[RageQuitModifier] Error calculating: {e.Message}");
                 return ModifierResult.NoChange();
             }
         }

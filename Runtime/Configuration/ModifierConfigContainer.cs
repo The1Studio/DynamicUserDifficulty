@@ -58,7 +58,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         /// </summary>
         public bool IsModifierEnabled(string modifierType)
         {
-            var config = GetConfig(modifierType);
+            var config = this.GetConfig(modifierType);
             return config?.IsEnabled ?? false;
         }
 
@@ -118,7 +118,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         // IEnumerable implementation
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return this.GetEnumerator();
         }
     }
 }

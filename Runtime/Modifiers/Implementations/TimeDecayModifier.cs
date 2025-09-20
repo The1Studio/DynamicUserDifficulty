@@ -1,4 +1,5 @@
 using System;
+using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
@@ -19,7 +20,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_TIME_DECAY;
 
         // Constructor for typed config
-        public TimeDecayModifier(TimeDecayConfig config, ITimeDecayProvider timeDecayProvider) : base(config)
+        public TimeDecayModifier(TimeDecayConfig config, ITimeDecayProvider timeDecayProvider, ILoggerManager loggerManager = null) : base(config, loggerManager)
         {
             this.timeDecayProvider = timeDecayProvider ?? throw new ArgumentNullException(nameof(timeDecayProvider));
         }
@@ -94,7 +95,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             }
             catch (Exception e)
             {
-                Debug.LogError($"[TimeDecayModifier] Error calculating: {e.Message}");
+                this.logger?.Error($"[TimeDecayModifier] Error calculating: {e.Message}");
                 return ModifierResult.NoChange();
             }
         }

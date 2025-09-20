@@ -1,3 +1,4 @@
+using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
@@ -18,7 +19,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_WIN_STREAK;
 
         // Constructor for typed config
-        public WinStreakModifier(WinStreakConfig config, IWinStreakProvider winStreakProvider) : base(config)
+        public WinStreakModifier(WinStreakConfig config, IWinStreakProvider winStreakProvider, ILoggerManager loggerManager = null) : base(config, loggerManager)
         {
             this.winStreakProvider = winStreakProvider ?? throw new System.ArgumentNullException(nameof(winStreakProvider));
         }
@@ -72,7 +73,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[WinStreakModifier] Error calculating: {e.Message}");
+                this.logger?.Error($"[WinStreakModifier] Error calculating: {e.Message}");
                 return ModifierResult.NoChange();
             }
         }

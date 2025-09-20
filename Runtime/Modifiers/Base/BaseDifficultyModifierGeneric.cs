@@ -1,9 +1,11 @@
+using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
+    using ILogger = TheOne.Logging.ILogger;
+
     /// <summary>
     /// Generic base class for difficulty modifiers with strongly-typed configuration
     /// </summary>
@@ -11,6 +13,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         where TConfig : class, IModifierConfig
     {
         protected TConfig config;
+        protected readonly ILogger logger;
 
         public abstract string ModifierName { get; }
         public virtual int Priority => this.config?.Priority ?? 0;
@@ -18,10 +21,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 
         public TConfig Config => this.config;
 
-        protected BaseDifficultyModifier(TConfig config)
+        protected BaseDifficultyModifier(TConfig config, ILoggerManager loggerManager = null)
         {
             this.config = config;
             this.IsEnabled = config?.IsEnabled ?? true;
+            this.logger = loggerManager?.GetLogger(this);
         }
 
         public abstract ModifierResult Calculate(PlayerSessionData sessionData);
@@ -43,10 +47,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         /// </summary>
         protected void LogDebug(string message)
         {
-            if (Application.isEditor)
-            {
-                Debug.Log($"[{this.ModifierName}] {message}");
-            }
+            this.logger?.Info($"[{this.ModifierName}] {message}");
         }
     }
 }

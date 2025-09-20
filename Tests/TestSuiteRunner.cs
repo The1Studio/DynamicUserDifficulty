@@ -1,7 +1,6 @@
 using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 
 namespace TheOneStudio.DynamicUserDifficulty.Tests
 {
@@ -20,7 +19,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
             Services,
             Configuration,
             Models,
-            All
+            All,
         }
 
         /// <summary>
@@ -36,7 +35,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
                 { "Total", 0 },
                 { "Passed", 0 },
                 { "Failed", 0 },
-                { "Skipped", 0 }
+                { "Skipped", 0 },
             };
 
             // Track test execution
@@ -53,7 +52,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
                 "Calculators & Aggregators",
                 "Services Layer",
                 "Configuration Management",
-                "Data Models"
+                "Data Models",
             };
 
             foreach (var category in categories)
@@ -80,7 +79,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
             {
                 "DifficultyManager - Difficulty level management",
                 "DifficultyConstants - Centralized constants",
-                "DifficultyLevel - Enumeration values"
+                "DifficultyLevel - Enumeration values",
             };
 
             foreach (var component in components)
@@ -104,7 +103,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
                 "WinStreakModifier - Increases difficulty on win streaks",
                 "LossStreakModifier - Decreases difficulty on loss streaks",
                 "TimeDecayModifier - Adjusts based on time since last play",
-                "RageQuitModifier - Handles different quit behaviors"
+                "RageQuitModifier - Handles different quit behaviors",
             };
 
             foreach (var modifier in modifiers)
@@ -128,7 +127,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
                 "ModifierAggregator.Aggregate - Sum strategy",
                 "ModifierAggregator.AggregateWeighted - Weighted average",
                 "ModifierAggregator.AggregateMax - Maximum absolute value",
-                "ModifierAggregator.AggregateDiminishing - Diminishing returns"
+                "ModifierAggregator.AggregateDiminishing - Diminishing returns",
             };
 
             foreach (var calc in calculators)
@@ -154,7 +153,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
                 { "Calculators", 100f },
                 { "Services", 100f },
                 { "Configuration", 100f },
-                { "Models", 100f }
+                { "Models", 100f },
             };
 
             Debug.Log("Test Coverage by Component:");
@@ -187,7 +186,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
                 "VContainer DI - Dependency injection integration",
                 "Unity PlayerPrefs - Data persistence",
                 "ScriptableObject - Configuration management",
-                "Unity Editor - Validation tools and menu items"
+                "Unity Editor - Validation tools and menu items",
             };
 
             foreach (var integration in integrations)
@@ -212,7 +211,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
                 { "Aggregation (10 modifiers)", 0.02f },
                 { "Session Data Update", 0.005f },
                 { "Configuration Load", 0.1f },
-                { "Data Persistence", 0.05f }
+                { "Data Persistence", 0.05f },
             };
 
             Debug.Log("Operation Performance (ms):");
@@ -241,7 +240,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
                 "Difficulty clamping at boundaries",
                 "Maximum streak values",
                 "Zero time decay calculation",
-                "Invalid quit type handling"
+                "Invalid quit type handling",
             };
 
             foreach (var edgeCase in edgeCases)
@@ -266,7 +265,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
                 { "Null checks", 15 },
                 { "Range validations", 20 },
                 { "Exception throws", 8 },
-                { "Boolean assertions", 12 }
+                { "Boolean assertions", 12 },
             };
 
             int totalAssertions = 0;

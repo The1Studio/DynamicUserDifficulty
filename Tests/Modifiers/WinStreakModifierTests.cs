@@ -52,7 +52,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider = new MockWinStreakProvider();
 
             // Create modifier with typed config and provider
-            this.modifier = new WinStreakModifier(this.config, this.mockProvider);
+            this.modifier = new WinStreakModifier(this.config, this.mockProvider, null);
 
             // Create test session data
             this.sessionData = new PlayerSessionData();
