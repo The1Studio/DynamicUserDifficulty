@@ -8,7 +8,7 @@ using TheOneStudio.DynamicUserDifficulty.Providers;
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
 
-    // Mock provider for testing
+    // Mock provider for testing (updated for stateless architecture)
     public sealed class MockRageQuitProvider : IRageQuitProvider
     {
         public QuitType LastQuitType { get; set; } = QuitType.Normal;
@@ -16,25 +16,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public float SessionDuration { get; set; } = 60f;
         public float AverageSessionDuration { get; set; } = 120f;
 
-        // IRageQuitProvider methods
-        public QuitType GetLastQuitType()           => this.LastQuitType;
-        public float    GetAverageSessionDuration() => this.AverageSessionDuration;
-        public void RecordSessionEnd(QuitType quitType, float duration)
-        {
-            this.LastQuitType = quitType;
-            this.SessionDuration = duration;
-            if (quitType == QuitType.RageQuit) this.RecentRageQuits++;
-        }
+        // IRageQuitProvider methods (read-only)
+        public QuitType GetLastQuitType() => this.LastQuitType;
+        public float GetAverageSessionDuration() => this.AverageSessionDuration;
         public float GetCurrentSessionDuration() => this.SessionDuration;
-        public int   GetRecentRageQuitCount()    => this.RecentRageQuits;
-        public void  RecordSessionStart()        { }
-
-        // IDifficultyDataProvider methods
-        public PlayerSessionData GetSessionData()                        => new();
-        public void              SaveSessionData(PlayerSessionData data) { }
-        public float             GetCurrentDifficulty()                  => 5.0f;
-        public void              SaveDifficulty(float difficulty)        { }
-        public void              ClearData()                             { }
+        public int GetRecentRageQuitCount() => this.RecentRageQuits;
     }
 
     [TestFixture]

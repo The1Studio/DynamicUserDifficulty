@@ -39,14 +39,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         {
             // Assert
             Assert.IsNotNull(this.difficultyManager);
-            Assert.AreEqual(DifficultyConstants.DEFAULT_DIFFICULTY, this.difficultyManager.CurrentDifficulty);
+            Assert.AreEqual(DifficultyConstants.DEFAULT_DIFFICULTY, this.difficultyManager.GetDefaultDifficulty());
         }
 
         [Test]
-        public void Constructor_WithNullConfig_ThrowsException()
+        public void Constructor_WithNullConfig_WorksWithDefaults()
         {
-            // Act & Assert
-            Assert.Throws<System.ArgumentNullException>(() => new DifficultyManager(null));
+            // Act
+            var manager = new DifficultyManager();
+
+            // Assert
+            Assert.IsNotNull(manager);
+            Assert.AreEqual(DifficultyConstants.DEFAULT_DIFFICULTY, manager.GetDefaultDifficulty());
         }
 
         [Test]
@@ -54,10 +58,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         {
             // Arrange
             float currentDifficulty = 5.0f;
-            this.difficultyManager.SetDifficulty(currentDifficulty);
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(this.sessionData, new());
+            float result = this.difficultyManager.CalculateDifficulty(currentDifficulty, new());
 
             // Assert
             Assert.AreEqual(currentDifficulty, result);
@@ -68,7 +71,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         {
             // Arrange
             float currentDifficulty = 5.0f;
-            this.difficultyManager.SetDifficulty(currentDifficulty);
 
             var modifierResults = new List<ModifierResult>
             {
@@ -76,7 +78,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
             };
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(this.sessionData, modifierResults);
+            float result = this.difficultyManager.CalculateDifficulty(currentDifficulty, modifierResults);
 
             // Assert
             Assert.Greater(result, currentDifficulty);
@@ -87,7 +89,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         {
             // Arrange
             float currentDifficulty = 5.0f;
-            this.difficultyManager.SetDifficulty(currentDifficulty);
 
             var modifierResults = new List<ModifierResult>
             {
@@ -95,57 +96,44 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
             };
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(this.sessionData, modifierResults);
+            float result = this.difficultyManager.CalculateDifficulty(currentDifficulty, modifierResults);
 
             // Assert
             Assert.Less(result, currentDifficulty);
         }
 
         [Test]
-        public void ApplyDifficulty_ClampsToMinimum()
+        public void ClampDifficulty_ClampsToMinimum()
         {
             // Arrange
-            this.difficultyManager.SetDifficulty(DifficultyConstants.MIN_DIFFICULTY);
-
-            var modifierResults = new List<ModifierResult>
-            {
-                new() { ModifierName = "TestModifier", Value = -10f },
-            };
+            float belowMin = DifficultyConstants.MIN_DIFFICULTY - 5f;
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(this.sessionData, modifierResults);
-            this.difficultyManager.ApplyDifficulty(result);
+            float result = this.difficultyManager.ClampDifficulty(belowMin);
 
             // Assert
-            Assert.AreEqual(DifficultyConstants.MIN_DIFFICULTY, this.difficultyManager.CurrentDifficulty);
+            Assert.AreEqual(DifficultyConstants.MIN_DIFFICULTY, result);
         }
 
         [Test]
-        public void ApplyDifficulty_ClampsToMaximum()
+        public void ClampDifficulty_ClampsToMaximum()
         {
             // Arrange
-            this.difficultyManager.SetDifficulty(DifficultyConstants.MAX_DIFFICULTY - 1);
-
-            var modifierResults = new List<ModifierResult>
-            {
-                new() { ModifierName = "TestModifier", Value = 10f },
-            };
+            float aboveMax = DifficultyConstants.MAX_DIFFICULTY + 5f;
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(this.sessionData, modifierResults);
-            this.difficultyManager.ApplyDifficulty(result);
+            float result = this.difficultyManager.ClampDifficulty(aboveMax);
 
             // Assert
-            Assert.AreEqual(DifficultyConstants.MAX_DIFFICULTY, this.difficultyManager.CurrentDifficulty);
+            Assert.AreEqual(DifficultyConstants.MAX_DIFFICULTY, result);
         }
 
         [Test]
-        public void ApplyDifficulty_RespectsMaxChangePerSession()
+        public void CalculateDifficulty_RespectsMaxChangePerSession()
         {
             // Arrange
             float startDifficulty = 5.0f;
-            float maxChange = 2.0f;
-            this.difficultyManager.SetDifficulty(startDifficulty);
+            float maxChange = this.config.MaxChangePerSession;
 
             var modifierResults = new List<ModifierResult>
             {
@@ -153,40 +141,33 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
             };
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(this.sessionData, modifierResults);
-            this.difficultyManager.ApplyDifficulty(result);
+            float result = this.difficultyManager.CalculateDifficulty(startDifficulty, modifierResults);
 
             // Assert
-            Assert.LessOrEqual(this.difficultyManager.CurrentDifficulty - startDifficulty, maxChange);
+            Assert.LessOrEqual(result - startDifficulty, maxChange);
         }
 
         [Test]
-        public void ResetDifficulty_SetsToDefault()
+        public void GetDefaultDifficulty_ReturnsCorrectValue()
         {
-            // Arrange
-            this.difficultyManager.SetDifficulty(8.0f);
-
             // Act
-            this.difficultyManager.ResetDifficulty();
+            float defaultDiff = this.difficultyManager.GetDefaultDifficulty();
 
             // Assert
-            Assert.AreEqual(DifficultyConstants.DEFAULT_DIFFICULTY, this.difficultyManager.CurrentDifficulty);
+            Assert.AreEqual(DifficultyConstants.DEFAULT_DIFFICULTY, defaultDiff);
         }
 
         [Test]
-        public void GetDifficultyLevel_ReturnCorrectLevel()
+        public void GetDifficultyLevel_ReturnsCorrectLevel()
         {
             // Test Easy
-            this.difficultyManager.SetDifficulty(2.0f);
-            Assert.AreEqual(DifficultyLevel.Easy, this.difficultyManager.GetDifficultyLevel());
+            Assert.AreEqual(DifficultyLevel.Easy, this.difficultyManager.GetDifficultyLevel(2.0f));
 
             // Test Medium
-            this.difficultyManager.SetDifficulty(5.0f);
-            Assert.AreEqual(DifficultyLevel.Medium, this.difficultyManager.GetDifficultyLevel());
+            Assert.AreEqual(DifficultyLevel.Medium, this.difficultyManager.GetDifficultyLevel(5.0f));
 
             // Test Hard
-            this.difficultyManager.SetDifficulty(8.0f);
-            Assert.AreEqual(DifficultyLevel.Hard, this.difficultyManager.GetDifficultyLevel());
+            Assert.AreEqual(DifficultyLevel.Hard, this.difficultyManager.GetDifficultyLevel(8.0f));
         }
     }
 }

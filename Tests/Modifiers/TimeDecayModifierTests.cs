@@ -8,25 +8,17 @@ using System;
 
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
-    // Mock provider for testing
+    // Mock provider for testing (updated for stateless architecture)
     public sealed class MockTimeDecayProvider : ITimeDecayProvider
     {
         public DateTime LastPlayTime { get; set; } = DateTime.Now;
         public int DaysAway { get; set; } = 0;
         public TimeSpan TimeSinceLastPlay { get; set; } = TimeSpan.Zero;
 
-        // ITimeDecayProvider methods
-        public DateTime GetLastPlayTime()      => this.LastPlayTime;
+        // ITimeDecayProvider methods (read-only)
+        public DateTime GetLastPlayTime() => this.LastPlayTime;
         public TimeSpan GetTimeSinceLastPlay() => this.TimeSinceLastPlay; // Use controllable value
-        public void     RecordPlaySession()    => this.LastPlayTime = DateTime.Now;
-        public int      GetDaysAwayFromGame()  => this.DaysAway;
-
-        // IDifficultyDataProvider methods
-        public PlayerSessionData GetSessionData()                        => new();
-        public void              SaveSessionData(PlayerSessionData data) { }
-        public float             GetCurrentDifficulty()                  => 5.0f;
-        public void              SaveDifficulty(float difficulty)        { }
-        public void              ClearData()                             { }
+        public int GetDaysAwayFromGame() => this.DaysAway;
     }
 
     [TestFixture]
