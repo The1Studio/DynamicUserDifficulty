@@ -3,15 +3,39 @@ using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Core;
+using TheOneStudio.DynamicUserDifficulty.Providers;
 
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
+    // Mock provider for testing (updated for provider pattern)
+    public class MockWinStreakProviderForLoss : IWinStreakProvider
+    {
+        public int WinStreak { get; set; } = 0;
+        public int LossStreak { get; set; } = 0;
+
+        // IWinStreakProvider methods
+        public int GetWinStreak() => WinStreak;
+        public int GetLossStreak() => LossStreak;
+        public void RecordWin() => WinStreak++;
+        public void RecordLoss() => LossStreak++;
+        public int GetTotalWins() => WinStreak; // For testing, use same as streak
+        public int GetTotalLosses() => LossStreak; // For testing, use same as streak
+
+        // IDifficultyDataProvider methods
+        public PlayerSessionData GetSessionData() => new PlayerSessionData();
+        public void SaveSessionData(PlayerSessionData data) { }
+        public float GetCurrentDifficulty() => 5.0f;
+        public void SaveDifficulty(float difficulty) { }
+        public void ClearData() { }
+    }
+
     [TestFixture]
     public class LossStreakModifierTests
     {
         private LossStreakModifier modifier;
         private ModifierConfig config;
         private PlayerSessionData sessionData;
+        private MockWinStreakProviderForLoss mockProvider;
 
         [SetUp]
         public void Setup()
@@ -23,8 +47,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, 0.3f);
             this.config.SetParameter(DifficultyConstants.PARAM_MAX_REDUCTION, 1.5f);
 
-            // Create modifier with config
-            this.modifier = new LossStreakModifier(this.config);
+            // Create mock provider
+            this.mockProvider = new MockWinStreakProviderForLoss();
+
+            // Create modifier with config and provider
+        this.modifier = new LossStreakModifier(this.config, this.mockProvider);
 
             // Create test session data
             this.sessionData = new PlayerSessionData();
@@ -34,7 +61,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_BelowThreshold_ReturnsZero()
         {
             // Arrange
-            this.sessionData.LossStreak = 1; // Below threshold of 2
+            this.mockProvider.LossStreak = 1; // Below threshold of 2
 
             // Act
             var result = this.modifier.Calculate(this.sessionData);
@@ -48,7 +75,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_AtThreshold_ReturnsNegativeStepSize()
         {
             // Arrange
-            this.sessionData.LossStreak = 2; // At threshold
+            this.mockProvider.LossStreak = 2; // At threshold
 
             // Act
             var result = this.modifier.Calculate(this.sessionData);
@@ -61,7 +88,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public void Calculate_AboveThreshold_ReturnsProportionalDecrease()
     {
         // Arrange
-        this.sessionData.LossStreak = 4; // 2 above threshold
+        this.mockProvider.LossStreak = 4; // 2 above threshold
 
         // Act
         var result = this.modifier.Calculate(this.sessionData);
@@ -75,7 +102,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_RespectsMaxReduction()
         {
             // Arrange
-            this.sessionData.LossStreak = 10; // Way above threshold
+            this.mockProvider.LossStreak = 10; // Way above threshold
 
             // Act
             var result = this.modifier.Calculate(this.sessionData);
@@ -88,7 +115,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_WithZeroLossStreak_ReturnsZero()
         {
             // Arrange
-            this.sessionData.LossStreak = 0;
+            this.mockProvider.LossStreak = 0;
 
             // Act
             var result = this.modifier.Calculate(this.sessionData);
@@ -115,7 +142,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             for (int lossStreak = 0; lossStreak < 10; lossStreak++)
             {
                 // Arrange
-                this.sessionData.LossStreak = lossStreak;
+                this.mockProvider.LossStreak = lossStreak;
 
                 // Act
                 var result = this.modifier.Calculate(this.sessionData);
@@ -130,7 +157,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_ConsistentResults()
         {
             // Arrange
-            this.sessionData.LossStreak = 3;
+            this.mockProvider.LossStreak = 3;
 
             // Act
             var result1 = this.modifier.Calculate(this.sessionData);
@@ -144,7 +171,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_IndependentOfCurrentDifficulty()
         {
             // Arrange
-            this.sessionData.LossStreak = 3;
+            this.mockProvider.LossStreak = 3;
 
             // Act - Loss streak modifier shouldn't be affected by current difficulty
             var resultLowDiff  = this.modifier.Calculate(this.sessionData);

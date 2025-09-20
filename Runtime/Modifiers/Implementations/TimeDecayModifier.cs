@@ -2,25 +2,32 @@ using System;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Providers;
 using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
     /// <summary>
     /// Reduces difficulty based on time since last play
+    /// Requires ITimeDecayProvider to be implemented by the game
     /// </summary>
     public class TimeDecayModifier : BaseDifficultyModifier
     {
+        private readonly ITimeDecayProvider timeDecayProvider;
+
         public override string ModifierName => "TimeDecay";
 
-        public TimeDecayModifier(ModifierConfig config) : base(config) { }
+        public TimeDecayModifier(ModifierConfig config, ITimeDecayProvider timeDecayProvider) : base(config)
+        {
+            this.timeDecayProvider = timeDecayProvider ?? throw new ArgumentNullException(nameof(timeDecayProvider));
+        }
 
         public override ModifierResult Calculate(PlayerSessionData sessionData)
         {
-            if (sessionData == null)
-                return ModifierResult.NoChange();
-
-            var hoursSincePlay = (DateTime.Now - sessionData.LastPlayTime).TotalHours;
+            try
+            {
+                var timeSincePlay = this.timeDecayProvider.GetTimeSinceLastPlay();
+                var hoursSincePlay = timeSincePlay.TotalHours;
             var decayPerDay    = this.GetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY);
             var maxDecay       = this.GetParameter(DifficultyConstants.PARAM_MAX_DECAY, DifficultyConstants.TIME_DECAY_DEFAULT_MAX);
             var graceHours     = this.GetParameter(DifficultyConstants.PARAM_GRACE_HOURS, DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS);
@@ -65,19 +72,25 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 this.LogDebug($"Time decay: {hoursSincePlay:F1} hours -> {value:F2} adjustment");
             }
 
-            return new ModifierResult
-            {
-                ModifierName = this.ModifierName,
-                Value        = value,
-                Reason       = reason,
-                Metadata =
+                return new ModifierResult
                 {
-                    ["hours_away"] = hoursSincePlay,
-                    ["days_away"] = hoursSincePlay / DifficultyConstants.HOURS_IN_DAY,
-                    ["grace_hours"] = graceHours,
-                    ["applied"] = value < DifficultyConstants.ZERO_VALUE
-                }
-            };
+                    ModifierName = this.ModifierName,
+                    Value        = value,
+                    Reason       = reason,
+                    Metadata =
+                    {
+                        ["hours_away"] = hoursSincePlay,
+                        ["days_away"] = hoursSincePlay / DifficultyConstants.HOURS_IN_DAY,
+                        ["grace_hours"] = graceHours,
+                        ["applied"] = value < DifficultyConstants.ZERO_VALUE
+                    }
+                };
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[TimeDecayModifier] Error calculating: {e.Message}");
+                return ModifierResult.NoChange();
+            }
         }
     }
 }

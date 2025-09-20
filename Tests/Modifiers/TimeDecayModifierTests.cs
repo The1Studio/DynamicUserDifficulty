@@ -3,16 +3,40 @@ using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Core;
+using TheOneStudio.DynamicUserDifficulty.Providers;
 using System;
+using TheOneStudio.DynamicUserDifficulty.Models;
 
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
+    // Mock provider for testing
+    public class MockTimeDecayProvider : ITimeDecayProvider
+    {
+        public DateTime LastPlayTime { get; set; } = DateTime.Now;
+        public int DaysAway { get; set; } = 0;
+        public TimeSpan TimeSinceLastPlay { get; set; } = TimeSpan.Zero;
+
+        // ITimeDecayProvider methods
+        public DateTime GetLastPlayTime() => LastPlayTime;
+        public TimeSpan GetTimeSinceLastPlay() => TimeSinceLastPlay; // Use controllable value
+        public void RecordPlaySession() => LastPlayTime = DateTime.Now;
+        public int GetDaysAwayFromGame() => DaysAway;
+
+        // IDifficultyDataProvider methods
+        public PlayerSessionData GetSessionData() => new PlayerSessionData();
+        public void SaveSessionData(PlayerSessionData data) { }
+        public float GetCurrentDifficulty() => 5.0f;
+        public void SaveDifficulty(float difficulty) { }
+        public void ClearData() { }
+    }
+
     [TestFixture]
     public class TimeDecayModifierTests
     {
         private TimeDecayModifier modifier;
         private ModifierConfig config;
         private PlayerSessionData sessionData;
+        private MockTimeDecayProvider mockProvider;
 
         [SetUp]
     public void Setup()
@@ -24,8 +48,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.config.SetParameter(DifficultyConstants.PARAM_GRACE_HOURS, 6f);  // Fixed: using correct constant
         this.config.SetParameter(DifficultyConstants.PARAM_MAX_DECAY, 5f);
 
-        // Create modifier with config
-        this.modifier = new TimeDecayModifier(this.config);
+        // Create mock provider
+        this.mockProvider = new MockTimeDecayProvider();
+
+        // Create modifier with config and provider (updated for provider pattern)
+        this.modifier = new TimeDecayModifier(this.config, this.mockProvider);
 
         // Create test session data
         this.sessionData = new PlayerSessionData();
@@ -35,7 +62,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_WithinGracePeriod_ReturnsZero()
         {
             // Arrange
-            this.sessionData.LastPlayTime = DateTime.Now.AddHours(-3); // Within 6 hour grace period
+            this.mockProvider.TimeSinceLastPlay = TimeSpan.FromHours(3); // Within 6 hour grace period
 
             // Act
             var result = this.modifier.Calculate(this.sessionData);
@@ -48,7 +75,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public void Calculate_OneDayAfterGrace_ReturnsDecayPerDay()
     {
         // Arrange
-        this.sessionData.LastPlayTime = DateTime.Now.AddDays(-1).AddHours(-6); // 1 day + grace period
+        this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(1).Add(TimeSpan.FromHours(6)); // 1 day + grace period
 
         // Act
         var result = this.modifier.Calculate(this.sessionData);
@@ -61,7 +88,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public void Calculate_MultipleDays_ReturnsProportionalDecay()
     {
         // Arrange
-        this.sessionData.LastPlayTime = DateTime.Now.AddDays(-3).AddHours(-6); // 3 days + grace
+        this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(3).Add(TimeSpan.FromHours(6)); // 3 days + grace
 
         // Act
         var result = this.modifier.Calculate(this.sessionData);
@@ -74,7 +101,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public void Calculate_RespectsMaxDecay()
     {
         // Arrange
-        this.sessionData.LastPlayTime = DateTime.Now.AddDays(-10); // Very long time
+        this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(10); // Very long time
 
         // Act
         var result = this.modifier.Calculate(this.sessionData);
@@ -87,7 +114,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public void Calculate_FirstTimePlayer_ReturnsZero()
     {
         // Arrange - First time player would have just started
-        this.sessionData.LastPlayTime = DateTime.Now; // Just played now
+        this.mockProvider.TimeSinceLastPlay = TimeSpan.Zero; // Just played now
 
         // Act
         var result = this.modifier.Calculate(this.sessionData);
@@ -100,7 +127,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_FutureTime_ReturnsZero()
         {
             // Arrange
-            this.sessionData.LastPlayTime = DateTime.Now.AddDays(1); // Future time (shouldn't happen)
+            this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(-1); // Future time (negative duration shouldn't happen)
 
             // Act
             var result = this.modifier.Calculate(this.sessionData);
@@ -113,7 +140,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public void Calculate_ExactGracePeriod_ReturnsZero()
     {
         // Arrange
-        this.sessionData.LastPlayTime = DateTime.Now.AddHours(-6); // Exactly at grace period
+        this.mockProvider.TimeSinceLastPlay = TimeSpan.FromHours(6); // Exactly at grace period
 
         // Act
         var result = this.modifier.Calculate(this.sessionData);
@@ -126,7 +153,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public void Calculate_WeekDecay_ReturnsCorrectDecay()
     {
         // Arrange
-        this.sessionData.LastPlayTime = DateTime.Now.AddDays(-7).AddHours(-6); // 1 week + grace
+        this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(7).Add(TimeSpan.FromHours(6)); // 1 week + grace
 
         // Act
         var result = this.modifier.Calculate(this.sessionData);
@@ -140,14 +167,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_ConsistentResults()
         {
             // Arrange
-            this.sessionData.LastPlayTime = DateTime.Now.AddDays(-2);
+            this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(2);
 
             // Act
             var result1 = this.modifier.Calculate(this.sessionData);
             System.Threading.Thread.Sleep(10); // Small delay
             var result2 = this.modifier.Calculate(this.sessionData);
 
-            // Assert - Results should be very close (accounting for time passing)
+            // Assert - Results should be identical since we use controllable time
             Assert.AreEqual(result1.Value, result2.Value, 0.01f);
         }
 
@@ -165,26 +192,26 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_AlwaysReturnsNegativeOrZero()
         {
             // Test various time periods
-            var testTimes = new[]
+            var testTimeSpans = new[]
             {
-                DateTime.Now,
-                DateTime.Now.AddHours(-3),
-                DateTime.Now.AddDays(-1),
-                DateTime.Now.AddDays(-5),
-                DateTime.Now.AddDays(-30)
+                TimeSpan.Zero,
+                TimeSpan.FromHours(3),
+                TimeSpan.FromDays(1),
+                TimeSpan.FromDays(5),
+                TimeSpan.FromDays(30)
             };
 
-            foreach (var time in testTimes)
+            foreach (var timeSpan in testTimeSpans)
             {
                 // Arrange
-                this.sessionData.LastPlayTime = time;
+                this.mockProvider.TimeSinceLastPlay = timeSpan;
 
                 // Act
                 var result = this.modifier.Calculate(this.sessionData);
 
                 // Assert
                 Assert.LessOrEqual(result.Value, 0f,
-                    $"Time decay should always be negative or zero for time {time}");
+                    $"Time decay should always be negative or zero for timespan {timeSpan}");
             }
         }
     }

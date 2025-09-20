@@ -1,0 +1,19 @@
+{
+    "name": "DynamicUserDifficulty.VContainer",
+    "rootNamespace": "TheOneStudio.DynamicUserDifficulty.DI",
+    "references": [
+        "DynamicUserDifficulty",
+        "VContainer",
+        "VContainer.Unity",
+        "TheOne.Logging"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

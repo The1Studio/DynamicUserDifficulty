@@ -54,21 +54,17 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             // Register core service
             builder.Register<IDynamicDifficultyService, DynamicDifficultyService>(Lifetime.Singleton);
 
-            // Register providers
-            builder.Register<ISessionDataProvider, SessionDataProvider>(Lifetime.Singleton);
-
             // Register calculators
             builder.Register<IDifficultyCalculator, DifficultyCalculator>(Lifetime.Singleton);
             builder.Register<ModifierAggregator>(Lifetime.Singleton);
 
-            // Register modifiers
-            this.RegisterModifiers(builder);
+            // Register modifiers with provider-based pattern
+            this.RegisterModifiersWithProviders(builder);
 
-            // Register initializer to auto-register modifiers
-            builder.RegisterEntryPoint<DynamicDifficultyInitializer>();
+            Debug.Log("[DynamicDifficultyModule] Provider-based Dynamic Difficulty system registered successfully");
         }
 
-        private void RegisterModifiers(IContainerBuilder builder)
+        private void RegisterModifiersWithProviders(IContainerBuilder builder)
         {
             // Get modifier configs from DifficultyConfig
             if (this.config.ModifierConfigs == null || this.config.ModifierConfigs.Count == 0)
@@ -77,39 +73,43 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                 return;
             }
 
-            // Register each configured modifier
+            // Register each configured modifier with provider dependency
             foreach (var modifierConfig in this.config.ModifierConfigs)
             {
                 if (modifierConfig == null)
                     continue;
 
-                this.RegisterModifierByType(builder, modifierConfig);
+                this.RegisterModifierByTypeWithProvider(builder, modifierConfig);
             }
         }
 
-        private void RegisterModifierByType(IContainerBuilder builder, ModifierConfig modifierConfig)
+        private void RegisterModifierByTypeWithProvider(IContainerBuilder builder, ModifierConfig modifierConfig)
         {
             switch (modifierConfig.ModifierType)
             {
                 case DifficultyConstants.MODIFIER_TYPE_WIN_STREAK:
+                    // Register WinStreakModifier - will get IWinStreakProvider via DI
                     builder.Register<WinStreakModifier>(Lifetime.Singleton)
                         .WithParameter(modifierConfig)
                         .As<IDifficultyModifier>();
                     break;
 
                 case DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK:
+                    // Register LossStreakModifier - will get IWinStreakProvider via DI
                     builder.Register<LossStreakModifier>(Lifetime.Singleton)
                         .WithParameter(modifierConfig)
                         .As<IDifficultyModifier>();
                     break;
 
                 case DifficultyConstants.MODIFIER_TYPE_TIME_DECAY:
+                    // Register TimeDecayModifier - will get ITimeDecayProvider via DI
                     builder.Register<TimeDecayModifier>(Lifetime.Singleton)
                         .WithParameter(modifierConfig)
                         .As<IDifficultyModifier>();
                     break;
 
                 case DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT:
+                    // Register RageQuitModifier - will get IRageQuitProvider via DI
                     builder.Register<RageQuitModifier>(Lifetime.Singleton)
                         .WithParameter(modifierConfig)
                         .As<IDifficultyModifier>();

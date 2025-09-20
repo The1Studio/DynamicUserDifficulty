@@ -33,6 +33,21 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         /// <summary>
         /// Session timed out due to inactivity
         /// </summary>
-        Timeout
+        Timeout,
+
+        /// <summary>
+        /// Normal session end
+        /// </summary>
+        Normal,
+
+        /// <summary>
+        /// Session paused
+        /// </summary>
+        Paused,
+
+        /// <summary>
+        /// Rage quit (quick loss)
+        /// </summary>
+        RageQuit
     }
 }

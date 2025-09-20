@@ -17,8 +17,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         [SetUp]
         public void Setup()
         {
-            // Create test config
-            this.config = ScriptableObject.CreateInstance<DifficultyConfig>();
+            // Create test config with default values
+            this.config = DifficultyConfig.CreateDefault();
 
             // Initialize session data
             this.sessionData = new PlayerSessionData();

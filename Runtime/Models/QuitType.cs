@@ -13,7 +13,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         /// <summary>
         /// Normal quit after playing for a while
         /// </summary>
-        Quit,
+        Normal,
 
         /// <summary>
         /// Quit during mid-play, might be stuck
