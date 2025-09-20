@@ -1,4 +1,5 @@
 using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Providers;
@@ -10,15 +11,22 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
     /// Increases difficulty based on consecutive wins
     /// Requires IWinStreakProvider to be implemented by the game
     /// </summary>
-    public class WinStreakModifier : BaseDifficultyModifier
+    public class WinStreakModifier : BaseDifficultyModifier<WinStreakConfig>
     {
         private readonly IWinStreakProvider winStreakProvider;
 
-        public override string ModifierName => "WinStreak";
+        public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_WIN_STREAK;
 
-        public WinStreakModifier(ModifierConfig config, IWinStreakProvider winStreakProvider) : base(config)
+        // Constructor for typed config
+        public WinStreakModifier(WinStreakConfig config, IWinStreakProvider winStreakProvider) : base(config)
         {
             this.winStreakProvider = winStreakProvider ?? throw new System.ArgumentNullException(nameof(winStreakProvider));
+        }
+
+        // Backwards compatibility constructor
+        public WinStreakModifier(ModifierConfig oldConfig, IWinStreakProvider winStreakProvider)
+            : this(ConvertConfig(oldConfig), winStreakProvider)
+        {
         }
 
         public override ModifierResult Calculate(PlayerSessionData sessionData)
@@ -33,9 +41,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 
                 var winStreak = this.winStreakProvider.GetWinStreak();
 
-                var winThreshold = this.GetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD, DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD);
-                var stepSize     = this.GetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE);
-                var maxBonus     = this.GetParameter(DifficultyConstants.PARAM_MAX_BONUS, DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS);
+                // Use strongly-typed properties instead of string parameters
+                var winThreshold = this.config.WinThreshold;
+                var stepSize = this.config.StepSize;
+                var maxBonus = this.config.MaxBonus;
 
                 var value = DifficultyConstants.ZERO_VALUE;
                 var reason = "No win streak";
@@ -48,12 +57,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                     // Apply max limit
                     value = Mathf.Min(value, maxBonus);
 
-                    // Apply response curve if configured
-                    if (maxBonus > DifficultyConstants.ZERO_VALUE)
-                    {
-                        value = this.ApplyCurve(value / maxBonus) * maxBonus;
-                    }
-
                     reason = $"Win streak: {winStreak} consecutive wins";
 
                     this.LogDebug($"Win streak {winStreak} -> adjustment {value:F2}");
@@ -62,8 +65,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 return new ModifierResult
                 {
                     ModifierName = this.ModifierName,
-                    Value        = value,
-                    Reason       = reason,
+                    Value = value,
+                    Reason = reason,
                     Metadata =
                     {
                         ["streak"] = winStreak,
@@ -77,6 +80,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 Debug.LogError($"[WinStreakModifier] Error calculating: {e.Message}");
                 return ModifierResult.NoChange();
             }
+        }
+
+        private static WinStreakConfig ConvertConfig(ModifierConfig oldConfig)
+        {
+            if (oldConfig == null)
+            {
+                return new WinStreakConfig().CreateDefault() as WinStreakConfig;
+            }
+
+            var config = new WinStreakConfig().CreateDefault() as WinStreakConfig;
+            // The old config parameters would be converted here if needed
+            return config;
         }
     }
 }

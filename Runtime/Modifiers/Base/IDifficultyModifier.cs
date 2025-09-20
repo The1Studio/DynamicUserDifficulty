@@ -1,3 +1,4 @@
+using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
@@ -34,5 +35,22 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         /// </summary>
         /// <param name="result">The applied difficulty result</param>
         void OnApplied(DifficultyResult result);
+    }
+
+    /// <summary>
+    /// Generic interface for modifiers with strongly-typed configuration
+    /// </summary>
+    public interface IDifficultyModifier<TConfig> : IDifficultyModifier
+        where TConfig : class, IModifierConfig
+    {
+        /// <summary>
+        /// The typed configuration for this modifier
+        /// </summary>
+        TConfig Config { get; }
+
+        /// <summary>
+        /// Updates the modifier's configuration
+        /// </summary>
+        void UpdateConfig(TConfig config);
     }
 }

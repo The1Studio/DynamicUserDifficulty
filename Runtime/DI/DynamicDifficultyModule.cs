@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TheOneStudio.DynamicUserDifficulty.Calculators;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Providers;
@@ -52,13 +53,24 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
         /// </summary>
         private void RegisterAllModifiers(IContainerBuilder builder)
         {
-            // Create default configs for each modifier type
-            var winStreakConfig  = this.CreateModifierConfig(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK);
-            var lossStreakConfig = this.CreateModifierConfig(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK);
-            var timeDecayConfig  = this.CreateModifierConfig(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY);
-            var rageQuitConfig   = this.CreateModifierConfig(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT);
+            // Get configs from the configuration or create defaults
+            var configContainer = this.config?.ModifierConfigs ?? new ModifierConfigContainer();
+            if (configContainer.AllConfigs.Count == 0)
+            {
+                configContainer.InitializeDefaults();
+            }
 
-            // Register all modifiers - they will be injected as IEnumerable<IDifficultyModifier>
+            // Get typed configs for each modifier
+            var winStreakConfig = configContainer.GetConfig<WinStreakConfig>(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK)
+                ?? new WinStreakConfig().CreateDefault() as WinStreakConfig;
+            var lossStreakConfig = configContainer.GetConfig<LossStreakConfig>(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK)
+                ?? new LossStreakConfig().CreateDefault() as LossStreakConfig;
+            var timeDecayConfig = configContainer.GetConfig<TimeDecayConfig>(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY)
+                ?? new TimeDecayConfig().CreateDefault() as TimeDecayConfig;
+            var rageQuitConfig = configContainer.GetConfig<RageQuitConfig>(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT)
+                ?? new RageQuitConfig().CreateDefault() as RageQuitConfig;
+
+            // Register all modifiers with typed configs
             builder.Register<WinStreakModifier>(Lifetime.Singleton)
                 .WithParameter(winStreakConfig)
                 .As<IDifficultyModifier>();
@@ -75,49 +87,10 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                 .WithParameter(rageQuitConfig)
                 .As<IDifficultyModifier>();
 
-
-            Debug.Log("[DynamicDifficultyModule] Registered 4 difficulty modifiers: WinStreak, LossStreak, TimeDecay, RageQuit");
+            Debug.Log("[DynamicDifficultyModule] Registered 4 difficulty modifiers with typed configs: WinStreak, LossStreak, TimeDecay, RageQuit");
         }
 
-        /// <summary>
-        /// Creates a default modifier configuration for the specified type
-        /// </summary>
-        private ModifierConfig CreateModifierConfig(string modifierType)
-        {
-            var config = new ModifierConfig();
-            config.SetModifierType(modifierType);
-
-            // Set default parameters based on modifier type
-            switch (modifierType)
-            {
-                case DifficultyConstants.MODIFIER_TYPE_WIN_STREAK:
-                    config.SetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD, DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD);
-                    config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE);
-                    config.SetParameter(DifficultyConstants.PARAM_MAX_BONUS, DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS);
-                    break;
-
-                case DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK:
-                    config.SetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD, DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD);
-                    config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE);
-                    config.SetParameter(DifficultyConstants.PARAM_MAX_REDUCTION, DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION);
-                    break;
-
-                case DifficultyConstants.MODIFIER_TYPE_TIME_DECAY:
-                    config.SetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY);
-                    config.SetParameter(DifficultyConstants.PARAM_MAX_DECAY, DifficultyConstants.TIME_DECAY_DEFAULT_MAX);
-                    config.SetParameter(DifficultyConstants.PARAM_GRACE_HOURS, DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS);
-                    break;
-
-                case DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT:
-                    config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD, DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD);
-                    config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION, DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION);
-                    config.SetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION, DifficultyConstants.QUIT_DEFAULT_REDUCTION);
-                    config.SetParameter(DifficultyConstants.PARAM_MID_PLAY_REDUCTION, DifficultyConstants.MID_PLAY_DEFAULT_REDUCTION);
-                    break;
-            }
-
-            return config;
-        }
+        // Removed CreateModifierConfig method - now using typed configs directly
 
         private DifficultyConfig LoadOrCreateDefaultConfig()
         {

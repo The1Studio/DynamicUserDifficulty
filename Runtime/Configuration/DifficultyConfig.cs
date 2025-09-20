@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
 
@@ -25,7 +26,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
 
         [Header("Modifiers")]
         [SerializeField]
-        private List<ModifierConfig> modifierConfigs = new List<ModifierConfig>();
+        private ModifierConfigContainer modifierConfigs = new ModifierConfigContainer();
 
         [Header("Debug")]
         [SerializeField]
@@ -36,15 +37,23 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         public float                MaxDifficulty       => this.maxDifficulty;
         public float                DefaultDifficulty   => this.defaultDifficulty;
         public float                MaxChangePerSession => this.maxChangePerSession;
-        public List<ModifierConfig> ModifierConfigs     => this.modifierConfigs;
+        public ModifierConfigContainer ModifierConfigs => this.modifierConfigs;
         public bool                 EnableDebugLogs     => this.enableDebugLogs;
 
         /// <summary>
         /// Gets a modifier configuration by type
         /// </summary>
-        public ModifierConfig GetModifierConfig(string modifierType)
+        public IModifierConfig GetModifierConfig(string modifierType)
         {
-            return this.modifierConfigs?.Find(m => m.ModifierType == modifierType);
+            return this.modifierConfigs?.GetConfig(modifierType);
+        }
+
+        /// <summary>
+        /// Gets a strongly-typed modifier configuration
+        /// </summary>
+        public T GetModifierConfig<T>(string modifierType) where T : class, IModifierConfig
+        {
+            return this.modifierConfigs?.GetConfig<T>(modifierType);
         }
 
         /// <summary>
@@ -61,57 +70,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             config.maxChangePerSession = DifficultyConstants.DEFAULT_MAX_CHANGE_PER_SESSION;
 
             // Add default modifiers
-            config.modifierConfigs = new List<ModifierConfig>
-            {
-                CreateWinStreakConfig(),
-                CreateLossStreakConfig(),
-                CreateTimeDecayConfig(),
-                CreateRageQuitConfig()
-            };
+            config.modifierConfigs = new ModifierConfigContainer();
+            config.modifierConfigs.InitializeDefaults();
 
             return config;
         }
 
-        private static ModifierConfig CreateWinStreakConfig()
-        {
-            var config = new ModifierConfig();
-            config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK);
-            config.SetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD, DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD);
-            config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE);
-            config.SetParameter(DifficultyConstants.PARAM_MAX_BONUS, DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS);
-            return config;
-        }
-
-        private static ModifierConfig CreateLossStreakConfig()
-        {
-            var config = new ModifierConfig();
-            config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK);
-            config.SetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD, DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD);
-            config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE);
-            config.SetParameter(DifficultyConstants.PARAM_MAX_REDUCTION, DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION);
-            return config;
-        }
-
-        private static ModifierConfig CreateTimeDecayConfig()
-        {
-            var config = new ModifierConfig();
-            config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY);
-            config.SetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY);
-            config.SetParameter(DifficultyConstants.PARAM_MAX_DECAY, DifficultyConstants.TIME_DECAY_DEFAULT_MAX);
-            config.SetParameter(DifficultyConstants.PARAM_GRACE_HOURS, DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS);
-            return config;
-        }
-
-        private static ModifierConfig CreateRageQuitConfig()
-        {
-            var config = new ModifierConfig();
-            config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT);
-            config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD, DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD);
-            config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION, DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION);
-            config.SetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION, DifficultyConstants.QUIT_DEFAULT_REDUCTION);
-            config.SetParameter(DifficultyConstants.PARAM_MID_PLAY_REDUCTION, DifficultyConstants.MID_PLAY_DEFAULT_REDUCTION);
-            return config;
-        }
+        // Removed static factory methods - now handled by ModifierConfigContainer.InitializeDefaults()
 
         private void OnValidate()
         {
