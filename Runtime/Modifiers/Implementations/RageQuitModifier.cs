@@ -1,10 +1,8 @@
 using TheOne.Logging;
-using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Providers;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
@@ -75,7 +73,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                         break;
                 }
 
-                return new ModifierResult
+                return new()
                 {
                     ModifierName = this.ModifierName,
                     Value        = value,

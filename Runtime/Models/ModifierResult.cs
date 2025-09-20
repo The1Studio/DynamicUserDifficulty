@@ -15,7 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         public ModifierResult()
         {
-            this.Metadata = new Dictionary<string, object>();
+            this.Metadata = new();
         }
 
         public ModifierResult(string name, float value, string reason)
@@ -23,12 +23,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
             this.ModifierName = name;
             this.Value        = value;
             this.Reason       = reason;
-            this.Metadata        = new Dictionary<string, object>();
+            this.Metadata        = new();
         }
 
         public static ModifierResult NoChange()
         {
-            return new ModifierResult("NoChange", DifficultyConstants.ZERO_VALUE, "No change required");
+            return new("NoChange", DifficultyConstants.ZERO_VALUE, "No change required");
         }
     }
 }

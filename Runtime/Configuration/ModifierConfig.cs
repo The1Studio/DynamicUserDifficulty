@@ -10,7 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
     /// Configuration for individual difficulty modifiers
     /// DEPRECATED: Use typed configuration classes (WinStreakConfig, LossStreakConfig, etc.) instead
     /// </summary>
-    [System.Obsolete("Use typed configuration classes like WinStreakConfig, LossStreakConfig, etc. instead")]
+    [Obsolete("Use typed configuration classes like WinStreakConfig, LossStreakConfig, etc. instead")]
     [Serializable]
     public class ModifierConfig
     {
@@ -27,7 +27,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             DifficultyConstants.CURVE_END_VALUE);
 
         [Header("Parameters")]
-        [SerializeField] private List<ModifierParameter> parameters = new List<ModifierParameter>();
+        [SerializeField] private List<ModifierParameter> parameters = new();
 
         public string                  ModifierType  => this.modifierType;
         public bool                    Enabled       => this.enabled;
@@ -49,7 +49,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         /// </summary>
         public void SetParameter(string key, float value)
         {
-            if (this.parameters == null) this.parameters = new List<ModifierParameter>();
+            if (this.parameters == null) this.parameters = new();
 
             var param = this.parameters.FirstOrDefault(p => p.Key == key);
             if (param != null)
@@ -58,7 +58,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             }
             else
             {
-                this.parameters.Add(new ModifierParameter { Key = key, Value = value });
+                this.parameters.Add(new() { Key = key, Value = value });
             }
         }
 

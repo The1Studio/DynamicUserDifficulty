@@ -18,8 +18,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         public DifficultyResult()
         {
-            this.AppliedModifiers = new List<ModifierResult>();
-            this.CalculatedAt        = DateTime.Now;
+            this.AppliedModifiers = new();
+            this.CalculatedAt     = DateTime.Now;
         }
 
         public DifficultyResult(float previous, float newDiff, List<ModifierResult> modifiers)

@@ -1,5 +1,4 @@
 using TheOne.Logging;
-using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
@@ -61,7 +60,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                     this.LogDebug($"Loss streak {lossStreak} -> adjustment {value:F2}");
                 }
 
-                return new ModifierResult
+                return new()
                 {
                     ModifierName = this.ModifierName,
                     Value        = value,

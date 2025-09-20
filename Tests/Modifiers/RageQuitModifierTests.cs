@@ -1,7 +1,6 @@
 using NUnit.Framework;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Models;
-using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Providers;
@@ -10,7 +9,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
 
     // Mock provider for testing
-    public class MockRageQuitProvider : IRageQuitProvider
+    public sealed class MockRageQuitProvider : IRageQuitProvider
     {
         public QuitType LastQuitType { get; set; } = QuitType.Normal;
         public int RecentRageQuits { get; set; } = 0;
@@ -18,24 +17,24 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public float AverageSessionDuration { get; set; } = 120f;
 
         // IRageQuitProvider methods
-        public QuitType GetLastQuitType() => LastQuitType;
-        public float GetAverageSessionDuration() => AverageSessionDuration;
+        public QuitType GetLastQuitType()           => this.LastQuitType;
+        public float    GetAverageSessionDuration() => this.AverageSessionDuration;
         public void RecordSessionEnd(QuitType quitType, float duration)
         {
-            LastQuitType = quitType;
-            SessionDuration = duration;
-            if (quitType == QuitType.RageQuit) RecentRageQuits++;
+            this.LastQuitType = quitType;
+            this.SessionDuration = duration;
+            if (quitType == QuitType.RageQuit) this.RecentRageQuits++;
         }
-        public float GetCurrentSessionDuration() => SessionDuration;
-        public int GetRecentRageQuitCount() => RecentRageQuits;
-        public void RecordSessionStart() { }
+        public float GetCurrentSessionDuration() => this.SessionDuration;
+        public int   GetRecentRageQuitCount()    => this.RecentRageQuits;
+        public void  RecordSessionStart()        { }
 
         // IDifficultyDataProvider methods
-        public PlayerSessionData GetSessionData() => new PlayerSessionData();
-        public void SaveSessionData(PlayerSessionData data) { }
-        public float GetCurrentDifficulty() => 5.0f;
-        public void SaveDifficulty(float difficulty) { }
-        public void ClearData() { }
+        public PlayerSessionData GetSessionData()                        => new();
+        public void              SaveSessionData(PlayerSessionData data) { }
+        public float             GetCurrentDifficulty()                  => 5.0f;
+        public void              SaveDifficulty(float difficulty)        { }
+        public void              ClearData()                             { }
     }
 
     [TestFixture]
@@ -55,13 +54,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.config.SetPriority(1);
 
             // Create mock provider
-            this.mockProvider = new MockRageQuitProvider();
+            this.mockProvider = new();
 
             // Create modifier with typed config and provider
-            this.modifier = new RageQuitModifier(this.config, this.mockProvider, null);
+            this.modifier = new(this.config, this.mockProvider, null);
 
             // Create test session data
-            this.sessionData = new PlayerSessionData();
+            this.sessionData = new();
     }
 
         [Test]
@@ -188,7 +187,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         {
             QuitType.RageQuit,
             QuitType.Normal,
-            QuitType.MidPlay
+            QuitType.MidPlay,
         };
 
         foreach (var quitType in quitTypes)
@@ -211,7 +210,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     {
         // Act
         var result = this.modifier.Calculate(null);
-        
+
         // Assert - Should return NoChange result, not throw exception
         Assert.AreEqual(0f, result.Value);
         Assert.IsNotNull(result);

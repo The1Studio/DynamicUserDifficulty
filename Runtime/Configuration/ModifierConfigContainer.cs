@@ -16,7 +16,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
     {
         [SerializeReference]
         [Tooltip("List of modifier configurations. Use + to add new configs.")]
-        private List<BaseModifierConfig> configs = new List<BaseModifierConfig>();
+        private List<BaseModifierConfig> configs = new();
 
         /// <summary>
         /// Gets a strongly-typed configuration for a specific modifier type
@@ -48,7 +48,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             // Add new config
             if (this.configs == null)
             {
-                this.configs = new List<BaseModifierConfig>();
+                this.configs = new();
             }
             this.configs.Add(baseConfig);
         }
@@ -84,7 +84,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         /// </summary>
         public void InitializeDefaults()
         {
-            this.configs = new List<BaseModifierConfig>
+            this.configs = new()
             {
                 (WinStreakConfig)new WinStreakConfig().CreateDefault(),
                 (LossStreakConfig)new LossStreakConfig().CreateDefault(),

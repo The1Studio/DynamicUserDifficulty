@@ -1,35 +1,33 @@
 using NUnit.Framework;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Models;
-using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Providers;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
 
     // Mock provider for testing (updated for provider pattern)
-    public class MockWinStreakProvider : IWinStreakProvider
+    public sealed class MockWinStreakProvider : IWinStreakProvider
     {
         public int WinStreak { get; set; } = 0;
         public int LossStreak { get; set; } = 0;
 
         // IWinStreakProvider methods
-        public int GetWinStreak() => WinStreak;
-        public int GetLossStreak() => LossStreak;
-        public void RecordWin() => WinStreak++;
-        public void RecordLoss() => LossStreak++;
-        public int GetTotalWins() => WinStreak; // For testing, use same as streak
-        public int GetTotalLosses() => LossStreak; // For testing, use same as streak
+        public int  GetWinStreak()   => this.WinStreak;
+        public int  GetLossStreak()  => this.LossStreak;
+        public void RecordWin()      => this.WinStreak++;
+        public void RecordLoss()     => this.LossStreak++;
+        public int  GetTotalWins()   => this.WinStreak; // For testing, use same as streak
+        public int  GetTotalLosses() => this.LossStreak;   // For testing, use same as streak
 
         // IDifficultyDataProvider methods
-        public PlayerSessionData GetSessionData() => new PlayerSessionData();
-        public void SaveSessionData(PlayerSessionData data) { }
-        public float GetCurrentDifficulty() => 5.0f;
-        public void SaveDifficulty(float difficulty) { }
-        public void ClearData() { }
+        public PlayerSessionData GetSessionData()                        => new();
+        public void              SaveSessionData(PlayerSessionData data) { }
+        public float             GetCurrentDifficulty()                  => 5.0f;
+        public void              SaveDifficulty(float difficulty)        { }
+        public void              ClearData()                             { }
     }
 
     [TestFixture]
@@ -49,13 +47,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.config.SetPriority(1);
 
             // Create mock provider
-            this.mockProvider = new MockWinStreakProvider();
+            this.mockProvider = new();
 
             // Create modifier with typed config and provider
-            this.modifier = new WinStreakModifier(this.config, this.mockProvider, null);
+            this.modifier = new(this.config, this.mockProvider, null);
 
             // Create test session data
-            this.sessionData = new PlayerSessionData();
+            this.sessionData = new();
         }
 
         [Test]
@@ -130,7 +128,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     {
         // Act
         var result = this.modifier.Calculate(null);
-        
+
         // Assert - Should return NoChange result, not throw exception
         Assert.AreEqual(0f, result.Value);
         Assert.IsNotNull(result);

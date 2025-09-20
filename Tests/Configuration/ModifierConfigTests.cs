@@ -15,7 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
         [SetUp]
         public void Setup()
         {
-            this.container = new ModifierConfigContainer();
+            this.container = new();
         }
 
         [Test]

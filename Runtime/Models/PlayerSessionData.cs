@@ -32,7 +32,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
             this.WinStreak         = DifficultyConstants.STREAK_RESET_VALUE;
             this.LossStreak        = DifficultyConstants.STREAK_RESET_VALUE;
             this.LastPlayTime      = DateTime.Now;
-            this.RecentSessions       = new Queue<SessionInfo>(DifficultyConstants.MAX_RECENT_SESSIONS);
+            this.RecentSessions       = new(DifficultyConstants.MAX_RECENT_SESSIONS);
         }
 
         public void RecordWin(int levelId, float duration)

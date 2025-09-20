@@ -7,7 +7,6 @@ using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Providers;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Core
 {
@@ -85,7 +84,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 this.logger.Error($"[DynamicDifficultyService] Error calculating difficulty: {e.Message}");
 
                 // Return no change on error
-                return new DifficultyResult
+                return new()
                 {
                     PreviousDifficulty = this.CurrentDifficulty,
                     NewDifficulty      = this.CurrentDifficulty,

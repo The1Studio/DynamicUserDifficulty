@@ -31,7 +31,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
             if (sessionData == null)
             {
                 this.logger.Warning("SessionData is null, returning default difficulty");
-                return new DifficultyResult
+                return new()
                 {
                     PreviousDifficulty = this.config.DefaultDifficulty,
                     NewDifficulty = this.config.DefaultDifficulty,

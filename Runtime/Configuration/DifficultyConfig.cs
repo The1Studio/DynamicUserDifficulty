@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
 
@@ -26,7 +24,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
 
         [Header("Modifiers")]
         [SerializeField]
-        private ModifierConfigContainer modifierConfigs = new ModifierConfigContainer();
+        private ModifierConfigContainer modifierConfigs = new();
 
         [Header("Debug")]
         [SerializeField]
@@ -62,7 +60,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             config.maxChangePerSession = DifficultyConstants.DEFAULT_MAX_CHANGE_PER_SESSION;
 
             // Add default modifiers
-            config.modifierConfigs = new ModifierConfigContainer();
+            config.modifierConfigs = new();
             config.modifierConfigs.InitializeDefaults();
 
             return config;

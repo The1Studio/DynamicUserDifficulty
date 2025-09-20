@@ -1,7 +1,6 @@
 using NUnit.Framework;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Models;
-using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Providers;
@@ -10,24 +9,24 @@ using System;
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
     // Mock provider for testing
-    public class MockTimeDecayProvider : ITimeDecayProvider
+    public sealed class MockTimeDecayProvider : ITimeDecayProvider
     {
         public DateTime LastPlayTime { get; set; } = DateTime.Now;
         public int DaysAway { get; set; } = 0;
         public TimeSpan TimeSinceLastPlay { get; set; } = TimeSpan.Zero;
 
         // ITimeDecayProvider methods
-        public DateTime GetLastPlayTime() => LastPlayTime;
-        public TimeSpan GetTimeSinceLastPlay() => TimeSinceLastPlay; // Use controllable value
-        public void RecordPlaySession() => LastPlayTime = DateTime.Now;
-        public int GetDaysAwayFromGame() => DaysAway;
+        public DateTime GetLastPlayTime()      => this.LastPlayTime;
+        public TimeSpan GetTimeSinceLastPlay() => this.TimeSinceLastPlay; // Use controllable value
+        public void     RecordPlaySession()    => this.LastPlayTime = DateTime.Now;
+        public int      GetDaysAwayFromGame()  => this.DaysAway;
 
         // IDifficultyDataProvider methods
-        public PlayerSessionData GetSessionData() => new PlayerSessionData();
-        public void SaveSessionData(PlayerSessionData data) { }
-        public float GetCurrentDifficulty() => 5.0f;
-        public void SaveDifficulty(float difficulty) { }
-        public void ClearData() { }
+        public PlayerSessionData GetSessionData()                        => new();
+        public void              SaveSessionData(PlayerSessionData data) { }
+        public float             GetCurrentDifficulty()                  => 5.0f;
+        public void              SaveDifficulty(float difficulty)        { }
+        public void              ClearData()                             { }
     }
 
     [TestFixture]
@@ -47,13 +46,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.config.SetPriority(1);
 
             // Create mock provider
-            this.mockProvider = new MockTimeDecayProvider();
+            this.mockProvider = new();
 
             // Create modifier with typed config and provider
-            this.modifier = new TimeDecayModifier(this.config, this.mockProvider, null);
+            this.modifier = new(this.config, this.mockProvider, null);
 
             // Create test session data
-            this.sessionData = new PlayerSessionData();
+            this.sessionData = new();
     }
 
         [Test]
@@ -196,7 +195,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
                 TimeSpan.FromHours(3),
                 TimeSpan.FromDays(1),
                 TimeSpan.FromDays(5),
-                TimeSpan.FromDays(30)
+                TimeSpan.FromDays(30),
             };
 
             foreach (var timeSpan in testTimeSpans)

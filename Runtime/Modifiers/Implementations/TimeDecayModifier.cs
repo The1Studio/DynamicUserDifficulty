@@ -1,6 +1,5 @@
 using System;
 using TheOne.Logging;
-using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
@@ -79,7 +78,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 this.LogDebug($"Time decay: {hoursSincePlay:F1} hours -> {value:F2} adjustment");
             }
 
-                return new ModifierResult
+                return new()
                 {
                     ModifierName = this.ModifierName,
                     Value        = value,

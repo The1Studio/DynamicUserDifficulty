@@ -1,5 +1,3 @@
-using System;
-
 namespace TheOneStudio.DynamicUserDifficulty.Configuration
 {
     /// <summary>

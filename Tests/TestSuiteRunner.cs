@@ -8,7 +8,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests
     /// Test Suite Runner for DynamicUserDifficulty Module
     /// Provides comprehensive test coverage reporting and suite management
     /// </summary>
-    public class TestSuiteRunner
+    public sealed class TestSuiteRunner
     {
         // Test categories for organization
         public enum TestCategory

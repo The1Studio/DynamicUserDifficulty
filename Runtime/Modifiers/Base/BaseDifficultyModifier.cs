@@ -32,14 +32,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         }
 
         /// <summary>
-        /// Gets a configuration parameter value
-        /// </summary>
-        protected float GetParameter(string key, float defaultValue = 0f)
-        {
-            return this.config?.GetParameter(key, defaultValue) ?? defaultValue;
-        }
-
-        /// <summary>
         /// Applies the response curve to a value
         /// </summary>
         protected float ApplyCurve(float input)
@@ -47,17 +39,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             if (this.config?.ResponseCurve != null)
                 return this.config.ResponseCurve.Evaluate(Mathf.Clamp01(input));
             return input;
-        }
-
-        /// <summary>
-        /// Logs debug information if debug mode is enabled
-        /// </summary>
-        protected void LogDebug(string message)
-        {
-            if (this.config != null && Application.isEditor)
-            {
-                UnityEngine.Debug.Log($"[{this.ModifierName}] {message}");
-            }
         }
     }
 }
