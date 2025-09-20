@@ -75,6 +75,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                 .WithParameter(rageQuitConfig)
                 .As<IDifficultyModifier>();
 
+
             Debug.Log("[DynamicDifficultyModule] Registered 4 difficulty modifiers: WinStreak, LossStreak, TimeDecay, RageQuit");
         }
 
