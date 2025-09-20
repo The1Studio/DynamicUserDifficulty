@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Testing Documentation ✅ COMPLETE
 - **[Documentation/TestFrameworkDesign.md](Documentation/TestFrameworkDesign.md)** - Test infrastructure and patterns
 - **[Documentation/TestStrategy.md](Documentation/TestStrategy.md)** - Testing approach and guidelines
-- **[Documentation/TestImplementation.md](Documentation/TestImplementation.md)** ✅ Complete test implementation with 143 tests (~92% coverage)
+- **[Documentation/TestImplementation.md](Documentation/TestImplementation.md)** ✅ Complete test implementation with 119 tests (~92% coverage)
 
 ### Configuration
 - **[package.json](package.json)** - Unity package manifest
@@ -304,7 +304,7 @@ The DynamicUserDifficulty service is a Unity module within the UITemplate framew
 | **Type-Safe Configuration System** | ✅ **COMPLETE** | Full migration from string-based to typed configs |
 | **Core Implementation** | ✅ Complete | All services, modifiers, and calculators implemented |
 | **4 Typed Modifiers** | ✅ Complete | WinStreakConfig, LossStreakConfig, TimeDecayConfig, RageQuitConfig |
-| **Test Suite** | ✅ Complete | 116 tests across 9 files with ~92% coverage - ALL PASSING |
+| **Test Suite** | ✅ Complete | 119 tests across 9 files with ~92% coverage - ALL PASSING |
 | **Documentation** | ✅ Updated | All documentation reflects new type-safe system |
 | **VContainer Integration** | ✅ Complete | Full DI setup with typed configuration injection |
 | **Production Readiness** | ✅ Ready | Type-safe, performance optimized, error handling |
@@ -364,7 +364,7 @@ Unity Editor → TheOne → Configuration And Tools → Difficulty Settings
 # Open Unity Test Runner
 Unity Editor → Window → General → Test Runner
 
-# Run all 143 tests
+# Run all 119 tests
 Click "Run All" button
 
 # If tests fail to run, clear cache:
@@ -543,7 +543,7 @@ DynamicUserDifficulty/
 │   │   └── ModifierConfig.cs
 │   └── DI/                        ✅ Complete
 │       └── DynamicDifficultyModule.cs
-├── Tests/                         ✅ 143 tests
+├── Tests/                         ✅ 119 tests
 └── Assets/Scripts/Services/Difficulty/ # ✅ Game integration files
     ├── Screw3DDifficultyProvider.cs     # ✅ Complete provider
     ├── MinimalDifficultyAdapter.cs      # ✅ Game adapter
@@ -587,7 +587,7 @@ The module has two assembly definitions:
 - Test threshold triggers
 - Verify adjustment algorithms
 - Validate boundary conditions
-- **143 tests implemented covering all components**
+- **119 tests implemented covering all components**
 
 ### 2. **Provider Testing** ✅ NEW
 - Test all provider interfaces
@@ -611,7 +611,7 @@ The module has two assembly definitions:
 ### 5. **Test Execution**
 ```bash
 # In Unity Editor
-Window → General → Test Runner → Run All (143 tests)
+Window → General → Test Runner → Run All (119 tests)
 
 # If tests don't run:
 Assets → Reimport All  # Clears Unity cache
@@ -634,7 +634,7 @@ Unity -batchmode -runTests -projectPath . -testResults TestResults.xml
 4. **DO NOT create tight coupling** - Use interfaces and dependency injection
 5. **DO NOT forget signal cleanup** - Unsubscribe in Dispose()
 6. **DO NOT create .meta files manually** - Let Unity generate them
-7. **DO NOT skip test execution** - Always run 143 tests before committing
+7. **DO NOT skip test execution** - Always run 119 tests before committing
 8. **DO NOT implement providers manually** - Use the provided Screw3DDifficultyProvider
 9. **DO NOT register module manually** - Use builder.RegisterDynamicDifficulty()
 
@@ -655,7 +655,7 @@ analyticService.Track("difficulty_adjusted", new Dictionary<string, object>
 
 ### Pre-commit Checklist
 - [ ] Run level validation with new difficulty settings
-- [ ] **Run all 143 tests - CRITICAL**
+- [ ] **Run all 119 tests - CRITICAL**
 - [ ] Test on device with profiler
 - [ ] Verify assembly references
 - [ ] Verify provider integration works
@@ -691,7 +691,7 @@ Access via Unity Logs Viewer in-game console when enabled.
 - ✅ **Provider-Based Architecture**: Clean, modular, one-line integration
 - ✅ **Complete Implementation**: All provider interfaces and adapters
 - ✅ **Core Implementation**: All 4 modifiers implemented and tested
-- ✅ **Complete Test Suite**: 143 tests with ~92% coverage (including provider tests)
+- ✅ **Complete Test Suite**: 119 tests with ~92% coverage (including provider tests)
 - ✅ **Documentation**: All 12 docs synchronized and up-to-date
 - ✅ **VContainer Integration**: Full DI setup with proper assembly definitions
 - ✅ **Unity Compatibility**: Works with Unity 2021.3+ and Unity 6

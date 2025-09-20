@@ -15,8 +15,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
     public static class DifficultyConfigValidator
     {
         // Use constants instead of hardcoded paths - Single GameConfigs location only
-        private static readonly string CONFIGS_PATH = DifficultyConstants.CONFIG_DIRECTORY;
-        private static readonly string CONFIG_ASSET_PATH = DifficultyConstants.CONFIG_ASSET_PATH;
+        private static readonly string ConfigsPath = DifficultyConstants.CONFIG_DIRECTORY;
+        private static readonly string ConfigAssetPath = DifficultyConstants.CONFIG_ASSET_PATH;
         private const string PREF_KEY_SKIP_CHECK = "DynamicDifficulty_SkipConfigCheck";
 
         static DifficultyConfigValidator()
@@ -32,7 +32,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
         private static void CheckForDifficultyConfig()
         {
             // Check if the config already exists
-            var config = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(CONFIG_ASSET_PATH);
+            var config = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(ConfigAssetPath);
             if (config != null)
                 return;
 
@@ -62,7 +62,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
                 AssetDatabase.CreateFolder(DifficultyConstants.FOLDER_NAME_ASSETS, DifficultyConstants.FOLDER_NAME_RESOURCES);
             }
 
-            if (!AssetDatabase.IsValidFolder(CONFIGS_PATH))
+            if (!AssetDatabase.IsValidFolder(ConfigsPath))
             {
                 AssetDatabase.CreateFolder(resourcesPath, "GameConfigs");
             }
@@ -71,7 +71,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
             var config = DifficultyConfig.CreateDefault();
 
             // Save the asset
-            AssetDatabase.CreateAsset(config, CONFIG_ASSET_PATH);
+            AssetDatabase.CreateAsset(config, ConfigAssetPath);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
@@ -79,13 +79,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
             Selection.activeObject = config;
             EditorGUIUtility.PingObject(config);
 
-            Debug.Log($"[DynamicDifficulty] Created DifficultyConfig at: {CONFIG_ASSET_PATH}");
+            Debug.Log($"[DynamicDifficulty] Created DifficultyConfig at: {ConfigAssetPath}");
         }
 
         [MenuItem("TheOne/Dynamic Difficulty/Create Config", false, 100)]
         public static void CreateConfigFromMenu()
         {
-            var config = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(CONFIG_ASSET_PATH);
+            var config = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(ConfigAssetPath);
             if (config != null)
             {
                 var recreate = EditorUtility.DisplayDialog(
@@ -113,7 +113,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
             var hasErrors = false;
 
             // Check config exists
-            var config = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(CONFIG_ASSET_PATH);
+            var config = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(ConfigAssetPath);
             if (config == null)
             {
                 messages.AppendLine("❌ DifficultyConfig not found at expected path");
@@ -170,17 +170,17 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
     /// </summary>
     public class DifficultyConfigCreatorWindow : EditorWindow
     {
-        private static DifficultyConfigCreatorWindow window;
+        private static DifficultyConfigCreatorWindow Window;
         private bool dontShowAgain = false;
 
         public static void ShowWindow()
         {
-            if (window == null)
+            if (Window == null)
             {
-                window = GetWindow<DifficultyConfigCreatorWindow>(true, "Dynamic Difficulty Setup", true);
-                window.maxSize = new Vector2(500, 250);
-                window.minSize = new Vector2(500, 250);
-                window.position = new Rect(
+                Window = GetWindow<DifficultyConfigCreatorWindow>(true, "Dynamic Difficulty Setup", true);
+                Window.maxSize = new Vector2(500, 250);
+                Window.minSize = new Vector2(500, 250);
+                Window.position = new Rect(
                     (Screen.currentResolution.width - 500) / 2,
                     (Screen.currentResolution.height - 250) / 2,
                     500,
@@ -188,7 +188,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
                 );
             }
 
-            window.ShowUtility();
+            Window.ShowUtility();
         }
 
         private void OnGUI()
@@ -259,7 +259,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
 
         private void OnDestroy()
         {
-            window = null;
+            Window = null;
         }
     }
 }

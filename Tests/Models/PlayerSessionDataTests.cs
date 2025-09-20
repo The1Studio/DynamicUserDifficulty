@@ -140,14 +140,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Models
         [Test]
         public void SessionData_CanUpdateSessionLength()
         {
-            // Arrange
+            // Arrange - Use deterministic time values instead of Thread.Sleep
+            var startTime = new DateTime(2024, 1, 1, 12, 0, 0);
+            var endTime = new DateTime(2024, 1, 1, 12, 1, 40); // 100 seconds later
+
             this.sessionData.SessionCount++;
-            this.sessionData.LastSessionTime = DateTime.Now;
-            System.Threading.Thread.Sleep(100); // Small delay
+            this.sessionData.LastSessionTime = startTime;
 
             // Act - Simulate what the service does
             this.sessionData.SessionLength = 100f;
-            this.sessionData.LastPlayTime = DateTime.Now;
+            this.sessionData.LastPlayTime = endTime;
 
             // Assert
             Assert.Greater(this.sessionData.SessionLength, 0);

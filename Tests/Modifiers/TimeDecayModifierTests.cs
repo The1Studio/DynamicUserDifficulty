@@ -166,9 +166,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             // Arrange
             this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(2);
 
-            // Act
+            // Act - Call twice without delay since we use controllable mock time
             var result1 = this.modifier.Calculate(this.sessionData);
-            System.Threading.Thread.Sleep(10); // Small delay
             var result2 = this.modifier.Calculate(this.sessionData);
 
             // Assert - Results should be identical since we use controllable time

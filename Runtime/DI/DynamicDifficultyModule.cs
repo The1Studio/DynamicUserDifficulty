@@ -53,7 +53,14 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             // The game determines which modifiers are active by implementing the corresponding provider interfaces
             this.RegisterAllModifiers(builder);
 
-            UnityEngine.Debug.Log("[DynamicDifficultyModule] All difficulty modifiers registered. Active modifiers depend on which provider interfaces are implemented.");
+            // Use conditional compilation for debug output in production code
+            #if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (this.loggerManager != null)
+            {
+                var logger = this.loggerManager.GetLogger(this);
+                logger.Info("[DynamicDifficultyModule] All difficulty modifiers registered. Active modifiers depend on which provider interfaces are implemented.");
+            }
+            #endif
         }
 
         /// <summary>
@@ -96,7 +103,14 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                 .WithParameter(rageQuitConfig)
                 .As<IDifficultyModifier>();
 
-            UnityEngine.Debug.Log("[DynamicDifficultyModule] Registered 4 difficulty modifiers with typed configs: WinStreak, LossStreak, TimeDecay, RageQuit");
+            // Use conditional compilation for debug output in production code
+            #if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (this.loggerManager != null)
+            {
+                var logger = this.loggerManager.GetLogger(this);
+                logger.Info("[DynamicDifficultyModule] Registered 4 difficulty modifiers with typed configs: WinStreak, LossStreak, TimeDecay, RageQuit");
+            }
+            #endif
         }
 
         // Removed CreateModifierConfig method - now using typed configs directly
@@ -107,10 +121,17 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             var config = Resources.Load<DifficultyConfig>(DifficultyConstants.CONFIG_RESOURCES_PATH);
             if (config != null)
             {
-                UnityEngine.Debug.Log($"[DynamicDifficultyModule] Loaded DifficultyConfig from Resources/{DifficultyConstants.CONFIG_RESOURCES_PATH}");
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
+                if (this.loggerManager != null)
+                {
+                    var logger = this.loggerManager.GetLogger(this);
+                    logger.Info($"[DynamicDifficultyModule] Loaded DifficultyConfig from Resources/{DifficultyConstants.CONFIG_RESOURCES_PATH}");
+                }
+                #endif
                 return config;
             }
 
+            // Keep this as Debug.LogWarning since it's an important configuration issue that should always be visible
             UnityEngine.Debug.LogWarning($"[DynamicDifficultyModule] DifficultyConfig not found at: {DifficultyConstants.CONFIG_RESOURCES_PATH}. " +
                            "Creating default configuration.");
             return ScriptableObject.CreateInstance<DifficultyConfig>();
