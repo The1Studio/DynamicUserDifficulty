@@ -2,12 +2,12 @@ using NUnit.Framework;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
-    using TheOneStudio.DynamicUserDifficulty.Modifiers;
 
     // Mock provider for testing
     public class MockRageQuitProvider : IRageQuitProvider
@@ -42,29 +42,26 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public class RageQuitModifierTests
     {
         private RageQuitModifier modifier;
-        private ModifierConfig config;
+        private RageQuitConfig config;
         private PlayerSessionData sessionData;
         private MockRageQuitProvider mockProvider;
 
         [SetUp]
-    public void Setup()
-    {
-        // Create config with test parameters
-        this.config = new ModifierConfig();
-        this.config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT);
-        this.config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD, 30f);  // Fixed: correct constant
-        this.config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION, 1.5f); // Fixed: correct constant
-        this.config.SetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION, 0.75f);     // Added missing parameter
-        this.config.SetParameter(DifficultyConstants.PARAM_MID_PLAY_REDUCTION, 0.5f);  // Added missing parameter
+        public void Setup()
+        {
+            // Create typed config with test parameters
+            this.config = new RageQuitConfig().CreateDefault() as RageQuitConfig;
+            this.config.SetEnabled(true);
+            this.config.SetPriority(1);
 
-        // Create mock provider
-        this.mockProvider = new MockRageQuitProvider();
+            // Create mock provider
+            this.mockProvider = new MockRageQuitProvider();
 
-        // Create modifier with config and provider (updated for provider pattern)
-        this.modifier = new RageQuitModifier(this.config, this.mockProvider);
+            // Create modifier with typed config and provider
+            this.modifier = new RageQuitModifier(this.config, this.mockProvider);
 
-        // Create test session data
-        this.sessionData = new PlayerSessionData();
+            // Create test session data
+            this.sessionData = new PlayerSessionData();
     }
 
         [Test]
@@ -79,7 +76,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             var result = this.modifier.Calculate(this.sessionData);
 
             // Assert
-            Assert.AreEqual(-0.75f, result.Value); // Normal quit reduction from config
+            Assert.AreEqual(-0.5f, result.Value); // Normal quit reduction from config
             Assert.AreEqual(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT, result.ModifierName);
         }
 
@@ -94,7 +91,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             var result = this.modifier.Calculate(this.sessionData);
 
             // Assert
-            Assert.AreEqual(-1.5f, result.Value); // Full rage quit reduction from config
+            Assert.AreEqual(-1f, result.Value); // Full rage quit reduction from config
         }
 
         [Test]
@@ -108,7 +105,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             var result = this.modifier.Calculate(this.sessionData);
 
             // Assert
-            Assert.AreEqual(-0.75f, result.Value); // Normal quit reduction from config
+            Assert.AreEqual(-0.5f, result.Value); // Normal quit reduction from config
         }
 
         [Test]
@@ -122,7 +119,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         var result = this.modifier.Calculate(this.sessionData);
 
         // Assert
-        Assert.AreEqual(-0.5f, result.Value); // Mid-play reduction from config
+        Assert.AreEqual(-0.3f, result.Value); // Mid-play reduction from config
     }
 
         [Test]
@@ -136,7 +133,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         var result = this.modifier.Calculate(this.sessionData);
 
         // Assert
-        Assert.AreEqual(-0.5f, result.Value); // Mid-play reduction (progress not used in current implementation)
+        Assert.AreEqual(-0.3f, result.Value); // Mid-play reduction (progress not used in current implementation)
     }
 
         [Test]
@@ -152,7 +149,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         var result = this.modifier.Calculate(this.sessionData);
 
         // Assert - Normal quit still gets penalty, so let's test the actual behavior
-        Assert.AreEqual(-0.75f, result.Value); // Normal quit reduction as expected from implementation
+        Assert.AreEqual(-0.5f, result.Value); // Normal quit reduction as expected from implementation
     }
 
         [Test]
@@ -166,7 +163,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         var result = this.modifier.Calculate(this.sessionData);
 
         // Assert
-        Assert.AreEqual(-0.75f, result.Value); // Normal quit reduction (not rage quit at exact threshold)
+        Assert.AreEqual(-0.5f, result.Value); // Normal quit reduction (not rage quit at exact threshold)
     }
 
         [Test]
@@ -180,7 +177,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         var result = this.modifier.Calculate(this.sessionData);
 
         // Assert
-        Assert.AreEqual(-0.75f, result.Value); // Normal quit reduction
+        Assert.AreEqual(-0.5f, result.Value); // Normal quit reduction
     }
 
         [Test]
@@ -278,7 +275,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 
         // Assert that penalty is the same (no progress scaling in current implementation)
         Assert.AreEqual(lowProgressResult.Value, highProgressResult.Value);
-        Assert.AreEqual(-0.5f, lowProgressResult.Value); // Both should be mid-play reduction
+        Assert.AreEqual(-0.3f, lowProgressResult.Value); // Both should be mid-play reduction
     }
     }
 }

@@ -12,16 +12,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
     public class DifficultyConfig : ScriptableObject
     {
         [Header("Difficulty Range")]
-        [SerializeField, Range(DifficultyConstants.CONFIG_MIN_RANGE, DifficultyConstants.CONFIG_MAX_RANGE)]
+        [SerializeField][Range(DifficultyConstants.CONFIG_MIN_RANGE, DifficultyConstants.CONFIG_MAX_RANGE)]
         private float minDifficulty = DifficultyConstants.MIN_DIFFICULTY;
 
-        [SerializeField, Range(DifficultyConstants.CONFIG_MIN_RANGE, DifficultyConstants.CONFIG_MAX_RANGE)]
+        [SerializeField][Range(DifficultyConstants.CONFIG_MIN_RANGE, DifficultyConstants.CONFIG_MAX_RANGE)]
         private float maxDifficulty = DifficultyConstants.MAX_DIFFICULTY;
 
-        [SerializeField, Range(DifficultyConstants.CONFIG_MIN_RANGE, DifficultyConstants.CONFIG_MAX_RANGE)]
+        [SerializeField][Range(DifficultyConstants.CONFIG_MIN_RANGE, DifficultyConstants.CONFIG_MAX_RANGE)]
         private float defaultDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
 
-        [SerializeField, Range(DifficultyConstants.CONFIG_CHANGE_MIN_RANGE, DifficultyConstants.CONFIG_CHANGE_MAX_RANGE)]
+        [SerializeField][Range(DifficultyConstants.CONFIG_CHANGE_MIN_RANGE, DifficultyConstants.CONFIG_CHANGE_MAX_RANGE)]
         private float maxChangePerSession = DifficultyConstants.DEFAULT_MAX_CHANGE;
 
         [Header("Modifiers")]
@@ -33,20 +33,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         private bool enableDebugLogs = false;
 
         // Properties
-        public float                MinDifficulty       => this.minDifficulty;
-        public float                MaxDifficulty       => this.maxDifficulty;
-        public float                DefaultDifficulty   => this.defaultDifficulty;
-        public float                MaxChangePerSession => this.maxChangePerSession;
-        public ModifierConfigContainer ModifierConfigs => this.modifierConfigs;
-        public bool                 EnableDebugLogs     => this.enableDebugLogs;
-
-        /// <summary>
-        /// Gets a modifier configuration by type
-        /// </summary>
-        public IModifierConfig GetModifierConfig(string modifierType)
-        {
-            return this.modifierConfigs?.GetConfig(modifierType);
-        }
+        public float                   MinDifficulty       => this.minDifficulty;
+        public float                   MaxDifficulty       => this.maxDifficulty;
+        public float                   DefaultDifficulty   => this.defaultDifficulty;
+        public float                   MaxChangePerSession => this.maxChangePerSession;
+        public ModifierConfigContainer ModifierConfigs     => this.modifierConfigs;
+        public bool                    EnableDebugLogs     => this.enableDebugLogs;
 
         /// <summary>
         /// Gets a strongly-typed modifier configuration
@@ -64,9 +56,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             var config = CreateInstance<DifficultyConfig>();
 
             // Set default values
-            config.minDifficulty = DifficultyConstants.MIN_DIFFICULTY;
-            config.maxDifficulty = DifficultyConstants.MAX_DIFFICULTY;
-            config.defaultDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
+            config.minDifficulty       = DifficultyConstants.MIN_DIFFICULTY;
+            config.maxDifficulty       = DifficultyConstants.MAX_DIFFICULTY;
+            config.defaultDifficulty   = DifficultyConstants.DEFAULT_DIFFICULTY;
             config.maxChangePerSession = DifficultyConstants.DEFAULT_MAX_CHANGE_PER_SESSION;
 
             // Add default modifiers

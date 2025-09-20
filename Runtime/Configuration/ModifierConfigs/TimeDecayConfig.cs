@@ -12,15 +12,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     {
 
         [Header("Time Decay Settings")]
-        [SerializeField, Range(0.1f, 2f)]
+        [SerializeField][Range(0.1f, 2f)]
         [Tooltip("Difficulty reduction per day of inactivity")]
-        private float decayPerDay = DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY;
+        private float decayPerDay = DifficultyConstants.TIME_DECAY_DEFAULT_DECAY_PER_DAY;
 
-        [SerializeField, Range(0.5f, 5f)]
+        [SerializeField][Range(0.5f, 5f)]
         [Tooltip("Maximum total difficulty reduction from time decay")]
-        private float maxDecay = DifficultyConstants.TIME_DECAY_DEFAULT_MAX;
+        private float maxDecay = DifficultyConstants.TIME_DECAY_DEFAULT_MAX_DECAY;
 
-        [SerializeField, Range(0f, 48f)]
+        [SerializeField][Range(0f, 48f)]
         [Tooltip("Hours before decay starts (grace period)")]
         private float graceHours = DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS;
 
@@ -29,8 +29,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
 
         // Type-safe properties
         public float DecayPerDay => this.decayPerDay;
-        public float MaxDecay => this.maxDecay;
-        public float GraceHours => this.graceHours;
+        public float MaxDecay    => this.maxDecay;
+        public float GraceHours  => this.graceHours;
 
         public override IModifierConfig CreateDefault()
         {

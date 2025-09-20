@@ -2,13 +2,13 @@ using NUnit.Framework;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
-    using TheOneStudio.DynamicUserDifficulty.Modifiers;
 
     // Mock provider for testing (updated for provider pattern)
     public class MockWinStreakProvider : IWinStreakProvider
@@ -36,25 +36,23 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public class WinStreakModifierTests
     {
         private WinStreakModifier modifier;
-        private ModifierConfig config;
+        private WinStreakConfig config;
         private PlayerSessionData sessionData;
         private MockWinStreakProvider mockProvider;
 
         [SetUp]
         public void Setup()
         {
-            // Create config with test parameters
-            this.config = new ModifierConfig();
-            this.config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK);
-            this.config.SetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD, 3f);
-            this.config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, 0.5f);
-            this.config.SetParameter(DifficultyConstants.PARAM_MAX_BONUS, 2f);
+            // Create typed config with test parameters
+            this.config = new WinStreakConfig().CreateDefault() as WinStreakConfig;
+            this.config.SetEnabled(true);
+            this.config.SetPriority(1);
 
             // Create mock provider
             this.mockProvider = new MockWinStreakProvider();
 
-            // Create modifier with config and provider
-        this.modifier = new WinStreakModifier(this.config, this.mockProvider);
+            // Create modifier with typed config and provider
+            this.modifier = new WinStreakModifier(this.config, this.mockProvider);
 
             // Create test session data
             this.sessionData = new PlayerSessionData();
@@ -149,7 +147,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Priority_ReturnsConfiguredPriority()
         {
             // Assert
-            Assert.AreEqual(0, this.modifier.Priority);
+            Assert.AreEqual(1, this.modifier.Priority);
         }
 
         [Test]

@@ -12,15 +12,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     {
 
         [Header("Win Streak Settings")]
-        [SerializeField, Range(1, 10)]
+        [SerializeField][Range(1, 10)]
         [Tooltip("Number of consecutive wins needed to trigger difficulty increase")]
         private float winThreshold = DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD;
 
-        [SerializeField, Range(0.1f, 2f)]
+        [SerializeField][Range(0.1f, 2f)]
         [Tooltip("Difficulty increase per threshold exceeded")]
         private float stepSize = DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE;
 
-        [SerializeField, Range(0.5f, 5f)]
+        [SerializeField][Range(0.5f, 5f)]
         [Tooltip("Maximum difficulty increase from win streaks")]
         private float maxBonus = DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS;
 
@@ -29,8 +29,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
 
         // Type-safe properties
         public float WinThreshold => this.winThreshold;
-        public float StepSize => this.stepSize;
-        public float MaxBonus => this.maxBonus;
+        public float StepSize     => this.stepSize;
+        public float MaxBonus     => this.maxBonus;
 
         public override IModifierConfig CreateDefault()
         {

@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
 using System.Linq;
@@ -54,8 +55,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
         public void GetModifierConfig_ReturnsCorrectConfig()
         {
             // Act
-            var winStreakConfig  = this.config.GetModifierConfig(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK);
-            var lossStreakConfig = this.config.GetModifierConfig(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK);
+            var winStreakConfig  = this.config.GetModifierConfig<WinStreakConfig>(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK);
+            var lossStreakConfig = this.config.GetModifierConfig<LossStreakConfig>(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK);
 
             // Assert
             Assert.IsNotNull(winStreakConfig);
@@ -68,8 +69,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
         [Test]
         public void GetModifierConfig_NonExistent_ReturnsNull()
         {
-            // Act
-            var nonExistentConfig = this.config.GetModifierConfig("NonExistentModifier");
+            // Act - Test with non-existent modifier type
+            var nonExistentConfig = this.config.GetModifierConfig<IModifierConfig>("NonExistentModifier");
 
             // Assert
             Assert.IsNull(nonExistentConfig);
@@ -79,20 +80,21 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
         public void WinStreakConfig_HasCorrectParameters()
         {
             // Arrange
-            var winConfig = this.config.GetModifierConfig(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK);
+            var winConfig = this.config.GetModifierConfig<WinStreakConfig>(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK);
 
             // Assert
+            Assert.IsNotNull(winConfig);
             Assert.AreEqual(
                 DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD,
-                winConfig.GetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD)
+                winConfig.WinThreshold
             );
             Assert.AreEqual(
                 DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE,
-                winConfig.GetParameter(DifficultyConstants.PARAM_STEP_SIZE)
+                winConfig.StepSize
             );
             Assert.AreEqual(
                 DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS,
-                winConfig.GetParameter(DifficultyConstants.PARAM_MAX_BONUS)
+                winConfig.MaxBonus
             );
         }
 
@@ -100,20 +102,21 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
         public void LossStreakConfig_HasCorrectParameters()
         {
             // Arrange
-            var lossConfig = this.config.GetModifierConfig(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK);
+            var lossConfig = this.config.GetModifierConfig<LossStreakConfig>(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK);
 
             // Assert
+            Assert.IsNotNull(lossConfig);
             Assert.AreEqual(
                 DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD,
-                lossConfig.GetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD)
+                lossConfig.LossThreshold
             );
             Assert.AreEqual(
                 DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE,
-                lossConfig.GetParameter(DifficultyConstants.PARAM_STEP_SIZE)
+                lossConfig.StepSize
             );
             Assert.AreEqual(
                 DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION,
-                lossConfig.GetParameter(DifficultyConstants.PARAM_MAX_REDUCTION)
+                lossConfig.MaxReduction
             );
         }
 
@@ -121,20 +124,21 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
         public void TimeDecayConfig_HasCorrectParameters()
         {
             // Arrange
-            var timeConfig = this.config.GetModifierConfig(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY);
+            var timeConfig = this.config.GetModifierConfig<TimeDecayConfig>(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY);
 
             // Assert
+            Assert.IsNotNull(timeConfig);
             Assert.AreEqual(
-                DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY,
-                timeConfig.GetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY)
+                DifficultyConstants.TIME_DECAY_DEFAULT_DECAY_PER_DAY,
+                timeConfig.DecayPerDay
             );
             Assert.AreEqual(
-                DifficultyConstants.TIME_DECAY_DEFAULT_MAX,
-                timeConfig.GetParameter(DifficultyConstants.PARAM_MAX_DECAY)
+                DifficultyConstants.TIME_DECAY_DEFAULT_MAX_DECAY,
+                timeConfig.MaxDecay
             );
             Assert.AreEqual(
                 DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS,
-                timeConfig.GetParameter(DifficultyConstants.PARAM_GRACE_HOURS)
+                timeConfig.GraceHours
             );
         }
 
@@ -142,24 +146,25 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
         public void RageQuitConfig_HasCorrectParameters()
         {
             // Arrange
-            var rageConfig = this.config.GetModifierConfig(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT);
+            var rageConfig = this.config.GetModifierConfig<RageQuitConfig>(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT);
 
             // Assert
+            Assert.IsNotNull(rageConfig);
             Assert.AreEqual(
                 DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD,
-                rageConfig.GetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD)
+                rageConfig.RageQuitThreshold
             );
             Assert.AreEqual(
                 DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION,
-                rageConfig.GetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION)
+                rageConfig.RageQuitReduction
             );
             Assert.AreEqual(
-                DifficultyConstants.QUIT_DEFAULT_REDUCTION,
-                rageConfig.GetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION)
+                DifficultyConstants.RAGE_QUIT_DEFAULT_QUIT_REDUCTION,
+                rageConfig.QuitReduction
             );
             Assert.AreEqual(
-                DifficultyConstants.MID_PLAY_DEFAULT_REDUCTION,
-                rageConfig.GetParameter(DifficultyConstants.PARAM_MID_PLAY_REDUCTION)
+                DifficultyConstants.RAGE_QUIT_DEFAULT_MID_PLAY_REDUCTION,
+                rageConfig.MidPlayReduction
             );
         }
 
@@ -169,24 +174,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             // Assert - All modifiers should be enabled by default
             foreach (var modifierConfig in this.config.ModifierConfigs)
             {
-                Assert.IsTrue(modifierConfig.Enabled,
+                Assert.IsTrue(modifierConfig.IsEnabled,
                     $"Modifier {modifierConfig.ModifierType} should be enabled by default");
             }
         }
 
         [Test]
-        public void ModifierConfigs_HaveValidResponseCurves()
+        public void ModifierConfigs_HaveValidPriorities()
         {
-            // Assert - All modifiers should have valid response curves
+            // Assert - All modifiers should have valid priorities
             foreach (var modifierConfig in this.config.ModifierConfigs)
             {
-                Assert.IsNotNull(modifierConfig.ResponseCurve,
-                    $"Modifier {modifierConfig.ModifierType} should have a response curve");
-
-                // Test curve evaluation
-                float value = modifierConfig.ResponseCurve.Evaluate(0.5f);
-                Assert.GreaterOrEqual(value, 0f);
-                Assert.LessOrEqual(value, 1f);
+                Assert.GreaterOrEqual(modifierConfig.Priority, 0,
+                    $"Modifier {modifierConfig.ModifierType} should have a valid priority >= 0");
             }
         }
 

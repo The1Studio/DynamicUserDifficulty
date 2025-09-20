@@ -8,7 +8,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
 {
     /// <summary>
     /// Configuration for individual difficulty modifiers
+    /// DEPRECATED: Use typed configuration classes (WinStreakConfig, LossStreakConfig, etc.) instead
     /// </summary>
+    [System.Obsolete("Use typed configuration classes like WinStreakConfig, LossStreakConfig, etc. instead")]
     [Serializable]
     public class ModifierConfig
     {

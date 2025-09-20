@@ -109,7 +109,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         // IEnumerable<IModifierConfig> implementation
         public IEnumerator<IModifierConfig> GetEnumerator()
         {
-            return this.configs?.Cast<IModifierConfig>().GetEnumerator() ?? Enumerable.Empty<IModifierConfig>().GetEnumerator();
+            if (this.configs == null)
+                return Enumerable.Empty<IModifierConfig>().GetEnumerator();
+
+            return this.configs.Cast<IModifierConfig>().GetEnumerator();
         }
 
         // IEnumerable implementation

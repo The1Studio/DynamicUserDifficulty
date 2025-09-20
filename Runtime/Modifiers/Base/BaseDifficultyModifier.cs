@@ -6,7 +6,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
     /// <summary>
     /// Abstract base class for all difficulty modifiers
+    /// DEPRECATED: Use BaseDifficultyModifier<TConfig> for type-safe configuration instead
     /// </summary>
+    [System.Obsolete("Use BaseDifficultyModifier<TConfig> for type-safe configuration instead")]
     public abstract class BaseDifficultyModifier : IDifficultyModifier
     {
         protected readonly ModifierConfig config;

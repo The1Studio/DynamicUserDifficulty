@@ -23,11 +23,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             this.rageQuitProvider = rageQuitProvider ?? throw new System.ArgumentNullException(nameof(rageQuitProvider));
         }
 
-        // Backwards compatibility constructor
-        public RageQuitModifier(ModifierConfig oldConfig, IRageQuitProvider rageQuitProvider)
-            : this(ConvertConfig(oldConfig), rageQuitProvider)
-        {
-        }
 
         public override ModifierResult Calculate(PlayerSessionData sessionData)
         {
@@ -100,16 +95,5 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             }
         }
 
-        private static RageQuitConfig ConvertConfig(ModifierConfig oldConfig)
-        {
-            if (oldConfig == null)
-            {
-                return new RageQuitConfig().CreateDefault() as RageQuitConfig;
-            }
-
-            var config = new RageQuitConfig().CreateDefault() as RageQuitConfig;
-            // The old config parameters would be converted here if needed
-            return config;
-        }
     }
 }

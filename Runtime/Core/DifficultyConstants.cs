@@ -29,17 +29,22 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         public const float LOSS_STREAK_DEFAULT_MAX_REDUCTION = 1.5f;
 
         // ========== TIME DECAY MODIFIER ==========
-        public const float TIME_DECAY_DEFAULT_PER_DAY = 0.5f;
-        public const float TIME_DECAY_DEFAULT_MAX = 2f;
+        public const float TIME_DECAY_DEFAULT_DECAY_PER_DAY = 0.5f;
+        public const float TIME_DECAY_DEFAULT_PER_DAY = 0.5f; // Alias for backwards compatibility
+        public const float TIME_DECAY_DEFAULT_MAX_DECAY = 2f;
+        public const float TIME_DECAY_DEFAULT_MAX = 2f; // Alias for backwards compatibility
         public const float TIME_DECAY_DEFAULT_GRACE_HOURS = 6f;
         public const float TIME_DECAY_WEEK_THRESHOLD = 7f;
         public const float TIME_DECAY_HALF_EFFECT_MULTIPLIER = 0.5f;
 
         // ========== RAGE QUIT MODIFIER ==========
-        public const float RAGE_QUIT_TIME_THRESHOLD = 30f; // seconds
+        public const float RAGE_QUIT_DEFAULT_THRESHOLD = 30f; // seconds
+        public const float RAGE_QUIT_TIME_THRESHOLD = 30f; // Alias for backwards compatibility
         public const float RAGE_QUIT_DEFAULT_REDUCTION = 1f;
-        public const float QUIT_DEFAULT_REDUCTION = 0.5f;
-        public const float MID_PLAY_DEFAULT_REDUCTION = 0.3f;
+        public const float RAGE_QUIT_DEFAULT_QUIT_REDUCTION = 0.5f;
+        public const float QUIT_DEFAULT_REDUCTION = 0.5f; // Alias for backwards compatibility
+        public const float RAGE_QUIT_DEFAULT_MID_PLAY_REDUCTION = 0.3f;
+        public const float MID_PLAY_DEFAULT_REDUCTION = 0.3f; // Alias for backwards compatibility
         public const float MID_PLAY_PARTIAL_MULTIPLIER = 0.5f;
 
         // ========== TIME CONSTANTS ==========

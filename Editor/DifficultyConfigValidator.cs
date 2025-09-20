@@ -56,14 +56,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
         public static void CreateDifficultyConfig()
         {
             // Ensure directories exist
-            if (!AssetDatabase.IsValidFolder(RESOURCES_PATH))
+            var resourcesPath = "Assets/Resources";
+            if (!AssetDatabase.IsValidFolder(resourcesPath))
             {
                 AssetDatabase.CreateFolder(DifficultyConstants.FOLDER_NAME_ASSETS, DifficultyConstants.FOLDER_NAME_RESOURCES);
             }
 
             if (!AssetDatabase.IsValidFolder(CONFIGS_PATH))
             {
-                AssetDatabase.CreateFolder(RESOURCES_PATH, "GameConfigs");
+                AssetDatabase.CreateFolder(resourcesPath, "GameConfigs");
             }
 
             // Create the config asset

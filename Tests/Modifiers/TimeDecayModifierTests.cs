@@ -2,10 +2,10 @@ using NUnit.Framework;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 using System;
-using TheOneStudio.DynamicUserDifficulty.Models;
 
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
@@ -34,28 +34,26 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public class TimeDecayModifierTests
     {
         private TimeDecayModifier modifier;
-        private ModifierConfig config;
+        private TimeDecayConfig config;
         private PlayerSessionData sessionData;
         private MockTimeDecayProvider mockProvider;
 
         [SetUp]
-    public void Setup()
-    {
-        // Create config with test parameters
-        this.config = new ModifierConfig();
-        this.config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY);
-        this.config.SetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, 1.0f);
-        this.config.SetParameter(DifficultyConstants.PARAM_GRACE_HOURS, 6f);  // Fixed: using correct constant
-        this.config.SetParameter(DifficultyConstants.PARAM_MAX_DECAY, 5f);
+        public void Setup()
+        {
+            // Create typed config with test parameters
+            this.config = new TimeDecayConfig().CreateDefault() as TimeDecayConfig;
+            this.config.SetEnabled(true);
+            this.config.SetPriority(1);
 
-        // Create mock provider
-        this.mockProvider = new MockTimeDecayProvider();
+            // Create mock provider
+            this.mockProvider = new MockTimeDecayProvider();
 
-        // Create modifier with config and provider (updated for provider pattern)
-        this.modifier = new TimeDecayModifier(this.config, this.mockProvider);
+            // Create modifier with typed config and provider
+            this.modifier = new TimeDecayModifier(this.config, this.mockProvider);
 
-        // Create test session data
-        this.sessionData = new PlayerSessionData();
+            // Create test session data
+            this.sessionData = new PlayerSessionData();
     }
 
         [Test]
@@ -81,7 +79,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         var result = this.modifier.Calculate(this.sessionData);
 
         // Assert
-        Assert.AreEqual(-1.0f, result.Value, 0.1f); // One day of decay (1.0f per day)
+        Assert.AreEqual(-0.5f, result.Value, 0.1f); // One day of decay (0.5f per day)
     }
 
         [Test]
@@ -94,7 +92,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         var result = this.modifier.Calculate(this.sessionData);
 
         // Assert
-        Assert.AreEqual(-3.0f, result.Value, 0.1f); // 3 days * 1.0 decay per day
+        Assert.AreEqual(-1.5f, result.Value, 0.1f); // 3 days * 0.5 decay per day
     }
 
         [Test]
@@ -107,7 +105,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         var result = this.modifier.Calculate(this.sessionData);
 
         // Assert
-        Assert.AreEqual(-5f, result.Value, 0.1f); // Capped at max decay (5f)
+        Assert.AreEqual(-2f, result.Value, 0.1f); // Capped at max decay (2f)
     }
 
         [Test]
@@ -159,8 +157,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         var result = this.modifier.Calculate(this.sessionData);
 
         // Assert
-        // 7 days * 1.0 decay per day, but capped at max (5f)
-        Assert.AreEqual(-5f, result.Value, 0.1f); // Capped at max decay
+        // 7 days * 0.5 decay per day, but capped at max (2f)
+        Assert.AreEqual(-2f, result.Value, 0.1f); // Capped at max decay
     }
 
         [Test]

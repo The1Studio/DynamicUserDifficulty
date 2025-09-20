@@ -24,11 +24,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             this.timeDecayProvider = timeDecayProvider ?? throw new ArgumentNullException(nameof(timeDecayProvider));
         }
 
-        // Backwards compatibility constructor
-        public TimeDecayModifier(ModifierConfig oldConfig, ITimeDecayProvider timeDecayProvider)
-            : this(ConvertConfig(oldConfig), timeDecayProvider)
-        {
-        }
 
         public override ModifierResult Calculate(PlayerSessionData sessionData)
         {
@@ -104,16 +99,5 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             }
         }
 
-        private static TimeDecayConfig ConvertConfig(ModifierConfig oldConfig)
-        {
-            if (oldConfig == null)
-            {
-                return new TimeDecayConfig().CreateDefault() as TimeDecayConfig;
-            }
-
-            var config = new TimeDecayConfig().CreateDefault() as TimeDecayConfig;
-            // The old config parameters would be converted here if needed
-            return config;
-        }
     }
 }

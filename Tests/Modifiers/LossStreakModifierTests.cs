@@ -2,6 +2,7 @@ using NUnit.Framework;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 
@@ -33,25 +34,23 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public class LossStreakModifierTests
     {
         private LossStreakModifier modifier;
-        private ModifierConfig config;
+        private LossStreakConfig config;
         private PlayerSessionData sessionData;
         private MockWinStreakProviderForLoss mockProvider;
 
         [SetUp]
         public void Setup()
         {
-            // Create config with test parameters
-            this.config = new ModifierConfig();
-            this.config.SetModifierType(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK);
-            this.config.SetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD, 2f);
-            this.config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, 0.3f);
-            this.config.SetParameter(DifficultyConstants.PARAM_MAX_REDUCTION, 1.5f);
+            // Create typed config with test parameters
+            this.config = new LossStreakConfig().CreateDefault() as LossStreakConfig;
+            this.config.SetEnabled(true);
+            this.config.SetPriority(1);
 
             // Create mock provider
             this.mockProvider = new MockWinStreakProviderForLoss();
 
-            // Create modifier with config and provider
-        this.modifier = new LossStreakModifier(this.config, this.mockProvider);
+            // Create modifier with typed config and provider
+            this.modifier = new LossStreakModifier(this.config, this.mockProvider);
 
             // Create test session data
             this.sessionData = new PlayerSessionData();

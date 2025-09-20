@@ -23,11 +23,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             this.winStreakProvider = winStreakProvider ?? throw new System.ArgumentNullException(nameof(winStreakProvider));
         }
 
-        // Backwards compatibility constructor
-        public WinStreakModifier(ModifierConfig oldConfig, IWinStreakProvider winStreakProvider)
-            : this(ConvertConfig(oldConfig), winStreakProvider)
-        {
-        }
 
         public override ModifierResult Calculate(PlayerSessionData sessionData)
         {
@@ -82,16 +77,5 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             }
         }
 
-        private static WinStreakConfig ConvertConfig(ModifierConfig oldConfig)
-        {
-            if (oldConfig == null)
-            {
-                return new WinStreakConfig().CreateDefault() as WinStreakConfig;
-            }
-
-            var config = new WinStreakConfig().CreateDefault() as WinStreakConfig;
-            // The old config parameters would be converted here if needed
-            return config;
-        }
     }
 }
