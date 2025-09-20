@@ -14,10 +14,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
     [InitializeOnLoad]
     public static class DifficultyConfigValidator
     {
-        // Use constants instead of hardcoded paths - Updated to use GameConfigs
-        private static readonly string RESOURCES_PATH = DifficultyConstants.ASSET_DIRECTORY_RESOURCES;
-        private static readonly string CONFIGS_PATH = DifficultyConstants.ASSET_DIRECTORY_GAMECONFIGS;
-        private static readonly string CONFIG_ASSET_PATH = DifficultyConstants.ASSET_PATH_GAMECONFIGS;
+        // Use constants instead of hardcoded paths - Single GameConfigs location only
+        private static readonly string CONFIGS_PATH = DifficultyConstants.CONFIG_DIRECTORY;
+        private static readonly string CONFIG_ASSET_PATH = DifficultyConstants.CONFIG_ASSET_PATH;
         private const string PREF_KEY_SKIP_CHECK = "DynamicDifficulty_SkipConfigCheck";
 
         static DifficultyConfigValidator()

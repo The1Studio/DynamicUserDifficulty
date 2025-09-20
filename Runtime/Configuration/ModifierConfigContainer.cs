@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
@@ -11,7 +12,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
     /// Uses SerializeReference to support different config types.
     /// </summary>
     [Serializable]
-    public class ModifierConfigContainer
+    public class ModifierConfigContainer : IEnumerable<IModifierConfig>
     {
         [SerializeReference]
         [Tooltip("List of modifier configurations. Use + to add new configs.")]
@@ -98,6 +99,23 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         public void Clear()
         {
             this.configs?.Clear();
+        }
+
+        /// <summary>
+        /// Gets the number of configurations
+        /// </summary>
+        public int Count => this.configs?.Count ?? 0;
+
+        // IEnumerable<IModifierConfig> implementation
+        public IEnumerator<IModifierConfig> GetEnumerator()
+        {
+            return this.configs?.Cast<IModifierConfig>().GetEnumerator() ?? Enumerable.Empty<IModifierConfig>().GetEnumerator();
+        }
+
+        // IEnumerable implementation
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

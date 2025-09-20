@@ -14,30 +14,23 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
     {
         public static void CreateDefaultConfig()
         {
-            // Possible paths to try using constants
-            string[] possiblePaths = {
-                DifficultyConstants.ASSET_PATH_GAMECONFIGS,
-                DifficultyConstants.ASSET_PATH_CONFIGS,
-                DifficultyConstants.ASSET_PATH_ROOT
-            };
+            // Single path to use - GameConfigs only
+            string configPath = DifficultyConstants.CONFIG_ASSET_PATH;
 
-            // Check if any config already exists
-            foreach (var path in possiblePaths)
+            // Check if config already exists
+            var existingConfig = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(configPath);
+            if (existingConfig != null)
             {
-                var existingConfig = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(path);
-                if (existingConfig != null)
-                {
-                    Debug.Log($"[DynamicDifficulty] DifficultyConfig already exists at {path}");
-                    Selection.activeObject = existingConfig;
-                    EditorGUIUtility.PingObject(existingConfig);
-                    EditorUtility.DisplayDialog("Config Already Exists",
-                        $"DifficultyConfig already exists at:\\n{path}", "OK");
-                    return;
-                }
+                Debug.Log($"[DynamicDifficulty] DifficultyConfig already exists at {configPath}");
+                Selection.activeObject = existingConfig;
+                EditorGUIUtility.PingObject(existingConfig);
+                EditorUtility.DisplayDialog("Config Already Exists",
+                    $"DifficultyConfig already exists at:\\n{configPath}", "OK");
+                return;
             }
 
-            // Use the first path as default
-            var targetPath = possiblePaths[0];
+            // Use the single GameConfigs path
+            var targetPath = configPath;
             var directory = Path.GetDirectoryName(targetPath);
 
             // Ensure directory exists
@@ -70,23 +63,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
 
         public static void FindConfig()
         {
-            // Try to find existing config using constants
-            string[] possiblePaths = {
-                DifficultyConstants.ASSET_PATH_GAMECONFIGS,
-                DifficultyConstants.ASSET_PATH_CONFIGS,
-                DifficultyConstants.ASSET_PATH_ROOT
-            };
+            // Try to find existing config using single GameConfigs path
+            string configPath = DifficultyConstants.CONFIG_ASSET_PATH;
 
-            foreach (var path in possiblePaths)
+            var config = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(configPath);
+            if (config != null)
             {
-                var config = AssetDatabase.LoadAssetAtPath<DifficultyConfig>(path);
-                if (config != null)
-                {
-                    Selection.activeObject = config;
-                    EditorGUIUtility.PingObject(config);
-                    Debug.Log($"[DynamicDifficulty] Found DifficultyConfig at {path}");
-                    return;
-                }
+                Selection.activeObject = config;
+                EditorGUIUtility.PingObject(config);
+                Debug.Log($"[DynamicDifficulty] Found DifficultyConfig at {configPath}");
+                return;
             }
 
             // Not found, offer to create
