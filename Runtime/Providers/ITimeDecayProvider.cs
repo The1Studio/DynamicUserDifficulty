@@ -3,28 +3,24 @@ using System;
 namespace TheOneStudio.DynamicUserDifficulty.Providers
 {
     /// <summary>
-    /// Provider interface for time decay related data
-    /// Implement this interface to enable time-based difficulty decay
+    /// Read-only provider interface for time-based data from external services.
+    /// This interface does NOT store data - it only reads from external game services.
+    /// Implement this interface to enable time-based difficulty decay.
     /// </summary>
-    public interface ITimeDecayProvider : IDifficultyDataProvider
+    public interface ITimeDecayProvider
     {
         /// <summary>
-        /// Gets the last time the player played
+        /// Gets the last time the player played from external service
         /// </summary>
         DateTime GetLastPlayTime();
 
         /// <summary>
-        /// Gets the time elapsed since last play session
+        /// Gets the time elapsed since last play session from external service
         /// </summary>
         TimeSpan GetTimeSinceLastPlay();
 
         /// <summary>
-        /// Records that a new play session has started
-        /// </summary>
-        void RecordPlaySession();
-
-        /// <summary>
-        /// Gets the number of consecutive days without playing
+        /// Gets the number of consecutive days without playing from external service
         /// </summary>
         int GetDaysAwayFromGame();
     }

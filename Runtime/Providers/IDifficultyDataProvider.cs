@@ -1,36 +1,20 @@
-using TheOneStudio.DynamicUserDifficulty.Models;
-
 namespace TheOneStudio.DynamicUserDifficulty.Providers
 {
     /// <summary>
-    /// Base provider interface for common difficulty data operations
-    /// All modifier providers extend this interface
+    /// Provider interface for managing the current difficulty value.
+    /// This module ONLY stores the current difficulty - all other data comes from external services.
     /// </summary>
     public interface IDifficultyDataProvider
     {
         /// <summary>
-        /// Gets the current player session data
-        /// </summary>
-        PlayerSessionData GetSessionData();
-
-        /// <summary>
-        /// Saves player session data
-        /// </summary>
-        void SaveSessionData(PlayerSessionData data);
-
-        /// <summary>
-        /// Gets the current difficulty level
+        /// Gets the current difficulty level (typically 1-10 scale)
         /// </summary>
         float GetCurrentDifficulty();
 
         /// <summary>
-        /// Saves the current difficulty level
+        /// Updates the current difficulty level after calculation
         /// </summary>
-        void SaveDifficulty(float difficulty);
-
-        /// <summary>
-        /// Clears all stored data (for testing/reset purposes)
-        /// </summary>
-        void ClearData();
+        /// <param name="newDifficulty">The new calculated difficulty value</param>
+        void SetCurrentDifficulty(float newDifficulty);
     }
 }

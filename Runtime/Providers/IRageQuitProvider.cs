@@ -3,39 +3,30 @@ using TheOneStudio.DynamicUserDifficulty.Models;
 namespace TheOneStudio.DynamicUserDifficulty.Providers
 {
     /// <summary>
-    /// Provider interface for rage quit detection data
-    /// Implement this interface to enable rage quit difficulty adjustments
+    /// Read-only provider interface for rage quit detection data from external services.
+    /// This interface does NOT store data - it only reads from external game services.
+    /// Implement this interface to enable rage quit difficulty adjustments.
     /// </summary>
-    public interface IRageQuitProvider : IDifficultyDataProvider
+    public interface IRageQuitProvider
     {
         /// <summary>
-        /// Gets the type of the last quit (normal, rage quit, etc.)
+        /// Gets the type of the last quit (normal, rage quit, etc.) from external service
         /// </summary>
         QuitType GetLastQuitType();
 
         /// <summary>
-        /// Gets the average session duration for recent sessions
+        /// Gets the average session duration for recent sessions from external service
         /// </summary>
         float GetAverageSessionDuration();
 
         /// <summary>
-        /// Records the end of a session with quit type and duration
-        /// </summary>
-        void RecordSessionEnd(QuitType quitType, float durationSeconds);
-
-        /// <summary>
-        /// Gets the time spent on current level/attempt
+        /// Gets the time spent on current level/attempt from external service
         /// </summary>
         float GetCurrentSessionDuration();
 
         /// <summary>
-        /// Gets the number of rage quits in recent history
+        /// Gets the number of rage quits in recent history from external service
         /// </summary>
         int GetRecentRageQuitCount();
-
-        /// <summary>
-        /// Records the start of a new session
-        /// </summary>
-        void RecordSessionStart();
     }
 }

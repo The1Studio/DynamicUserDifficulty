@@ -34,6 +34,77 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Documentation Management
 - **[Documentation/README.md](Documentation/README.md)** - Documentation structure overview
 
+## 🏗️ **STATELESS ARCHITECTURE - PURE CALCULATION ENGINE**
+
+### **Module Philosophy**
+**This module is a STATELESS calculation engine that ONLY stores the current difficulty value.**
+
+All other data (win streaks, loss streaks, time since last play, etc.) must come from external game services. The module acts as a pure calculation engine that:
+1. Receives data from external services via provider interfaces
+2. Calculates difficulty adjustments based on that data
+3. Returns the calculated result
+4. Stores ONLY the current difficulty value for persistence
+
+### **Data Storage Pattern**
+
+#### **What This Module Stores**
+- **ONLY the current difficulty value** (single float, typically 1-10 scale)
+- Stored via `IDifficultyDataProvider.SetCurrentDifficulty(float)`
+- Retrieved via `IDifficultyDataProvider.GetCurrentDifficulty()`
+
+#### **What External Services Must Provide**
+All other data comes from external game services through read-only provider interfaces:
+
+```csharp
+// External game services provide this data:
+IWinStreakProvider      // Win/loss streaks from game's progression system
+ITimeDecayProvider      // Time tracking from game's session manager
+IRageQuitProvider       // Quit detection from game's analytics
+ILevelProgressProvider  // Level data from game's level system
+```
+
+#### **Simple Storage Implementation**
+For basic games without complex data systems, use Unity's PlayerPrefs:
+
+```csharp
+public class SimpleDifficultyDataProvider : IDifficultyDataProvider
+{
+    private const string DIFFICULTY_KEY = "DUD_CurrentDifficulty";
+
+    public float GetCurrentDifficulty()
+    {
+        return PlayerPrefs.GetFloat(DIFFICULTY_KEY, DifficultyConstants.DEFAULT_DIFFICULTY);
+    }
+
+    public void SetCurrentDifficulty(float newDifficulty)
+    {
+        PlayerPrefs.SetFloat(DIFFICULTY_KEY, newDifficulty);
+        PlayerPrefs.Save();
+    }
+}
+```
+
+#### **Integration with TheOne Features**
+For games using TheOne framework, implement providers that read from existing controllers:
+
+```csharp
+public class TheOneWinStreakProvider : IWinStreakProvider
+{
+    private readonly WinStreakLocalDataController controller;
+
+    public int GetWinStreak() => controller.Streak;
+    public int GetLossStreak() => controller.GetLossStreak("main");
+    // ... other methods reading from controller
+}
+```
+
+### **Why Stateless?**
+1. **No data duplication** - Uses game's existing data systems
+2. **No synchronization issues** - Single source of truth
+3. **Testable** - Pure functions with predictable outputs
+4. **Flexible** - Works with any data storage backend
+5. **Minimal footprint** - Only stores one float value
+
 ## 🚨 **MAJOR ARCHITECTURE UPDATE - TYPE-SAFE CONFIGURATION SYSTEM**
 
 ### ✅ **PRODUCTION-READY WITH COMPLETE TYPE SAFETY**

@@ -1,38 +1,34 @@
 namespace TheOneStudio.DynamicUserDifficulty.Providers
 {
     /// <summary>
-    /// Provider interface for level progress related data
-    /// Implement this interface to enable level-based difficulty adjustments
+    /// Read-only provider interface for level progress data from external services.
+    /// This interface does NOT store data - it only reads from external game services.
+    /// Implement this interface to enable level-based difficulty adjustments.
     /// </summary>
-    public interface ILevelProgressProvider : IDifficultyDataProvider
+    public interface ILevelProgressProvider
     {
         /// <summary>
-        /// Gets the current level number
+        /// Gets the current level number from external service
         /// </summary>
         int GetCurrentLevel();
 
         /// <summary>
-        /// Gets the average completion time for recent levels
+        /// Gets the average completion time for recent levels from external service
         /// </summary>
         float GetAverageCompletionTime();
 
         /// <summary>
-        /// Gets the number of attempts on the current level
+        /// Gets the number of attempts on the current level from external service
         /// </summary>
         int GetAttemptsOnCurrentLevel();
 
         /// <summary>
-        /// Gets the completion rate (wins/total attempts) for recent levels
+        /// Gets the completion rate (wins/total attempts) for recent levels from external service
         /// </summary>
         float GetCompletionRate();
 
         /// <summary>
-        /// Records completion time for a level
-        /// </summary>
-        void RecordLevelCompletion(int levelId, float completionTime, bool won);
-
-        /// <summary>
-        /// Gets the difficulty rating of the current level (if available)
+        /// Gets the difficulty rating of the current level (if available) from external service
         /// </summary>
         float GetCurrentLevelDifficulty();
     }

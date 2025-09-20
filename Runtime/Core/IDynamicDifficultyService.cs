@@ -1,69 +1,58 @@
 using TheOneStudio.DynamicUserDifficulty.Models;
-using TheOneStudio.DynamicUserDifficulty.Modifiers;
 
 namespace TheOneStudio.DynamicUserDifficulty.Core
 {
     /// <summary>
-    /// Main service interface for managing dynamic difficulty
+    /// Stateless calculation service for dynamic difficulty.
+    /// This service does NOT store any data - it only calculates difficulty based on input data.
+    /// All data should be retrieved from external services (player profile, analytics, etc.)
     /// </summary>
     public interface IDynamicDifficultyService
     {
         /// <summary>
-        /// Gets the current difficulty level (1-10 scale)
+        /// Calculates the recommended difficulty based on provided player data.
+        /// This is a pure function - same input always produces same output.
         /// </summary>
-        float CurrentDifficulty { get; }
+        /// <param name="currentDifficulty">Current difficulty from external service</param>
+        /// <param name="sessionData">Player session data from external service</param>
+        /// <returns>Calculated difficulty result with adjustment details</returns>
+        DifficultyResult CalculateDifficulty(float currentDifficulty, PlayerSessionData sessionData);
 
         /// <summary>
-        /// Initializes the service with saved data
+        /// Calculates difficulty adjustment for a specific scenario.
+        /// Useful for preview or what-if analysis.
         /// </summary>
-        void Initialize();
+        /// <param name="currentDifficulty">Current difficulty level</param>
+        /// <param name="winStreak">Number of consecutive wins</param>
+        /// <param name="lossStreak">Number of consecutive losses</param>
+        /// <param name="hoursSinceLastPlay">Hours since last play session</param>
+        /// <param name="lastQuitType">How the last session ended</param>
+        /// <returns>Calculated difficulty adjustment</returns>
+        float CalculateAdjustment(
+            float currentDifficulty,
+            int winStreak = 0,
+            int lossStreak = 0,
+            float hoursSinceLastPlay = 0,
+            QuitType? lastQuitType = null);
 
         /// <summary>
-        /// Calculates new difficulty based on current session data
+        /// Gets the recommended difficulty for a new player.
         /// </summary>
-        /// <returns>Result containing new difficulty and applied this.modifiers</returns>
-        DifficultyResult CalculateDifficulty();
+        /// <returns>Default starting difficulty</returns>
+        float GetDefaultDifficulty();
 
         /// <summary>
-        /// Applies the calculated difficulty and saves to persistence
+        /// Validates if a difficulty value is within acceptable range.
         /// </summary>
-        /// <param name="result">The calculation result to apply</param>
-        void ApplyDifficulty(DifficultyResult result);
+        /// <param name="difficulty">Difficulty value to validate</param>
+        /// <returns>True if valid, false otherwise</returns>
+        bool IsValidDifficulty(float difficulty);
 
         /// <summary>
-        /// Registers a new difficulty modifier
+        /// Clamps a difficulty value to the valid range.
         /// </summary>
-        /// <param name="modifier">The modifier to register</param>
-        void RegisterModifier(IDifficultyModifier modifier);
-
-        /// <summary>
-        /// Unregisters a difficulty modifier
-        /// </summary>
-        /// <param name="modifier">The modifier to unregister</param>
-        void UnregisterModifier(IDifficultyModifier modifier);
-
-        /// <summary>
-        /// Called when a game session starts
-        /// </summary>
-        void OnSessionStart();
-
-        /// <summary>
-        /// Called when a level starts
-        /// </summary>
-        /// <param name="levelId">The ID of the level</param>
-        void OnLevelStart(int levelId);
-
-        /// <summary>
-        /// Called when a level is completed
-        /// </summary>
-        /// <param name="won">Whether the level was won</param>
-        /// <param name="completionTime">Time taken to complete in seconds</param>
-        void OnLevelComplete(bool won, float completionTime);
-
-        /// <summary>
-        /// Called when a game session ends
-        /// </summary>
-        /// <param name="endType">How the session ended</param>
-        void OnSessionEnd(SessionEndType endType);
+        /// <param name="difficulty">Difficulty value to clamp</param>
+        /// <returns>Clamped difficulty value</returns>
+        float ClampDifficulty(float difficulty);
     }
 }
