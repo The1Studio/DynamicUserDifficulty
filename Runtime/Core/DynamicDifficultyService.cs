@@ -25,12 +25,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         public DynamicDifficultyService(
             IDifficultyDataProvider dataProvider,
             IDifficultyCalculator calculator,
-            DifficultyConfig config)
+            DifficultyConfig config,
+            IEnumerable<IDifficultyModifier> modifiers)
         {
             this.dataProvider = dataProvider ?? throw new ArgumentNullException(nameof(dataProvider));
             this.calculator = calculator ?? throw new ArgumentNullException(nameof(calculator));
             this.config = config ?? throw new ArgumentNullException(nameof(config));
-            this.modifiers = new List<IDifficultyModifier>();
+            this.modifiers = modifiers?.ToList() ?? new List<IDifficultyModifier>();
+
+            Debug.Log($"[DynamicDifficultyService] Initialized with {this.modifiers.Count} modifiers");
         }
 
         public void Initialize()

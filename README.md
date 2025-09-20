@@ -41,13 +41,13 @@ The Dynamic User Difficulty (DUD) service automatically adjusts game difficulty 
 - 🧪 **Testable**: Clean architecture with dependency injection
 - 📈 **Analytics Ready**: Built-in tracking for all difficulty changes
 
-## 🚨 Major Architecture Update
+## 🚨 Simplified Architecture - Zero Configuration!
 
-### ✅ **PRODUCTION-READY PROVIDER PATTERN**
+### ✅ **AUTO-REGISTRATION WITH PROVIDER ACTIVATION**
 
-**The module has undergone a major architectural transformation from complex event-based to clean provider-based pattern:**
+**All modifiers are now registered automatically. No configuration needed! They activate based on which provider interfaces you implement:**
 
-#### **🔄 From Complex Event Architecture**
+#### **🔄 From Complex Configuration**
 ```csharp
 // OLD: Complex event subscriptions across multiple classes
 difficultyService.Subscribe<WinEvent>();

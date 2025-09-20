@@ -34,28 +34,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Documentation Management
 - **[Documentation/README.md](Documentation/README.md)** - Documentation structure overview
 
-## 🚨 **MAJOR ARCHITECTURE UPDATE - PROVIDER PATTERN**
+## 🚨 **MAJOR ARCHITECTURE UPDATE - SIMPLIFIED PROVIDER PATTERN**
 
-### ✅ **PRODUCTION-READY TRANSFORMATION**
+### ✅ **PRODUCTION-READY WITH AUTO-REGISTRATION**
 
-**The module has undergone a major architectural transformation from complex event-based to clean provider-based pattern.**
+**The module now features automatic modifier registration with provider-based activation control.**
 
-#### **🔄 From Complex Event Architecture**
+#### **🔄 Simplified Architecture**
 ```csharp
-// OLD: Complex event subscriptions, manual state management
-difficultyService.Subscribe<WinEvent>();
-difficultyService.Subscribe<LossEvent>();
-// ... dozens of event handlers and boilerplate
+// OLD: Complex configuration and manual modifier registration
+config.ModifierConfigs.Add(winStreakConfig);
+config.ModifierConfigs.Add(lossStreakConfig);
+// ... manual configuration for each modifier
 ```
 
-#### **🎯 To Simple Provider Pattern**
+#### **🎯 NEW: Zero-Configuration Setup**
 ```csharp
-// NEW: One-line integration!
+// All modifiers registered automatically!
 builder.RegisterDynamicDifficulty();
 
-// Access anywhere:
-[Inject] private MinimalDifficultyAdapter adapter;
-float difficulty = adapter.CurrentDifficulty; // Done!
+// Modifiers activate based on which providers you implement:
+// - Implement IWinStreakProvider → WinStreak modifier activates
+// - Implement ITimeDecayProvider → TimeDecay modifier activates
+// - Implement IRageQuitProvider → RageQuit modifier activates
+// No configuration needed!
 ```
 
 ### **🏗️ New Provider-Based Architecture**
@@ -79,7 +81,7 @@ Assets/Scripts/Services/Difficulty/
 └── DifficultyIntegration.cs        // ✅ One-method integration
 ```
 
-### **🚀 Easy Integration Workflow**
+### **🚀 Simplified Integration Workflow**
 
 #### **1. One-Line Registration**
 ```csharp
@@ -88,19 +90,24 @@ using TheOneStudio.HyperCasual.Services.Difficulty;
 
 protected override void Configure(IContainerBuilder builder)
 {
-    // Single line adds complete difficulty system!
+    // Single line adds complete difficulty system with ALL modifiers!
     builder.RegisterDynamicDifficulty();
+
+    // No configuration needed - all 4 modifiers are registered automatically
+    // They only activate if you implement their provider interfaces
 }
 ```
 
-#### **2. Automatic Game Event Handling**
+#### **2. Automatic Modifier Activation**
 ```csharp
-// System automatically handles:
-// ✅ WonSignal → Records win, increases difficulty
-// ✅ LostSignal → Records loss, decreases difficulty
-// ✅ Session tracking → Time-based adjustments
-// ✅ Rage quit detection → Automatic compensation
-// ✅ Data persistence → Automatic save/load
+// Modifiers activate automatically based on provider implementation:
+// ✅ Implement IWinStreakProvider → WinStreak & LossStreak modifiers work
+// ✅ Implement ITimeDecayProvider → TimeDecay modifier works
+// ✅ Implement IRageQuitProvider → RageQuit modifier works
+// ✅ Implement ILevelProgressProvider → Progress-based adjustments work
+
+// Example: If you only implement IWinStreakProvider, only win/loss
+// streak modifiers will affect difficulty. Other modifiers stay inactive.
 ```
 
 #### **3. Access Difficulty Anywhere**
@@ -297,6 +304,22 @@ The DynamicUserDifficulty service is a Unity module within the UITemplate framew
 | **Production Readiness** | ✅ Ready | Performance optimized, error handling, analytics |
 
 **The Dynamic User Difficulty module is now COMPLETE and ready for production use with the new provider-based architecture.**
+
+## 🎯 Simplified Architecture Benefits
+
+### **No More Configuration Hassles**
+- **Before**: Complex ModifierConfig setup, manual registration, switch statements
+- **After**: All modifiers auto-registered, activation controlled by provider implementation
+
+### **Cleaner Code**
+- **Removed**: Switch statements for modifier registration
+- **Removed**: Complex configuration management
+- **Added**: Simple, declarative provider-based activation
+
+### **Better Extensibility**
+- **Easy to add new modifiers**: Just create the class and register it
+- **No central switch statement to modify**
+- **Provider pattern ensures clean separation**
 
 ## Architecture Integration Points
 

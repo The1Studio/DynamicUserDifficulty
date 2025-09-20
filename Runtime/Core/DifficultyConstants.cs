@@ -107,34 +107,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         /// <summary>Identifier for Rage Quit modifier in configurations</summary>
         public const string MODIFIER_TYPE_RAGE_QUIT = "RageQuit";
 
-        // ========== RESOURCE PATHS ==========
-        /// <summary>Resources path for DifficultyConfig in GameConfigs folder</summary>
-        public const string RESOURCES_PATH_GAMECONFIGS = "GameConfigs/DifficultyConfig";
-        
-        /// <summary>Resources path for DifficultyConfig in Configs folder</summary>
-        public const string RESOURCES_PATH_CONFIGS = "Configs/DifficultyConfig";
-        
-        /// <summary>Resources path for DifficultyConfig in root Resources folder</summary>
-        public const string RESOURCES_PATH_ROOT = "DifficultyConfig";
-        
-        // ========== ASSET PATHS ==========
-        /// <summary>Primary asset path for DifficultyConfig (recommended location)</summary>
-        public const string ASSET_PATH_GAMECONFIGS = "Assets/Resources/GameConfigs/DifficultyConfig.asset";
-        
-        /// <summary>Alternative asset path for DifficultyConfig in Configs folder</summary>
-        public const string ASSET_PATH_CONFIGS = "Assets/Resources/Configs/DifficultyConfig.asset";
-        
-        /// <summary>Fallback asset path for DifficultyConfig in root Resources</summary>
-        public const string ASSET_PATH_ROOT = "Assets/Resources/DifficultyConfig.asset";
-        
-        /// <summary>Base Resources directory path</summary>
-        public const string ASSET_DIRECTORY_RESOURCES = "Assets/Resources";
-        
-        /// <summary>GameConfigs directory path (recommended for config assets)</summary>
-        public const string ASSET_DIRECTORY_GAMECONFIGS = "Assets/Resources/GameConfigs";
-        
-        /// <summary>Alternative Configs directory path</summary>
-        public const string ASSET_DIRECTORY_CONFIGS = "Assets/Resources/Configs";
+        // ========== CONFIG PATH ==========
+        /// <summary>Resources path for loading DifficultyConfig (only location)</summary>
+        public const string CONFIG_RESOURCES_PATH = "GameConfigs/DifficultyConfig";
+
+        /// <summary>Asset path for creating/finding DifficultyConfig</summary>
+        public const string CONFIG_ASSET_PATH = "Assets/Resources/GameConfigs/DifficultyConfig.asset";
+
+        /// <summary>Directory path for config assets</summary>
+        public const string CONFIG_DIRECTORY = "Assets/Resources/GameConfigs";
 
         // ========== UNITY MENU PATHS ==========
         /// <summary>Unity Create Asset menu path for DifficultyConfig</summary>

@@ -11,138 +11,126 @@ using VContainer.Unity;
 
 namespace TheOneStudio.DynamicUserDifficulty.DI
 {
-    // Fixed: Removed duplicate DynamicDifficultyInitializer class
     /// <summary>
-    /// VContainer module for registering Dynamic Difficulty dependencies
+    /// VContainer module for registering Dynamic Difficulty dependencies.
+    /// Automatically registers all difficulty modifiers - the game determines which ones
+    /// are active by implementing the corresponding provider interfaces.
     /// </summary>
     public class DynamicDifficultyModule : IInstaller
     {
         private readonly DifficultyConfig config;
 
-        public DynamicDifficultyModule(DifficultyConfig config)
+        public DynamicDifficultyModule(DifficultyConfig config = null)
         {
             this.config = config;
         }
 
         public void Install(IContainerBuilder builder)
         {
-            if (this.config == null)
-            {
-                // Try to load config from Resources
-                var loadedConfig = this.LoadConfigFromResources();
-                if (loadedConfig != null)
-                {
-                    Debug.Log("[DynamicDifficultyModule] Found DifficultyConfig in Resources, using it");
-                    // Update the config reference
-                    var configField = this.GetType().GetField("config",
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    configField?.SetValue(this, loadedConfig);
-                }
-                else
-                {
-                    Debug.LogError("[DynamicDifficultyModule] DifficultyConfig is null and not found in Resources. " +
-                                   "Please create a DifficultyConfig asset at Resources/GameConfigs/DifficultyConfig or " +
-                                   "use Tools > Dynamic Difficulty > Create Default Config. " +
-                                   "Skipping Dynamic Difficulty registration.");
-                    return;
-                }
-            }
+            // Try to load or create default config if not provided
+            var actualConfig = this.config ?? this.LoadOrCreateDefaultConfig();
 
             // Register configuration
-            builder.RegisterInstance(this.config);
+            builder.RegisterInstance(actualConfig);
 
-            // Register core service
+            // Register core services
             builder.Register<IDynamicDifficultyService, DynamicDifficultyService>(Lifetime.Singleton);
-
-            // Register calculators
             builder.Register<IDifficultyCalculator, DifficultyCalculator>(Lifetime.Singleton);
             builder.Register<ModifierAggregator>(Lifetime.Singleton);
+            builder.Register<DifficultyManager>(Lifetime.Singleton);
 
-            // Register modifiers with provider-based pattern
-            this.RegisterModifiersWithProviders(builder);
+            // Register ALL modifiers by default - no configuration needed!
+            // The game determines which modifiers are active by implementing the corresponding provider interfaces
+            this.RegisterAllModifiers(builder);
 
-            Debug.Log("[DynamicDifficultyModule] Provider-based Dynamic Difficulty system registered successfully");
+            Debug.Log("[DynamicDifficultyModule] All difficulty modifiers registered. Active modifiers depend on which provider interfaces are implemented.");
         }
 
-        private void RegisterModifiersWithProviders(IContainerBuilder builder)
+        /// <summary>
+        /// Registers all available difficulty modifiers.
+        /// Each modifier will only be active if its corresponding provider interface is implemented.
+        /// </summary>
+        private void RegisterAllModifiers(IContainerBuilder builder)
         {
-            // Get modifier configs from DifficultyConfig
-            if (this.config.ModifierConfigs == null || this.config.ModifierConfigs.Count == 0)
-            {
-                Debug.LogWarning("[DynamicDifficultyModule] No modifier configs found");
-                return;
-            }
+            // Create default configs for each modifier type
+            var winStreakConfig  = this.CreateModifierConfig(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK);
+            var lossStreakConfig = this.CreateModifierConfig(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK);
+            var timeDecayConfig  = this.CreateModifierConfig(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY);
+            var rageQuitConfig   = this.CreateModifierConfig(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT);
 
-            // Register each configured modifier with provider dependency
-            foreach (var modifierConfig in this.config.ModifierConfigs)
-            {
-                if (modifierConfig == null)
-                    continue;
+            // Register all modifiers - they will be injected as IEnumerable<IDifficultyModifier>
+            builder.Register<WinStreakModifier>(Lifetime.Singleton)
+                .WithParameter(winStreakConfig)
+                .As<IDifficultyModifier>();
 
-                this.RegisterModifierByTypeWithProvider(builder, modifierConfig);
-            }
+            builder.Register<LossStreakModifier>(Lifetime.Singleton)
+                .WithParameter(lossStreakConfig)
+                .As<IDifficultyModifier>();
+
+            builder.Register<TimeDecayModifier>(Lifetime.Singleton)
+                .WithParameter(timeDecayConfig)
+                .As<IDifficultyModifier>();
+
+            builder.Register<RageQuitModifier>(Lifetime.Singleton)
+                .WithParameter(rageQuitConfig)
+                .As<IDifficultyModifier>();
+
+            Debug.Log("[DynamicDifficultyModule] Registered 4 difficulty modifiers: WinStreak, LossStreak, TimeDecay, RageQuit");
         }
 
-        private void RegisterModifierByTypeWithProvider(IContainerBuilder builder, ModifierConfig modifierConfig)
+        /// <summary>
+        /// Creates a default modifier configuration for the specified type
+        /// </summary>
+        private ModifierConfig CreateModifierConfig(string modifierType)
         {
-            switch (modifierConfig.ModifierType)
+            var config = new ModifierConfig();
+            config.SetModifierType(modifierType);
+
+            // Set default parameters based on modifier type
+            switch (modifierType)
             {
                 case DifficultyConstants.MODIFIER_TYPE_WIN_STREAK:
-                    // Register WinStreakModifier - will get IWinStreakProvider via DI
-                    builder.Register<WinStreakModifier>(Lifetime.Singleton)
-                        .WithParameter(modifierConfig)
-                        .As<IDifficultyModifier>();
+                    config.SetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD, DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD);
+                    config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE);
+                    config.SetParameter(DifficultyConstants.PARAM_MAX_BONUS, DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS);
                     break;
 
                 case DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK:
-                    // Register LossStreakModifier - will get IWinStreakProvider via DI
-                    builder.Register<LossStreakModifier>(Lifetime.Singleton)
-                        .WithParameter(modifierConfig)
-                        .As<IDifficultyModifier>();
+                    config.SetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD, DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD);
+                    config.SetParameter(DifficultyConstants.PARAM_STEP_SIZE, DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE);
+                    config.SetParameter(DifficultyConstants.PARAM_MAX_REDUCTION, DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION);
                     break;
 
                 case DifficultyConstants.MODIFIER_TYPE_TIME_DECAY:
-                    // Register TimeDecayModifier - will get ITimeDecayProvider via DI
-                    builder.Register<TimeDecayModifier>(Lifetime.Singleton)
-                        .WithParameter(modifierConfig)
-                        .As<IDifficultyModifier>();
+                    config.SetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY);
+                    config.SetParameter(DifficultyConstants.PARAM_MAX_DECAY, DifficultyConstants.TIME_DECAY_DEFAULT_MAX);
+                    config.SetParameter(DifficultyConstants.PARAM_GRACE_HOURS, DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS);
                     break;
 
                 case DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT:
-                    // Register RageQuitModifier - will get IRageQuitProvider via DI
-                    builder.Register<RageQuitModifier>(Lifetime.Singleton)
-                        .WithParameter(modifierConfig)
-                        .As<IDifficultyModifier>();
-                    break;
-
-                default:
-                    Debug.LogWarning($"[DynamicDifficultyModule] Unknown modifier type: {modifierConfig.ModifierType}");
+                    config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_THRESHOLD, DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD);
+                    config.SetParameter(DifficultyConstants.PARAM_RAGE_QUIT_REDUCTION, DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION);
+                    config.SetParameter(DifficultyConstants.PARAM_QUIT_REDUCTION, DifficultyConstants.QUIT_DEFAULT_REDUCTION);
+                    config.SetParameter(DifficultyConstants.PARAM_MID_PLAY_REDUCTION, DifficultyConstants.MID_PLAY_DEFAULT_REDUCTION);
                     break;
             }
+
+            return config;
         }
 
-        private DifficultyConfig LoadConfigFromResources()
+        private DifficultyConfig LoadOrCreateDefaultConfig()
         {
-            // Try multiple common paths using constants
-            string[] possiblePaths = {
-                DifficultyConstants.RESOURCES_PATH_GAMECONFIGS,
-                DifficultyConstants.RESOURCES_PATH_CONFIGS,
-                DifficultyConstants.RESOURCES_PATH_ROOT
-            };
-
-            foreach (var path in possiblePaths)
+            // Load from the single standard location
+            var config = Resources.Load<DifficultyConfig>(DifficultyConstants.CONFIG_RESOURCES_PATH);
+            if (config != null)
             {
-                var config = Resources.Load<DifficultyConfig>(path);
-                if (config != null)
-                {
-                    Debug.Log($"[DynamicDifficultyModule] Loaded DifficultyConfig from Resources/{path}");
-                    return config;
-                }
+                Debug.Log($"[DynamicDifficultyModule] Loaded DifficultyConfig from Resources/{DifficultyConstants.CONFIG_RESOURCES_PATH}");
+                return config;
             }
 
-            Debug.LogWarning("[DynamicDifficultyModule] DifficultyConfig not found in Resources. Checked paths: " +
-                           string.Join(", ", possiblePaths));
-            return null;
+            Debug.LogWarning($"[DynamicDifficultyModule] DifficultyConfig not found at: {DifficultyConstants.CONFIG_RESOURCES_PATH}. " +
+                           "Creating default configuration.");
+            return ScriptableObject.CreateInstance<DifficultyConfig>();
         }
     }
 }
