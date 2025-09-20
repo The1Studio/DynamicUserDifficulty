@@ -25,6 +25,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             try
             {
+                // Return NoChange if session data is null (convention for null handling)
+                if (sessionData == null)
+                {
+                    return ModifierResult.NoChange();
+                }
+
                 var lastQuitType = this.rageQuitProvider.GetLastQuitType();
                 var recentRageQuits = this.rageQuitProvider.GetRecentRageQuitCount();
                 var sessionDuration = this.rageQuitProvider.GetCurrentSessionDuration();

@@ -25,6 +25,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             try
             {
+                // Return NoChange if session data is null (convention for null handling)
+                if (sessionData == null)
+                {
+                    return ModifierResult.NoChange();
+                }
+
                 var winStreak = this.winStreakProvider.GetWinStreak();
 
                 var winThreshold = this.GetParameter(DifficultyConstants.PARAM_WIN_THRESHOLD, DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD);

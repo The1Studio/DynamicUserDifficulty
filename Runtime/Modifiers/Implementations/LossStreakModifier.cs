@@ -25,6 +25,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             try
             {
+                // Return NoChange if session data is null (convention for null handling)
+                if (sessionData == null)
+                {
+                    return ModifierResult.NoChange();
+                }
+
                 var lossStreak = this.winStreakProvider.GetLossStreak();
 
                 var lossThreshold = this.GetParameter(DifficultyConstants.PARAM_LOSS_THRESHOLD, DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD);

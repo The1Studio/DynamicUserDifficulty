@@ -26,6 +26,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             try
             {
+                // Return NoChange if session data is null (convention for null handling)
+                if (sessionData == null)
+                {
+                    return ModifierResult.NoChange();
+                }
+
                 var timeSincePlay = this.timeDecayProvider.GetTimeSinceLastPlay();
                 var hoursSincePlay = timeSincePlay.TotalHours;
             var decayPerDay    = this.GetParameter(DifficultyConstants.PARAM_DECAY_PER_DAY, DifficultyConstants.TIME_DECAY_DEFAULT_PER_DAY);
