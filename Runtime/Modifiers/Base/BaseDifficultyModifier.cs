@@ -1,26 +1,31 @@
+using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
+    using ILogger = TheOne.Logging.ILogger;
+
     /// <summary>
-    /// Abstract base class for all difficulty modifiers
-    /// DEPRECATED: Use BaseDifficultyModifier<TConfig> for type-safe configuration instead
+    /// Generic base class for difficulty modifiers with strongly-typed configuration
     /// </summary>
-    [System.Obsolete("Use BaseDifficultyModifier<TConfig> for type-safe configuration instead")]
-    public abstract class BaseDifficultyModifier : IDifficultyModifier
+    public abstract class BaseDifficultyModifier<TConfig> : IDifficultyModifier<TConfig>
+        where TConfig : class, IModifierConfig
     {
-        protected readonly ModifierConfig config;
+        protected TConfig config;
+        protected readonly ILogger logger;
 
         public abstract string ModifierName { get; }
-        public virtual  int    Priority     => this.config?.Priority ?? 0;
-        public          bool   IsEnabled    { get; set; }
+        public virtual int Priority => this.config?.Priority ?? 0;
+        public bool IsEnabled { get; set; }
 
-        protected BaseDifficultyModifier(ModifierConfig config)
+        public TConfig Config => this.config;
+
+        protected BaseDifficultyModifier(TConfig config, ILoggerManager loggerManager = null)
         {
             this.config = config;
-            this.IsEnabled = config?.Enabled ?? true;
+            this.IsEnabled = config?.IsEnabled ?? true;
+            this.logger = loggerManager?.GetLogger(this);
         }
 
         public abstract ModifierResult Calculate(PlayerSessionData sessionData);
@@ -31,14 +36,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             // Can be overridden by specific modifiers
         }
 
-        /// <summary>
-        /// Applies the response curve to a value
-        /// </summary>
-        protected float ApplyCurve(float input)
+        public virtual void UpdateConfig(TConfig newConfig)
         {
-            if (this.config?.ResponseCurve != null)
-                return this.config.ResponseCurve.Evaluate(Mathf.Clamp01(input));
-            return input;
+            this.config = newConfig;
+            this.IsEnabled = newConfig?.IsEnabled ?? true;
+        }
+
+        /// <summary>
+        /// Logs debug information
+        /// </summary>
+        protected void LogDebug(string message)
+        {
+            this.logger?.Info($"[{this.ModifierName}] {message}");
         }
     }
 }
