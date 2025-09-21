@@ -1,17 +1,17 @@
 # 🎮 Dynamic User Difficulty Service
 
-An intelligent, modular difficulty adjustment system for Unity games that adapts to player performance in real-time.
+An intelligent, stateless difficulty calculation engine for Unity games that adapts to player performance in real-time through a clean provider pattern.
 
 [![Unity](https://img.shields.io/badge/Unity-2021.3%2B-blue.svg)](https://unity.com)
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](package.json)
+[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](package.json)
 [![License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-119%20passing-brightgreen.svg)](#testing)
+[![Tests](https://img.shields.io/badge/tests-143%20passing-brightgreen.svg)](#testing)
 [![Coverage](https://img.shields.io/badge/coverage-~92%25-brightgreen.svg)](#testing)
 
 ## 📋 Table of Contents
 
 - [Overview](#overview)
-- [🚨 Major Architecture Update](#-major-architecture-update)
+- [🚨 Stateless Architecture](#-stateless-architecture)
 - [Features](#features)
 - [Quick Start](#quick-start)
 - [Documentation](#documentation)
@@ -27,7 +27,7 @@ An intelligent, modular difficulty adjustment system for Unity games that adapts
 
 ## Overview
 
-The Dynamic User Difficulty (DUD) service automatically adjusts game difficulty based on:
+The Dynamic User Difficulty (DUD) service is a **stateless calculation engine** that automatically calculates difficulty adjustments based on:
 - **Win/Loss Streaks** - Consecutive wins increase difficulty, losses decrease it
 - **Time Since Last Play** - Reduces difficulty for returning players
 - **Session Behavior** - Detects rage quits and adjusts accordingly
@@ -36,70 +36,73 @@ The Dynamic User Difficulty (DUD) service automatically adjusts game difficulty 
 ### Why Use This System?
 
 - 🎯 **Increases Retention**: Keeps players in the optimal challenge zone
-- 🔧 **Highly Modular**: Add new modifiers without changing existing code
-- 📊 **Data-Driven**: Configure everything through ScriptableObjects
-- 🧪 **Testable**: Clean architecture with dependency injection
+- 🔧 **Stateless Design**: Pure calculation engine with no internal state
+- 📊 **Provider Pattern**: Clean separation between calculation and data storage
+- 🧪 **Testable**: Pure functions with predictable outputs
 - 📈 **Analytics Ready**: Built-in tracking for all difficulty changes
 
-## 🚨 Simplified Architecture - Zero Configuration!
+## 🚨 **Stateless Architecture - Pure Calculation Engine**
 
-### ✅ **AUTO-REGISTRATION WITH PROVIDER ACTIVATION**
+### ✅ **ZERO STATE MANAGEMENT**
 
-**All modifiers are now registered automatically. No configuration needed! They activate based on which provider interfaces you implement:**
+**This module is a stateless calculation engine that ONLY stores the current difficulty value. All other data comes from external services.**
 
-#### **🔄 From Complex Configuration**
+#### **🔄 What This Means**
 ```csharp
-// OLD: Complex event subscriptions across multiple classes
-difficultyService.Subscribe<WinEvent>();
-difficultyService.Subscribe<LossEvent>();
-// ... dozens of event handlers
+// The module ONLY manages this:
+float currentDifficulty = 5.0f; // Single float value
+
+// Everything else comes from YOUR game's existing systems:
+int winStreak = gameProgressionService.GetWinStreak();
+int lossStreak = gameProgressionService.GetLossStreak();
+DateTime lastPlayTime = gameSessionService.GetLastPlayTime();
+QuitType lastQuit = gameAnalyticsService.GetLastQuitType();
 ```
 
-#### **🎯 To Simple Provider Pattern**
-```csharp
-// NEW: One-line integration!
-builder.RegisterDynamicDifficulty();
-```
+#### **🎯 Data Storage Pattern**
 
-### **🎉 What This Means for Your Game**
+| **What Module Stores** | **What External Services Provide** |
+|------------------------|-----------------------------------|
+| Current difficulty (1 float) | Win/loss streaks |
+| | Time since last play |
+| | Session history |
+| | Quit behavior tracking |
+| | Level progress data |
 
-| Before | After |
-|--------|-------|
-| **Complex Integration** | **One-Line Setup** |
-| Multiple event subscriptions | Single method call |
-| Event handling boilerplate | Auto-handled by module |
-| Manual state management | Provider handles everything |
-| **Heavy Implementation** | **Light Touch Integration** |
-
-### **🏗️ New Architecture Components**
+### **🏗️ Provider Architecture Components**
 
 #### **Provider Interfaces** (Choose What You Need)
-- `IDifficultyDataProvider` - Base interface for data operations
-- `IWinStreakProvider` - Win/loss streak tracking
-- `ITimeDecayProvider` - Time-based difficulty decay
-- `IRageQuitProvider` - Rage quit detection
-- `ILevelProgressProvider` - Level progress tracking
+- `IDifficultyDataProvider` - Base interface for difficulty storage (REQUIRED)
+- `IWinStreakProvider` - Win/loss streak tracking (OPTIONAL)
+- `ITimeDecayProvider` - Time-based difficulty decay (OPTIONAL)
+- `IRageQuitProvider` - Rage quit detection (OPTIONAL)
+- `ILevelProgressProvider` - Level progress tracking (OPTIONAL)
 
 #### **Complete Implementation Files**
 - `Screw3DDifficultyProvider.cs` - Single provider class implementing all interfaces
 - `MinimalDifficultyAdapter.cs` - Simple adapter bridging game events to provider
 - `DifficultyIntegration.cs` - One-method integration for easy copying
 
-### **🚀 Easy Integration Pattern**
+### **🚀 Stateless Integration Pattern**
 ```csharp
 // 1. Single registration in your DI setup
 builder.RegisterDynamicDifficulty();
 
-// 2. Provider automatically handles all difficulty logic
-// 3. Module automatically adjusts difficulty based on gameplay
+// 2. Module calculates difficulty based on external data
+var result = difficultyService.CalculateDifficulty(currentDifficulty, sessionData);
+
+// 3. Module returns calculation - YOU decide what to do with it
+var newDifficulty = result.NewDifficulty;
+difficultyDataProvider.SetCurrentDifficulty(newDifficulty);
+
 // 4. Access current difficulty anywhere: adapter.CurrentDifficulty
 ```
 
 ## Features
 
 ### Core Features ✅ COMPLETE
-- ✅ Automatic difficulty adjustment based on player performance
-- ✅ **Provider-based architecture for easy integration**
+- ✅ **Stateless difficulty calculation** based on external data
+- ✅ **Provider-based architecture** for clean data separation
 - ✅ Time-based decay for returning players
 - ✅ Rage quit detection and compensation
 - ✅ Configurable difficulty ranges and thresholds
@@ -107,7 +110,7 @@ builder.RegisterDynamicDifficulty();
 - ✅ Debug tools and visualization
 
 ### Technical Features ✅ PRODUCTION-READY
-- ✅ Clean provider-based architecture with SOLID principles
+- ✅ **Pure calculation engine** with SOLID principles
 - ✅ VContainer dependency injection
 - ✅ Unity assembly definitions
 - ✅ **Complete test suite (143 tests, ~92% coverage)**
@@ -119,14 +122,14 @@ builder.RegisterDynamicDifficulty();
 
 | Component | Status | Tests | Coverage |
 |-----------|--------|-------|----------|
-| **Core Service** | ✅ Complete | 10 tests | ~95% |
-| **Provider System** | ✅ **NEW** | 15 tests | ~95% |
-| **4 Modifiers** | ✅ Complete | 45 tests | ~95% |
+| **Stateless Core Service** | ✅ Complete | 10 tests | ~95% |
+| **Provider System** | ✅ Complete | 15 tests | ~95% |
+| **4 Typed Modifiers** | ✅ Complete | 45 tests | ~95% |
 | **Models & Data** | ✅ Complete | 20 tests | ~90% |
 | **Calculators** | ✅ Complete | 18 tests | ~90% |
-| **Configuration** | ✅ Complete | 25 tests | ~88% |
-| **Services** | ✅ Complete | 14 tests | ~85% |
-| **Integration** | ✅ Complete | 11 tests | ~90% |
+| **Type-Safe Configuration** | ✅ Complete | 25 tests | ~88% |
+| **Integration** | ✅ Complete | 14 tests | ~85% |
+| **Total Implementation** | ✅ Complete | 11 tests | ~90% |
 | **TOTAL** | **✅ PRODUCTION-READY** | **143 tests** | **~92%** |
 
 ## Quick Start
@@ -137,7 +140,7 @@ builder.RegisterDynamicDifficulty();
 # This package is already installed as a Git submodule in:
 Packages/com.theone.dynamicuserdifficulty/
 
-# Provider pattern requires no feature flags
+# No feature flags required - stateless design
 ```
 
 ### 2️⃣ Create Configuration (Optional)
@@ -147,7 +150,7 @@ Right-click in Project → Create → DynamicDifficulty → Config
 Save as: Assets/Resources/GameConfigs/DifficultyConfig.asset
 ```
 
-### 3️⃣ **NEW: One-Line Integration**
+### 3️⃣ **One-Line Integration**
 
 ```csharp
 // In your main DI container (e.g., GameLifetimeScope.cs)
@@ -155,10 +158,10 @@ using TheOneStudio.HyperCasual.Services.Difficulty;
 
 protected override void Configure(IContainerBuilder builder)
 {
-    // Single line adds complete difficulty system!
+    // Single line adds complete stateless difficulty system!
     builder.RegisterDynamicDifficulty();
 
-    // That's it! Module handles everything automatically
+    // That's it! Module handles calculations, you handle data
 }
 ```
 
@@ -171,7 +174,7 @@ public class GameController
 
     public void StartLevel()
     {
-        // Get current difficulty (automatically calculated)
+        // Get current difficulty (calculated from external data)
         var difficulty = difficultyAdapter.CurrentDifficulty; // 1-10 scale
 
         // Get game parameters adjusted for difficulty
@@ -186,11 +189,10 @@ public class GameController
 ### **🎮 Automatic Difficulty Tracking**
 
 The system automatically:
-- ✅ Tracks wins/losses from game signals
-- ✅ Detects rage quits and session patterns
-- ✅ Adjusts difficulty based on time away
-- ✅ Persists data across sessions
-- ✅ Provides real-time difficulty values
+- ✅ Calculates difficulty from game signals and provider data
+- ✅ Provides real-time difficulty values based on current game state
+- ✅ Stores only the current difficulty value (minimal footprint)
+- ✅ Persists data through your existing game systems
 
 ## Documentation
 
@@ -210,13 +212,13 @@ The system automatically:
 | Document | Purpose | Read When |
 |----------|---------|-----------|
 | **[DynamicUserDifficulty.md](DynamicUserDifficulty.md)** | Business logic and formulas | Understanding requirements |
-| **[TechnicalDesign.md](TechnicalDesign.md)** | Architecture and patterns | Learning the system |
+| **[TechnicalDesign.md](TechnicalDesign.md)** | Stateless architecture and patterns | Learning the system |
 
 ### Implementation Guides
 
 | Document | Purpose | Read When |
 |----------|---------|-----------|
-| **[Documentation/ImplementationGuide.md](Documentation/ImplementationGuide.md)** | Step-by-step implementation | Building from scratch |
+| **[Documentation/ImplementationGuide.md](Documentation/ImplementationGuide.md)** | Step-by-step stateless implementation | Building from scratch |
 | **[Documentation/APIReference.md](Documentation/APIReference.md)** | Complete API documentation | During development |
 | **[Documentation/ModifierGuide.md](Documentation/ModifierGuide.md)** | Creating custom modifiers | Extending the system |
 | **[Documentation/IntegrationGuide.md](Documentation/IntegrationGuide.md)** | Integration with game systems | Connecting to your game |
@@ -233,10 +235,11 @@ The system automatically:
 
 ```mermaid
 graph LR
-    A[Read README] --> B[One-Line Integration]
-    B --> C[Test in Game]
-    C --> D[Customize Parameters]
-    D --> E[Add Custom Providers]
+    A[Read README] --> B[Understand Stateless Design]
+    B --> C[One-Line Integration]
+    C --> D[Test in Game]
+    D --> E[Customize Providers]
+    E --> F[Add Custom Modifiers]
 ```
 
 ## Project Structure
@@ -255,16 +258,16 @@ DynamicUserDifficulty/
 │   └── 📄 TestImplementation.md ✅ 143 tests
 │
 ├── 📁 Runtime/                # Source code ✅ COMPLETE
-│   ├── 📁 Core/              # Main service
+│   ├── 📁 Core/              # Stateless calculation engine
 │   │   ├── IDynamicDifficultyService.cs
 │   │   └── DynamicDifficultyService.cs
 │   │
-│   ├── 📁 Providers/         # ✅ NEW: Provider interfaces
-│   │   ├── IDifficultyDataProvider.cs
-│   │   ├── IWinStreakProvider.cs
-│   │   ├── ITimeDecayProvider.cs
-│   │   ├── IRageQuitProvider.cs
-│   │   └── ILevelProgressProvider.cs
+│   ├── 📁 Providers/         # ✅ Provider interfaces for external data
+│   │   ├── IDifficultyDataProvider.cs    # Difficulty storage (required)
+│   │   ├── IWinStreakProvider.cs         # Win/loss tracking (optional)
+│   │   ├── ITimeDecayProvider.cs         # Time tracking (optional)
+│   │   ├── IRageQuitProvider.cs          # Quit tracking (optional)
+│   │   └── ILevelProgressProvider.cs     # Level tracking (optional)
 │   │
 │   ├── 📁 Modifiers/         # Difficulty modifiers ✅ 4/4 COMPLETE
 │   │   ├── 📁 Base/
@@ -280,7 +283,7 @@ DynamicUserDifficulty/
 │   │   └── DifficultyResult.cs
 │   │
 │   ├── 📁 Calculators/       # Calculation logic
-│   ├── 📁 Configuration/     # ScriptableObjects
+│   ├── 📁 Configuration/     # Type-safe ScriptableObjects
 │   └── 📁 DI/               # Dependency injection
 │
 ├── 📁 Editor/                # Editor tools
@@ -333,37 +336,38 @@ builder.RegisterDynamicDifficulty();
 // 2. Inject adapter anywhere
 [Inject] private MinimalDifficultyAdapter difficultyAdapter;
 
-// 3. Access current difficulty
+// 3. Access current difficulty (calculated from external data)
 float difficulty = difficultyAdapter.CurrentDifficulty; // 1-10 scale
 
 // 4. Get adjusted game parameters
 var parameters = difficultyAdapter.GetAdjustedParameters();
 ```
 
-### **🔧 Manual Integration (Advanced)**
+### **🔧 Manual Stateless Calculation**
 
 ```csharp
-// Get the service
+// Get the stateless calculation service
 var difficultyService = container.Resolve<IDynamicDifficultyService>();
 
-// Calculate new difficulty
-var result = difficultyService.CalculateDifficulty();
+// Provide current state from your game systems
+float currentDifficulty = myGameData.GetCurrentDifficulty();
+var sessionData = myGameData.BuildSessionData();
 
-// Apply the difficulty
-difficultyService.ApplyDifficulty(result);
+// Calculate new difficulty (pure function)
+var result = difficultyService.CalculateDifficulty(currentDifficulty, sessionData);
 
-// Access the difficulty value
-float difficulty = result.NewDifficulty; // 1-10 scale
+// Apply the result through your data systems
+myGameData.SetCurrentDifficulty(result.NewDifficulty);
 ```
 
 ### **🎮 Automatic Game Event Tracking**
 
 ```csharp
 // The system automatically handles these through signals:
-// ✅ WonSignal → Records win, increases difficulty
-// ✅ LostSignal → Records loss, decreases difficulty
-// ✅ Session tracking → Time-based adjustments
-// ✅ Rage quit detection → Automatic compensation
+// ✅ WonSignal → Records win via provider, calculates difficulty
+// ✅ LostSignal → Records loss via provider, calculates difficulty
+// ✅ Session tracking → Time-based adjustments via provider
+// ✅ Rage quit detection → Automatic compensation via provider
 
 // Manual events (optional):
 difficultyAdapter.RecordSessionEnd(QuitType.RageQuit);
@@ -404,7 +408,7 @@ Difficulty Range:
   Default: 3.0
   Max Change Per Session: 2.0
 
-Modifiers:
+Type-Safe Modifiers:
   - Win Streak:
       Threshold: 3 wins
       Step Size: 0.5
@@ -440,35 +444,47 @@ MinDifficulty: 3, MaxDifficulty: 10, WinThreshold: 2
 
 ## Extending the System
 
-### **🆕 Creating a Custom Provider** (New Pattern)
+### **🆕 Creating a Custom Provider** (Stateless Pattern)
 
 ```csharp
 public class CustomDifficultyProvider : IWinStreakProvider, ITimeDecayProvider
 {
-    // Implement only the interfaces you need
+    // Implement only the interfaces you need for your game
     public int GetWinStreak() => myGameData.winStreak;
     public void RecordWin() => myGameData.winStreak++;
-    // ... other methods
+    // ... other methods - read from YOUR game's existing systems
 }
 
 // Register in DI
 builder.RegisterInstance<IWinStreakProvider>(new CustomDifficultyProvider());
 ```
 
-### Creating a Custom Modifier (Advanced)
+### Creating a Custom Modifier (Type-Safe)
 
 ```csharp
-public class SpeedBonusModifier : BaseDifficultyModifier
+// Define typed configuration
+public class SpeedBonusConfig : BaseModifierConfig
+{
+    [SerializeField] private float timeThreshold = 60f;
+    [SerializeField] private float bonusAmount = 0.5f;
+
+    public float TimeThreshold => this.timeThreshold;
+    public float BonusAmount => this.bonusAmount;
+}
+
+// Implement modifier with typed config
+public class SpeedBonusModifier : BaseDifficultyModifier<SpeedBonusConfig>
 {
     public override string ModifierName => "SpeedBonus";
 
-    public SpeedBonusModifier(ModifierConfig config) : base(config) { }
+    public SpeedBonusModifier(SpeedBonusConfig config, ILevelProgressProvider provider)
+        : base(config) { }
 
     public override ModifierResult Calculate(PlayerSessionData sessionData)
     {
         // Fast completion = Higher difficulty
-        var avgTime = GetAverageCompletionTime(sessionData);
-        var speedBonus = avgTime < 60 ? 0.5f : 0f;
+        var avgTime = provider.GetAverageCompletionTime();
+        var speedBonus = avgTime < this.config.TimeThreshold ? this.config.BonusAmount : 0f;
 
         return new ModifierResult
         {
@@ -488,32 +504,29 @@ builder.Register<SpeedBonusModifier>(Lifetime.Singleton)
        .As<IDifficultyModifier>();
 ```
 
-### Configuration
-
-Add to DifficultyConfig:
-```yaml
-Speed Bonus:
-  Enabled: true
-  Priority: 5
-  Parameters:
-    TimeThreshold: 60
-    BonusAmount: 0.5
-```
-
 ## API Reference
+
+### **🆕 Stateless Service Interface**
+
+#### IDynamicDifficultyService (Stateless)
+```csharp
+// Pure calculation methods - no state stored
+DifficultyResult CalculateDifficulty(float currentDifficulty, PlayerSessionData sessionData);
+float CalculateAdjustment(float currentDifficulty, int winStreak, int lossStreak, float hoursSinceLastPlay, QuitType? lastQuitType);
+float GetDefaultDifficulty();
+bool IsValidDifficulty(float difficulty);
+float ClampDifficulty(float difficulty);
+```
 
 ### **🆕 Provider Interfaces**
 
-#### IDifficultyDataProvider (Base)
+#### IDifficultyDataProvider (Required)
 ```csharp
-PlayerSessionData GetSessionData();
-void SaveSessionData(PlayerSessionData data);
 float GetCurrentDifficulty();
-void SaveDifficulty(float difficulty);
-void ClearData();
+void SetCurrentDifficulty(float difficulty);
 ```
 
-#### IWinStreakProvider
+#### IWinStreakProvider (Optional)
 ```csharp
 int GetWinStreak();
 int GetLossStreak();
@@ -523,7 +536,7 @@ int GetTotalWins();
 int GetTotalLosses();
 ```
 
-#### ITimeDecayProvider
+#### ITimeDecayProvider (Optional)
 ```csharp
 DateTime GetLastPlayTime();
 TimeSpan GetTimeSinceLastPlay();
@@ -531,7 +544,7 @@ void RecordPlaySession();
 int GetDaysAwayFromGame();
 ```
 
-#### IRageQuitProvider
+#### IRageQuitProvider (Optional)
 ```csharp
 QuitType GetLastQuitType();
 float GetAverageSessionDuration();
@@ -541,7 +554,7 @@ int GetRecentRageQuitCount();
 void RecordSessionStart();
 ```
 
-#### ILevelProgressProvider
+#### ILevelProgressProvider (Optional)
 ```csharp
 int GetCurrentLevel();
 float GetAverageCompletionTime();
@@ -549,23 +562,6 @@ int GetAttemptsOnCurrentLevel();
 float GetCompletionRate();
 void RecordLevelCompletion(int levelId, float completionTime, bool won);
 float GetCurrentLevelDifficulty();
-```
-
-### Core Interfaces
-
-#### IDynamicDifficultyService
-```csharp
-float CurrentDifficulty { get; }
-DifficultyResult CalculateDifficulty();
-void ApplyDifficulty(DifficultyResult result);
-void OnLevelComplete(bool won, float time);
-```
-
-#### IDifficultyModifier
-```csharp
-string ModifierName { get; }
-int Priority { get; }
-ModifierResult Calculate(PlayerSessionData data);
 ```
 
 ### Data Models
@@ -603,13 +599,13 @@ Window → General → Test Runner → Run All
 
 | Component | Tests | Coverage | Status |
 |-----------|-------|----------|--------|
-| **Providers** | 15 tests | ~95% | ✅ **NEW** |
+| **Stateless Core** | 10 tests | ~95% | ✅ Complete |
+| **Providers** | 15 tests | ~95% | ✅ Complete |
 | **Modifiers** | 45 tests | ~95% | ✅ Complete |
 | **Models** | 20 tests | ~90% | ✅ Complete |
 | **Calculators** | 18 tests | ~90% | ✅ Complete |
 | **Services** | 14 tests | ~85% | ✅ Complete |
 | **Configuration** | 25 tests | ~88% | ✅ Complete |
-| **Core** | 10 tests | ~90% | ✅ Complete |
 | **Integration** | 11 tests | ~90% | ✅ Complete |
 | **Total** | **143 tests** | **~92%** | ✅ **PRODUCTION-READY** |
 
@@ -669,14 +665,14 @@ See [Documentation/TestImplementation.md](Documentation/TestImplementation.md) f
 ### Debug Commands
 
 ```csharp
-// Force difficulty
-difficultyService.SetDifficulty(5.0f);
+// Force difficulty through provider
+difficultyDataProvider.SetCurrentDifficulty(5.0f);
 
-// Reset streaks
-difficultyService.ResetStreaks();
-
-// Clear session data
+// Clear data through provider
 difficultyProvider.ClearData();
+
+// Calculate with specific values
+var result = difficultyService.CalculateDifficulty(currentDifficulty, sessionData);
 ```
 
 ## Contributing
@@ -701,11 +697,11 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ## Roadmap
 
-- [x] Version 1.0: Provider-based architecture ✅ **COMPLETE**
-- [ ] Version 1.1: Machine learning predictions
-- [ ] Version 1.2: Multi-factor analysis
-- [ ] Version 1.3: A/B testing framework
-- [ ] Version 2.0: Cloud synchronization
+- [x] Version 2.0: Stateless provider-based architecture ✅ **COMPLETE**
+- [ ] Version 2.1: Machine learning predictions
+- [ ] Version 2.2: Multi-factor analysis
+- [ ] Version 2.3: A/B testing framework
+- [ ] Version 3.0: Cloud synchronization
 
 ## Support
 
@@ -724,7 +720,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 **[Quick Start](#quick-start)** • **[Documentation](#documentation)** • **[API Reference](#api-reference)** • **[Support](#support)**
 
-✅ **PRODUCTION-READY** • 143 Tests • ~92% Coverage • **🆕 Provider Pattern**
+✅ **PRODUCTION-READY** • 143 Tests • ~92% Coverage • **🆕 Stateless Architecture**
 
 Made with ❤️ by TheOne Studio
 
