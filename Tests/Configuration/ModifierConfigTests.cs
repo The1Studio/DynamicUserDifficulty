@@ -25,11 +25,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             this.container.InitializeDefaults();
 
             // Assert
-            Assert.AreEqual(4, this.container.Count);
+            Assert.AreEqual(7, this.container.Count);
             Assert.IsNotNull(this.container.GetConfig<WinStreakConfig>(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK));
             Assert.IsNotNull(this.container.GetConfig<LossStreakConfig>(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK));
             Assert.IsNotNull(this.container.GetConfig<TimeDecayConfig>(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY));
             Assert.IsNotNull(this.container.GetConfig<RageQuitConfig>(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT));
+            Assert.IsNotNull(this.container.GetConfig<CompletionRateConfig>(DifficultyConstants.MODIFIER_TYPE_COMPLETION_RATE));
+            Assert.IsNotNull(this.container.GetConfig<LevelProgressConfig>(DifficultyConstants.MODIFIER_TYPE_LEVEL_PROGRESS));
+            Assert.IsNotNull(this.container.GetConfig<SessionPatternConfig>(DifficultyConstants.MODIFIER_TYPE_SESSION_PATTERN));
         }
 
         [Test]
@@ -156,7 +159,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
 
             // Assert
             var enabledList = enabledConfigs.ToList();
-            Assert.AreEqual(3, enabledList.Count);
+            Assert.AreEqual(6, enabledList.Count);
             Assert.IsTrue(enabledList.Any(c => c.ModifierType == DifficultyConstants.MODIFIER_TYPE_WIN_STREAK));
             Assert.IsFalse(enabledList.Any(c => c.ModifierType == DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK));
         }
@@ -191,7 +194,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
         {
             // Arrange
             this.container.InitializeDefaults();
-            Assert.AreEqual(4, this.container.Count);
+            Assert.AreEqual(7, this.container.Count);
 
             // Act
             this.container.Clear();
@@ -210,7 +213,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             var allConfigs = this.container.AllConfigs;
 
             // Assert - Verify collection properties
-            Assert.AreEqual(4, allConfigs.Count);
+            Assert.AreEqual(7, allConfigs.Count);
             // IReadOnlyList is inherently read-only by interface design
             Assert.IsNotNull(allConfigs);
         }
@@ -229,7 +232,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             }
 
             // Assert
-            Assert.AreEqual(4, configs.Count);
+            Assert.AreEqual(7, configs.Count);
         }
 
         [Test]

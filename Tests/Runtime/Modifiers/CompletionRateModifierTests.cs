@@ -73,7 +73,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 
             // Assert
             Assert.AreEqual(0f, result.Value);
-            Assert.AreEqual("No change", result.Reason);
+            Assert.AreEqual("No change required", result.Reason);
         }
 
         [Test]
@@ -149,7 +149,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockWinStreakProvider.TotalWins = 3;
             this.mockWinStreakProvider.TotalLosses = 10; // Overall: 0.23
             this.mockLevelProgressProvider.CompletionRate = 0.5f; // Level: 0.5
-            // Weighted: 0.23 * 0.7 + 0.5 * 0.3 = 0.161 + 0.15 = 0.311 < 0.4
+            // Weighted: 0.23 * (1-0.3) + 0.5 * 0.3 = 0.23 * 0.7 + 0.5 * 0.3 = 0.161 + 0.15 = 0.311 < 0.4
 
             // Act
             var result = this.modifier.Calculate(this.sessionData);

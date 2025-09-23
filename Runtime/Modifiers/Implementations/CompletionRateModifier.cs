@@ -28,15 +28,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
             ILoggerManager loggerManager = null)
             : base(config, loggerManager)
         {
-            this.winStreakProvider = winStreakProvider ?? throw new ArgumentNullException(nameof(winStreakProvider));
-            this.levelProgressProvider = levelProgressProvider ?? throw new ArgumentNullException(nameof(levelProgressProvider));
+            this.winStreakProvider = winStreakProvider;
+            this.levelProgressProvider = levelProgressProvider;
         }
 
         public override ModifierResult Calculate(PlayerSessionData sessionData)
         {
             try
             {
-                if (sessionData == null)
+                if (sessionData == null || this.winStreakProvider == null || this.levelProgressProvider == null)
                 {
                     return ModifierResult.NoChange();
                 }

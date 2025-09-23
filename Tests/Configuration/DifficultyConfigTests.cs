@@ -41,7 +41,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
         {
             // Assert
             Assert.IsNotNull(this.config.ModifierConfigs);
-            Assert.AreEqual(4, this.config.ModifierConfigs.Count);
+            Assert.AreEqual(7, this.config.ModifierConfigs.Count);
 
             // Check each modifier type exists
             var modifierTypes = this.config.ModifierConfigs.Select(m => m.ModifierType).ToList();
@@ -49,6 +49,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             Assert.Contains(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK, modifierTypes);
             Assert.Contains(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY, modifierTypes);
             Assert.Contains(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT, modifierTypes);
+            Assert.Contains(DifficultyConstants.MODIFIER_TYPE_COMPLETION_RATE, modifierTypes);
+            Assert.Contains(DifficultyConstants.MODIFIER_TYPE_LEVEL_PROGRESS, modifierTypes);
+            Assert.Contains(DifficultyConstants.MODIFIER_TYPE_SESSION_PATTERN, modifierTypes);
         }
 
         [Test]

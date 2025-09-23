@@ -27,14 +27,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
             ILoggerManager loggerManager = null)
             : base(config, loggerManager)
         {
-            this.rageQuitProvider = rageQuitProvider ?? throw new ArgumentNullException(nameof(rageQuitProvider));
+            this.rageQuitProvider = rageQuitProvider;
         }
 
         public override ModifierResult Calculate(PlayerSessionData sessionData)
         {
             try
             {
-                if (sessionData == null)
+                if (sessionData == null || this.rageQuitProvider == null)
                 {
                     return ModifierResult.NoChange();
                 }
@@ -90,13 +90,25 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                 }
 
                 // 4. Check detailed session info if available
+                float midLevelRatio = 0f;
                 if (sessionData.DetailedSessions != null && sessionData.DetailedSessions.Count >= 3)
                 {
                     var recentDetailed = sessionData.DetailedSessions.Take(this.config.SessionHistorySize).ToList();
 
+                    // Check for consistent short sessions in DetailedSessions
+                    var shortDetailedSessions = recentDetailed.Count(s => s.Duration < this.config.MinNormalSessionDuration);
+                    var shortDetailedRatio = (float)shortDetailedSessions / recentDetailed.Count;
+
+                    if (shortDetailedRatio > this.config.ShortSessionRatio)
+                    {
+                        value -= this.config.ConsistentShortSessionsDecrease;
+                        reasons.Add($"Consistent short sessions ({shortDetailedRatio:P0})");
+                        this.LogDebug($"Detailed short session pattern {shortDetailedRatio:P0} > {this.config.ShortSessionRatio:P0} -> decrease {this.config.ConsistentShortSessionsDecrease:F2}");
+                    }
+
                     // Count mid-level quits
                     var midLevelQuits = recentDetailed.Count(s => s.EndReason == SessionEndReason.QuitMidLevel);
-                    var midLevelRatio = (float)midLevelQuits / recentDetailed.Count;
+                    midLevelRatio = (float)midLevelQuits / recentDetailed.Count;
 
                     if (midLevelRatio > this.config.MidLevelQuitRatio)
                     {
@@ -133,6 +145,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                         ["currentSessionDuration"] = currentSessionDuration,
                         ["avgSessionDuration"] = avgSessionDuration,
                         ["rageQuitCount"] = recentRageQuitCount,
+                        ["midLevelQuitRatio"] = midLevelRatio,
                         ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE
                     }
                 };
