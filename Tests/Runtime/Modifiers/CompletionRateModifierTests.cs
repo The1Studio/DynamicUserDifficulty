@@ -10,6 +10,8 @@ using UnityEngine;
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
     [TestFixture]
+    [Category("Unit")]
+    [Category("Modifiers")]
     public class CompletionRateModifierTests
     {
         private CompletionRateModifier modifier;
@@ -93,7 +95,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         }
 
         [Test]
-        public void Calculate_WithLowCompletionRate_DecreasesДifficulty()
+        public void Calculate_WithLowCompletionRate_DecreasesDifficulty()
         {
             // Arrange
             this.mockWinStreakProvider.TotalWins = 3;
@@ -104,13 +106,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             var result = this.modifier.Calculate(this.sessionData);
 
             // Assert
-            Assert.Less(result.Value, 0f);
-            Assert.AreEqual(-0.5f, result.Value); // Should decrease by lowCompletionDecrease
-            StringAssert.Contains("Low completion rate", result.Reason);
+            Assert.That(result.Value, Is.LessThan(0f), "Result should indicate difficulty decrease");
+            Assert.That(result.Value, Is.EqualTo(-0.5f).Within(0.001f), "Should decrease by lowCompletionDecrease value");
+            StringAssert.Contains("Low completion rate", result.Reason, "Reason should indicate low completion rate trigger");
         }
 
         [Test]
-        public void Calculate_WithHighCompletionRate_IncreasesДifficulty()
+        public void Calculate_WithHighCompletionRate_IncreasesDifficulty()
         {
             // Arrange
             this.mockWinStreakProvider.TotalWins = 10;

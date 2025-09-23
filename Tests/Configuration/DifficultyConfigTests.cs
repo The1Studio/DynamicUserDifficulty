@@ -8,6 +8,8 @@ using System.Linq;
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
 {
     [TestFixture]
+    [Category("Unit")]
+    [Category("Configuration")]
     public class DifficultyConfigTests
     {
         private DifficultyConfig config;

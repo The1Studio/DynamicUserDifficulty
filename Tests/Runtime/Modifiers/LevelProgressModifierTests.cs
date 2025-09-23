@@ -10,6 +10,8 @@ using UnityEngine;
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
     [TestFixture]
+    [Category("Unit")]
+    [Category("Modifiers")]
     public class LevelProgressModifierTests
     {
         private LevelProgressModifier modifier;
@@ -66,7 +68,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         }
 
         [Test]
-        public void Calculate_WithHighAttempts_DecreasesДifficulty()
+        public void Calculate_WithHighAttempts_DecreasesDifficulty()
         {
             // Arrange
             this.mockProvider.AttemptsOnCurrentLevel = 7; // > 5 threshold
@@ -76,10 +78,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             var result = this.modifier.Calculate(this.sessionData);
 
             // Assert
-            Assert.Less(result.Value, 0f);
+            Assert.That(result.Value, Is.LessThan(0f), "Result should indicate difficulty decrease for high attempts");
             // (7 - 5) * 0.2 = 0.4 decrease
-            Assert.AreEqual(-0.4f, result.Value, 0.01f);
-            StringAssert.Contains("High attempts", result.Reason);
+            Assert.That(result.Value, Is.EqualTo(-0.4f).Within(0.01f), "Should decrease by (attempts - threshold) * decreasePerAttempt");
+            StringAssert.Contains("High attempts", result.Reason, "Reason should indicate high attempts trigger");
         }
 
         [Test]

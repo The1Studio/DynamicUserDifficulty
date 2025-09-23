@@ -11,6 +11,8 @@ using UnityEngine;
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
     [TestFixture]
+    [Category("Unit")]
+    [Category("Modifiers")]
     public class SessionPatternModifierTests
     {
         private SessionPatternModifier modifier;
@@ -68,7 +70,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         }
 
         [Test]
-        public void Calculate_WithVeryShortSession_DecreasesДifficulty()
+        public void Calculate_WithVeryShortSession_DecreasesDifficulty()
         {
             // Arrange
             this.mockProvider.CurrentSessionDuration = 30f; // < 60f threshold
@@ -83,7 +85,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         }
 
         [Test]
-        public void Calculate_WithRageQuit_DecreasesДifficulty()
+        public void Calculate_WithRageQuit_DecreasesDifficulty()
         {
             // Arrange
             this.mockProvider.LastQuitType = QuitType.RageQuit;
@@ -100,7 +102,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         }
 
         [Test]
-        public void Calculate_WithConsistentShortSessions_DecreasesДifficulty()
+        public void Calculate_WithConsistentShortSessions_DecreasesDifficulty()
         {
             // Arrange
             // Add 5 detailed sessions, 3 of them short (60% > 50% ratio)
@@ -123,7 +125,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         }
 
         [Test]
-        public void Calculate_WithMidLevelQuits_DecreasesДifficulty()
+        public void Calculate_WithMidLevelQuits_DecreasesDifficulty()
         {
             // Arrange
             // Add 5 sessions, 2 of them mid-level quits (40% > 30% ratio)
