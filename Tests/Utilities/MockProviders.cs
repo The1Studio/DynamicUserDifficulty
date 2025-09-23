@@ -43,18 +43,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Utilities
     public class MockTimeDecayProvider : ITimeDecayProvider
     {
         public System.DateTime LastPlayTime { get; set; } = System.DateTime.Now.AddHours(-2);
-        public float HoursSinceLastPlay { get; set; } = 2f;
-        public float DaysSinceLastPlay { get; set; } = 0.083f; // ~2 hours
+        public System.TimeSpan TimeSinceLastPlay { get; set; } = System.TimeSpan.FromHours(2);
+        public int DaysAwayFromGame { get; set; } = 0;
 
         public System.DateTime GetLastPlayTime() => this.LastPlayTime;
-        public float GetHoursSinceLastPlay() => this.HoursSinceLastPlay;
-        public float GetDaysSinceLastPlay() => this.DaysSinceLastPlay;
+        public System.TimeSpan GetTimeSinceLastPlay() => this.TimeSinceLastPlay;
+        public int GetDaysAwayFromGame() => this.DaysAwayFromGame;
 
         public void UpdateLastPlayTime()
         {
             this.LastPlayTime = System.DateTime.Now;
-            this.HoursSinceLastPlay = 0f;
-            this.DaysSinceLastPlay = 0f;
+            this.TimeSinceLastPlay = System.TimeSpan.Zero;
+            this.DaysAwayFromGame = 0;
         }
     }
 
