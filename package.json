@@ -1,8 +1,8 @@
 {
   "name": "com.theone.dynamicuserdifficulty",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "displayName": "Dynamic User Difficulty Service",
-  "description": "Adaptive difficulty system that adjusts game difficulty based on player performance, play patterns, and session history.",
+  "description": "Stateless difficulty calculation engine with 7 comprehensive modifiers and provider-based architecture. Adapts game difficulty based on player performance, completion rates, session patterns, and behavioral analysis.",
   "unity": "2021.3",
   "unityRelease": "0f1",
   "documentationUrl": "https://github.com/theone-studio/dynamic-user-difficulty",
@@ -17,7 +17,11 @@
     "player-experience",
     "retention",
     "uitemplates",
-    "theone"
+    "theone",
+    "stateless",
+    "provider-pattern",
+    "comprehensive-modifiers",
+    "behavioral-analysis"
   ],
   "author": {
     "name": "TheOne Studio",
@@ -34,7 +38,7 @@
     },
     {
       "displayName": "Advanced Configuration",
-      "description": "Advanced configuration with custom difficulty curves",
+      "description": "Advanced configuration with custom difficulty curves and 7 modifiers",
       "path": "Samples~/AdvancedConfiguration"
     }
   ]
