@@ -61,6 +61,7 @@ DynamicUserDifficulty/
 │   ├── Calculators/
 │   ├── Providers/
 │   ├── Configuration/
+│   │   └── ModifierConfigs/
 │   └── DI/
 ├── Editor/
 └── Tests/
@@ -244,95 +245,257 @@ namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Calculators
 }
 ```
 
-### Step 4: Configuration Implementation
+### Step 4: ⚠️ **CORRECTED Configuration Implementation**
 
-#### 4.1 Create ModifierConfig.cs
+**IMPORTANT: The configuration system uses a SINGLE ScriptableObject approach:**
+
+#### 4.1 Create BaseModifierConfig.cs (Base class for all modifier configs)
 ```csharp
-// Path: Runtime/Configuration/ModifierConfig.cs
+// Path: Runtime/Configuration/BaseModifierConfig.cs
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Configuration
+namespace TheOneStudio.DynamicUserDifficulty.Configuration
 {
+    /// <summary>
+    /// Base class for all modifier configurations.
+    /// Uses [Serializable] not [CreateAssetMenu] - these are NOT separate ScriptableObjects
+    /// </summary>
     [Serializable]
-    public class ModifierConfig
+    public abstract class BaseModifierConfig : IModifierConfig
     {
-        public string ModifierType;
-        public bool Enabled = true;
-        public int Priority = 0;
+        [SerializeField] private bool enabled = true;
+        [SerializeField] private int priority = 0;
 
-        [Header("Response Curve")]
-        public AnimationCurve ResponseCurve = AnimationCurve.Linear(0, 0, 1, 1);
+        public bool IsEnabled => this.enabled;
+        public int Priority => this.priority;
 
-        [Header("Parameters")]
-        public List<ModifierParameter> Parameters = new List<ModifierParameter>();
+        /// <summary>
+        /// Unique identifier for this modifier type
+        /// </summary>
+        public abstract string ModifierType { get; }
 
-        public float GetParameter(string key, float defaultValue = 0f)
-        {
-            var param = Parameters.Find(p => p.Key == key);
-            return param != null ? param.Value : defaultValue;
-        }
-    }
-
-    [Serializable]
-    public class ModifierParameter
-    {
-        public string Key;
-        public float Value;
+        /// <summary>
+        /// Creates a default configuration instance
+        /// </summary>
+        public abstract BaseModifierConfig CreateDefault();
     }
 }
 ```
 
-#### 4.2 Create DifficultyConfig.cs
+#### 4.2 Create ModifierConfigContainer.cs
 ```csharp
-// Path: Runtime/Configuration/DifficultyConfig.cs
+// Path: Runtime/Configuration/ModifierConfigContainer.cs
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Configuration
+namespace TheOneStudio.DynamicUserDifficulty.Configuration
 {
-    [CreateAssetMenu(fileName = "DifficultyConfig",
-                     menuName = "DynamicDifficulty/Config")]
+    /// <summary>
+    /// Container for modifier configurations with polymorphic serialization support.
+    /// Uses SerializeReference to support different config types within a single ScriptableObject.
+    /// </summary>
+    [Serializable]
+    public class ModifierConfigContainer : IEnumerable<IModifierConfig>
+    {
+        [SerializeReference]
+        [Tooltip("List of modifier configurations. Use + to add new configs.")]
+        private List<BaseModifierConfig> configs = new();
+
+        /// <summary>
+        /// Gets a strongly-typed configuration for a specific modifier type
+        /// </summary>
+        public T GetConfig<T>(string modifierType) where T : class, IModifierConfig
+        {
+            var config = this.configs?.FirstOrDefault(c => c?.ModifierType == modifierType);
+            return config as T;
+        }
+
+        /// <summary>
+        /// Adds or updates a modifier configuration
+        /// </summary>
+        public void SetConfig(IModifierConfig config)
+        {
+            if (config == null || !(config is BaseModifierConfig baseConfig)) return;
+
+            // Remove existing config of the same type
+            this.configs?.RemoveAll(c => c?.ModifierType == config.ModifierType);
+
+            // Add new config
+            if (this.configs == null) this.configs = new();
+            this.configs.Add(baseConfig);
+        }
+
+        /// <summary>
+        /// Initializes with default configurations for all 7 modifiers
+        /// </summary>
+        public void InitializeDefaults()
+        {
+            this.configs = new()
+            {
+                (WinStreakConfig)new WinStreakConfig().CreateDefault(),
+                (LossStreakConfig)new LossStreakConfig().CreateDefault(),
+                (TimeDecayConfig)new TimeDecayConfig().CreateDefault(),
+                (RageQuitConfig)new RageQuitConfig().CreateDefault(),
+                (CompletionRateConfig)new CompletionRateConfig().CreateDefault(),
+                (LevelProgressConfig)new LevelProgressConfig().CreateDefault(),
+                (SessionPatternConfig)new SessionPatternConfig().CreateDefault()
+            };
+        }
+    }
+}
+```
+
+#### 4.3 Create DifficultyConfig.cs (ONLY ScriptableObject)
+```csharp
+// Path: Runtime/Configuration/DifficultyConfig.cs
+using UnityEngine;
+
+namespace TheOneStudio.DynamicUserDifficulty.Configuration
+{
+    /// <summary>
+    /// Main configuration ScriptableObject for difficulty settings.
+    /// This is the ONLY ScriptableObject - contains ALL 7 modifier configurations.
+    /// </summary>
+    [CreateAssetMenu(fileName = "DifficultyConfig", menuName = "DynamicDifficulty/Config")]
     public class DifficultyConfig : ScriptableObject
     {
         [Header("Difficulty Range")]
-        public float MinDifficulty = 1f;
-        public float MaxDifficulty = 10f;
-        public float DefaultDifficulty = 3f;
-        public float MaxChangePerSession = 2f;
+        [SerializeField][Range(1f, 10f)] private float minDifficulty = 1f;
+        [SerializeField][Range(1f, 10f)] private float maxDifficulty = 10f;
+        [SerializeField][Range(1f, 10f)] private float defaultDifficulty = 3f;
+        [SerializeField][Range(0.1f, 5f)] private float maxChangePerSession = 2f;
 
-        [Header("Modifiers")]
-        public List<ModifierConfig> ModifierConfigs = new List<ModifierConfig>();
+        [Header("Modifiers - ALL 7 configurations in one place")]
+        [SerializeField] private ModifierConfigContainer modifierConfigs = new();
 
         [Header("Debug")]
-        public bool EnableDebugLogs = false;
+        [SerializeField] private bool enableDebugLogs = false;
+
+        // Properties
+        public float MinDifficulty => this.minDifficulty;
+        public float MaxDifficulty => this.maxDifficulty;
+        public float DefaultDifficulty => this.defaultDifficulty;
+        public float MaxChangePerSession => this.maxChangePerSession;
+        public ModifierConfigContainer ModifierConfigs => this.modifierConfigs;
+        public bool EnableDebugLogs => this.enableDebugLogs;
+
+        /// <summary>
+        /// Gets a strongly-typed modifier configuration
+        /// </summary>
+        public T GetModifierConfig<T>(string modifierType) where T : class, IModifierConfig
+        {
+            return this.modifierConfigs?.GetConfig<T>(modifierType);
+        }
+
+        /// <summary>
+        /// Creates a default configuration with all 7 modifiers
+        /// </summary>
+        public static DifficultyConfig CreateDefault()
+        {
+            var config = CreateInstance<DifficultyConfig>();
+
+            // Set default values
+            config.minDifficulty = 1f;
+            config.maxDifficulty = 10f;
+            config.defaultDifficulty = 3f;
+            config.maxChangePerSession = 2f;
+
+            // Initialize all 7 modifier configurations
+            config.modifierConfigs = new();
+            config.modifierConfigs.InitializeDefaults();
+
+            return config;
+        }
+
+        private void OnValidate()
+        {
+            // Ensure min <= default <= max
+            if (this.defaultDifficulty < this.minDifficulty) this.defaultDifficulty = this.minDifficulty;
+            if (this.defaultDifficulty > this.maxDifficulty) this.defaultDifficulty = this.maxDifficulty;
+            if (this.minDifficulty > this.maxDifficulty) this.minDifficulty = this.maxDifficulty;
+        }
     }
 }
 ```
+
+#### 4.4 Create Individual Modifier Config Classes ([Serializable], NOT [CreateAssetMenu])
+
+**Example: WinStreakConfig.cs**
+```csharp
+// Path: Runtime/Configuration/ModifierConfigs/WinStreakConfig.cs
+using System;
+using UnityEngine;
+
+namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
+{
+    /// <summary>
+    /// Configuration for Win Streak modifier.
+    /// [Serializable] class embedded in DifficultyConfig, NOT a separate ScriptableObject.
+    /// </summary>
+    [Serializable]
+    public class WinStreakConfig : BaseModifierConfig
+    {
+        [SerializeField] private float winThreshold = 3f;
+        [SerializeField] private float stepSize = 0.5f;
+        [SerializeField] private float maxBonus = 2f;
+
+        public float WinThreshold => this.winThreshold;
+        public float StepSize => this.stepSize;
+        public float MaxBonus => this.maxBonus;
+
+        public override string ModifierType => "WinStreak";
+
+        public override BaseModifierConfig CreateDefault()
+        {
+            var config = new WinStreakConfig();
+            config.winThreshold = 3f;
+            config.stepSize = 0.5f;
+            config.maxBonus = 2f;
+            return config;
+        }
+    }
+}
+```
+
+**Repeat this pattern for all 7 modifier configs:**
+- `WinStreakConfig.cs` ✅
+- `LossStreakConfig.cs`
+- `TimeDecayConfig.cs`
+- `RageQuitConfig.cs`
+- `CompletionRateConfig.cs`
+- `LevelProgressConfig.cs`
+- `SessionPatternConfig.cs`
 
 ### Step 5: Base Modifier Implementation
 
 #### 5.1 Create BaseDifficultyModifier.cs
 ```csharp
 // Path: Runtime/Modifiers/Base/BaseDifficultyModifier.cs
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Configuration;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Models;
 
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers
+namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
-    public abstract class BaseDifficultyModifier : IDifficultyModifier
+    /// <summary>
+    /// Type-safe base class for difficulty modifiers with strongly-typed configuration
+    /// </summary>
+    public abstract class BaseDifficultyModifier<TConfig> : IDifficultyModifier
+        where TConfig : class, IModifierConfig
     {
-        protected readonly ModifierConfig config;
+        protected readonly TConfig config;
 
         public abstract string ModifierName { get; }
-        public virtual int Priority => config?.Priority ?? 0;
+        public virtual int Priority => this.config?.Priority ?? 0;
         public bool IsEnabled { get; set; }
 
-        protected BaseDifficultyModifier(ModifierConfig config)
+        protected BaseDifficultyModifier(TConfig config)
         {
             this.config = config;
-            this.IsEnabled = config?.Enabled ?? true;
+            this.IsEnabled = config?.IsEnabled ?? true;
         }
 
         public abstract ModifierResult Calculate(PlayerSessionData sessionData);
@@ -342,219 +505,61 @@ namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers
             // Optional hook for post-application logic
         }
 
-        protected float GetParameter(string key, float defaultValue = 0f)
+        /// <summary>
+        /// Helper method to create "no change" results
+        /// </summary>
+        protected ModifierResult NoChange(string reason = "No adjustment needed")
         {
-            return config?.GetParameter(key, defaultValue) ?? defaultValue;
-        }
-
-        protected float ApplyCurve(float input)
-        {
-            if (config?.ResponseCurve != null)
-                return config.ResponseCurve.Evaluate(input);
-            return input;
+            return new ModifierResult
+            {
+                ModifierName = ModifierName,
+                Value = 0f,
+                Reason = reason
+            };
         }
     }
 }
 ```
 
-### Step 6: Modifier Implementations
+### Step 6: Modifier Implementations (Using Type-Safe Config)
 
 #### 6.1 Create WinStreakModifier.cs
 ```csharp
 // Path: Runtime/Modifiers/Implementations/WinStreakModifier.cs
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Configuration;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
+using TheOneStudio.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Providers;
 
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers
+namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
-    public class WinStreakModifier : BaseDifficultyModifier
+    public class WinStreakModifier : BaseDifficultyModifier<WinStreakConfig>
     {
+        private readonly IWinStreakProvider winStreakProvider;
+
         public override string ModifierName => "WinStreak";
 
-        public WinStreakModifier(ModifierConfig config) : base(config) { }
-
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        public WinStreakModifier(WinStreakConfig config, IWinStreakProvider provider)
+            : base(config)
         {
-            var winThreshold = GetParameter("WinThreshold", 3f);
-            var stepSize = GetParameter("StepSize", 0.5f);
-            var maxBonus = GetParameter("MaxBonus", 2f);
-
-            float value = 0f;
-            string reason = "No win streak";
-
-            if (sessionData.WinStreak >= winThreshold)
-            {
-                value = sessionData.WinStreak * stepSize;
-                value = UnityEngine.Mathf.Min(value, maxBonus);
-                value = ApplyCurve(value / maxBonus) * maxBonus;
-                reason = $"Win streak: {sessionData.WinStreak} wins";
-            }
-
-            return new ModifierResult
-            {
-                ModifierName = ModifierName,
-                Value = value,
-                Reason = reason,
-                Metadata = { ["streak"] = sessionData.WinStreak }
-            };
+            this.winStreakProvider = provider;
         }
-    }
-}
-```
-
-#### 6.2 Create LossStreakModifier.cs
-```csharp
-// Path: Runtime/Modifiers/Implementations/LossStreakModifier.cs
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Configuration;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
-
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers
-{
-    public class LossStreakModifier : BaseDifficultyModifier
-    {
-        public override string ModifierName => "LossStreak";
-
-        public LossStreakModifier(ModifierConfig config) : base(config) { }
 
         public override ModifierResult Calculate(PlayerSessionData sessionData)
         {
-            var lossThreshold = GetParameter("LossThreshold", 2f);
-            var stepSize = GetParameter("StepSize", 0.3f);
-            var maxReduction = GetParameter("MaxReduction", 1.5f);
+            var winStreak = this.winStreakProvider.GetWinStreak();
 
-            float value = 0f;
-            string reason = "No loss streak";
+            if (winStreak < this.config.WinThreshold)
+                return NoChange($"Win streak {winStreak} below threshold {this.config.WinThreshold}");
 
-            if (sessionData.LossStreak >= lossThreshold)
-            {
-                value = -(sessionData.LossStreak * stepSize);
-                value = UnityEngine.Mathf.Max(value, -maxReduction);
-                reason = $"Loss streak: {sessionData.LossStreak} losses";
-            }
+            var bonus = (winStreak - this.config.WinThreshold) * this.config.StepSize;
+            bonus = Math.Min(bonus, this.config.MaxBonus);
 
             return new ModifierResult
             {
                 ModifierName = ModifierName,
-                Value = value,
-                Reason = reason,
-                Metadata = { ["streak"] = sessionData.LossStreak }
-            };
-        }
-    }
-}
-```
-
-#### 6.3 Create TimeDecayModifier.cs
-```csharp
-// Path: Runtime/Modifiers/Implementations/TimeDecayModifier.cs
-using System;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Configuration;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
-
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers
-{
-    public class TimeDecayModifier : BaseDifficultyModifier
-    {
-        public override string ModifierName => "TimeDecay";
-
-        public TimeDecayModifier(ModifierConfig config) : base(config) { }
-
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
-        {
-            var hoursSincePlay = (DateTime.Now - sessionData.LastPlayTime).TotalHours;
-            var decayPerDay = GetParameter("DecayPerDay", 0.5f);
-            var maxDecay = GetParameter("MaxDecay", 2f);
-            var graceHours = GetParameter("GraceHours", 6f);
-
-            float value = 0f;
-            string reason = "Recently played";
-
-            if (hoursSincePlay > graceHours)
-            {
-                var daysAway = (hoursSincePlay - graceHours) / 24;
-                value = -(float)(daysAway * decayPerDay);
-                value = UnityEngine.Mathf.Max(value, -maxDecay);
-
-                if (daysAway < 1)
-                    reason = $"Away for {hoursSincePlay:F1} hours";
-                else
-                    reason = $"Away for {daysAway:F1} days";
-            }
-
-            return new ModifierResult
-            {
-                ModifierName = ModifierName,
-                Value = value,
-                Reason = reason,
-                Metadata = { ["hours_away"] = hoursSincePlay }
-            };
-        }
-    }
-}
-```
-
-#### 6.4 Create RageQuitModifier.cs
-```csharp
-// Path: Runtime/Modifiers/Implementations/RageQuitModifier.cs
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Configuration;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
-
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers
-{
-    public class RageQuitModifier : BaseDifficultyModifier
-    {
-        public override string ModifierName => "RageQuit";
-
-        public RageQuitModifier(ModifierConfig config) : base(config) { }
-
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
-        {
-            if (sessionData.LastSession == null)
-                return new ModifierResult
-                {
-                    ModifierName = ModifierName,
-                    Value = 0f,
-                    Reason = "No previous session"
-                };
-
-            var rageQuitThreshold = GetParameter("RageQuitThreshold", 30f);
-            var rageQuitReduction = GetParameter("RageQuitReduction", 1f);
-            var quitReduction = GetParameter("QuitReduction", 0.5f);
-
-            float value = 0f;
-            string reason = "Normal session end";
-
-            var lastSession = sessionData.LastSession;
-
-            if (lastSession.EndType == SessionEndType.QuitAfterLoss)
-            {
-                if (lastSession.PlayDuration < rageQuitThreshold)
-                {
-                    value = -rageQuitReduction;
-                    reason = "Rage quit detected";
-                }
-                else
-                {
-                    value = -quitReduction;
-                    reason = "Quit after loss";
-                }
-            }
-            else if (lastSession.EndType == SessionEndType.QuitDuringPlay)
-            {
-                value = -quitReduction * 0.5f;
-                reason = "Quit during play";
-            }
-
-            return new ModifierResult
-            {
-                ModifierName = ModifierName,
-                Value = value,
-                Reason = reason,
-                Metadata =
-                {
-                    ["last_session_type"] = lastSession.EndType.ToString(),
-                    ["play_duration"] = lastSession.PlayDuration
-                }
+                Value = bonus,
+                Reason = $"Win streak bonus ({winStreak} consecutive wins)",
+                Metadata = { ["streak"] = winStreak, ["threshold"] = this.config.WinThreshold }
             };
         }
     }
@@ -568,24 +573,65 @@ Add references to these Unity assemblies in your .asmdef:
 - Unity.Addressables
 - UnityEngine.UI
 
-### Step 8: Editor Validation System
+### Step 8: ⚠️ **CORRECTED Editor Validation System**
 
-The module includes an automatic validation system that helps developers set up the DifficultyConfig on Unity load:
+#### 8.1 DifficultyConfigValidator (Updated for Single ScriptableObject)
+```csharp
+// Path: Editor/DifficultyConfigValidator.cs
+[InitializeOnLoad]
+public static class DifficultyConfigValidator
+{
+    static DifficultyConfigValidator()
+    {
+        // Check for single DifficultyConfig asset on load
+        ValidateConfiguration();
+    }
 
-#### 8.1 DifficultyConfigValidator
-- **Auto-runs on Unity Editor load** using `[InitializeOnLoad]`
-- **Checks for missing DifficultyConfig** and prompts to create one
-- **Provides menu items** under `TheOne/Dynamic Difficulty/`
-  - Create Config
-  - Validate Setup
-  - Reset Validation Check
+    private static void ValidateConfiguration()
+    {
+        var configs = Resources.LoadAll<DifficultyConfig>("");
 
-#### 8.2 Configuration Popup
-When no DifficultyConfig is found, a helpful popup window appears:
-- Explains the need for configuration
-- Offers to create default config automatically
-- Places config in `Assets/Resources/Configs/DifficultyConfig.asset`
-- Option to skip checks with "Don't show again"
+        if (configs.Length == 0)
+        {
+            ShowConfigurationSetupDialog();
+        }
+        else if (configs.Length > 1)
+        {
+            Debug.LogWarning($"Multiple DifficultyConfig assets found ({configs.Length}). " +
+                           "Only ONE is needed. Consider removing duplicates.");
+        }
+    }
+
+    private static void ShowConfigurationSetupDialog()
+    {
+        var create = EditorUtility.DisplayDialog(
+            "Dynamic Difficulty Configuration",
+            "No DifficultyConfig found. This single asset contains ALL 7 modifier configurations.\n\n" +
+            "Would you like to create a default configuration?",
+            "Create Config",
+            "Skip");
+
+        if (create)
+        {
+            CreateDefaultConfiguration();
+        }
+    }
+
+    [MenuItem("Tools/Dynamic Difficulty/Create Single Config")]
+    private static void CreateDefaultConfiguration()
+    {
+        // Create the single DifficultyConfig asset with all 7 modifiers
+        var config = DifficultyConfig.CreateDefault();
+
+        var path = "Assets/Resources/GameConfigs/DifficultyConfig.asset";
+        AssetDatabase.CreateAsset(config, path);
+        AssetDatabase.SaveAssets();
+
+        Debug.Log($"Created DifficultyConfig at {path} with all 7 modifier configurations embedded.");
+        Selection.activeObject = config;
+    }
+}
+```
 
 ### Step 9: Integration Points
 
@@ -625,26 +671,41 @@ When no DifficultyConfig is found, a helpful popup window appears:
    - ISessionDataProvider.cs
    - IDifficultyCalculator.cs
 
-3. **Configuration (2 files)**
-   - ModifierConfig.cs
-   - DifficultyConfig.cs
+3. **Configuration (9 files) - ⚠️ CORRECTED**
+   - IModifierConfig.cs (interface)
+   - BaseModifierConfig.cs (base class for all configs)
+   - ModifierConfigContainer.cs (container with SerializeReference)
+   - DifficultyConfig.cs (ONLY ScriptableObject)
+   - ModifierConfigs/WinStreakConfig.cs ([Serializable])
+   - ModifierConfigs/LossStreakConfig.cs ([Serializable])
+   - ModifierConfigs/TimeDecayConfig.cs ([Serializable])
+   - ModifierConfigs/RageQuitConfig.cs ([Serializable])
+   - ModifierConfigs/CompletionRateConfig.cs ([Serializable])
+   - ModifierConfigs/LevelProgressConfig.cs ([Serializable])
+   - ModifierConfigs/SessionPatternConfig.cs ([Serializable])
 
 4. **Base Classes (1 file)**
    - BaseDifficultyModifier.cs
 
-5. **Modifiers (4 files)**
+5. **Modifiers (7 files)**
    - WinStreakModifier.cs
    - LossStreakModifier.cs
    - TimeDecayModifier.cs
    - RageQuitModifier.cs
+   - CompletionRateModifier.cs
+   - LevelProgressModifier.cs
+   - SessionPatternModifier.cs
 
 6. **Calculators (2 files)**
    - DifficultyCalculator.cs
    - ModifierAggregator.cs
 
-7. **Providers (2 files)**
-   - SessionDataProvider.cs
-   - DifficultyDataProvider.cs
+7. **Providers (5 files)**
+   - IDifficultyDataProvider.cs
+   - IWinStreakProvider.cs
+   - ITimeDecayProvider.cs
+   - IRageQuitProvider.cs
+   - ILevelProgressProvider.cs
 
 8. **Service (2 files)**
    - DynamicDifficultyService.cs
@@ -663,8 +724,8 @@ When no DifficultyConfig is found, a helpful popup window appears:
 ### Unit Test Template
 ```csharp
 using NUnit.Framework;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers;
+using TheOneStudio.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Modifiers;
 
 [TestFixture]
 public class ModifierTests
@@ -674,8 +735,10 @@ public class ModifierTests
     {
         // Arrange
         var config = CreateTestConfig();
-        var modifier = new WinStreakModifier(config);
-        var sessionData = new PlayerSessionData { WinStreak = 5 };
+        var mockProvider = new Mock<IWinStreakProvider>();
+        mockProvider.Setup(p => p.GetWinStreak()).Returns(5);
+        var modifier = new WinStreakModifier(config, mockProvider.Object);
+        var sessionData = new PlayerSessionData();
 
         // Act
         var result = modifier.Calculate(sessionData);
@@ -683,6 +746,7 @@ public class ModifierTests
         // Assert
         Assert.Greater(result.Value, 0);
         Assert.Contains("Win streak", result.Reason);
+        mockProvider.Verify(p => p.GetWinStreak(), Times.Once);
     }
 }
 ```
@@ -692,16 +756,16 @@ public class ModifierTests
 ### Step 1: Add to UITemplateVContainer
 ```csharp
 #if THEONE_DYNAMIC_DIFFICULTY
-var difficultyConfig = Resources.Load<DifficultyConfig>("Configs/DifficultyConfig");
+var difficultyConfig = Resources.Load<DifficultyConfig>("GameConfigs/DifficultyConfig");
 builder.RegisterModule(new DynamicDifficultyModule(difficultyConfig));
 #endif
 ```
 
-### Step 2: Create ScriptableObject
+### Step 2: Create ScriptableObject (ONE asset only)
 1. Right-click in Project window
 2. Create → DynamicDifficulty → Config
-3. Configure parameters
-4. Save in Resources/Configs/
+3. Configure parameters (ALL 7 modifiers in one place)
+4. Save in Resources/GameConfigs/
 
 ### Step 3: Add Compiler Flag
 1. Edit → Project Settings → Player
@@ -739,15 +803,17 @@ public class DifficultyGameplayBridge : IInitializable, IDisposable
    - Verify all interfaces are registered
    - Check singleton vs transient lifetimes
 
-3. **Null Reference Exceptions**
-   - Initialize session data with defaults
-   - Check config is loaded from Resources
+3. **Configuration Issues** ⚠️ **UPDATED**
+   - Only create ONE DifficultyConfig asset
+   - All 7 modifiers are configured within this single asset
+   - Config classes use [Serializable], not [CreateAssetMenu]
 
 4. **Difficulty Not Changing**
-   - Verify modifiers are enabled
-   - Check threshold values in config
+   - Verify modifiers are enabled in the single config
+   - Check threshold values in modifier configurations
    - Enable debug logs in DifficultyConfig
 
 ---
 
-*Last Updated: 2025-09-16*
+*Last Updated: 2025-01-22*
+*Configuration Structure Corrected - Single ScriptableObject Approach*

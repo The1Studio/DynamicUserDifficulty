@@ -26,6 +26,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         public QuitType? QuitType { get; set; }
         public float CurrentProgress { get; set; }
 
+        // Detailed session tracking for pattern analysis
+        public List<DetailedSessionInfo> DetailedSessions { get; set; }
+
         public PlayerSessionData()
         {
             this.CurrentDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
@@ -33,6 +36,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
             this.LossStreak        = DifficultyConstants.STREAK_RESET_VALUE;
             this.LastPlayTime      = DateTime.Now;
             this.RecentSessions       = new(DifficultyConstants.MAX_RECENT_SESSIONS);
+            this.DetailedSessions  = new();
         }
 
         public void RecordWin(int levelId, float duration)

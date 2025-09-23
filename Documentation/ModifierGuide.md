@@ -2,109 +2,470 @@
 
 ## Table of Contents
 1. [Overview](#overview)
-2. [Creating Custom Modifiers](#creating-custom-modifiers)
-3. [Modifier Lifecycle](#modifier-lifecycle)
-4. [Configuration System](#configuration-system)
-5. [Best Practices](#best-practices)
-6. [Example Modifiers](#example-modifiers)
-7. [Testing Modifiers](#testing-modifiers)
+2. [Built-in Modifiers (7 Total)](#built-in-modifiers-7-total)
+3. [Creating Custom Modifiers](#creating-custom-modifiers)
+4. [Modifier Lifecycle](#modifier-lifecycle)
+5. [Configuration System](#configuration-system)
+6. [Best Practices](#best-practices)
+7. [Example Modifiers](#example-modifiers)
+8. [Testing Modifiers](#testing-modifiers)
 
 ## Overview
 
-Modifiers are the core extensibility mechanism of the Dynamic User Difficulty system. Each modifier calculates a difficulty adjustment based on specific player behavior or game state.
+Modifiers are the core extensibility mechanism of the Dynamic User Difficulty system. Each modifier calculates a difficulty adjustment based on specific player behavior or game state. The system now includes **7 comprehensive modifiers** covering all aspects of player behavior analysis.
 
 ### Key Concepts
 - **Modular**: Each modifier is independent
-- **Configurable**: Parameters via ScriptableObjects
+- **Type-Safe Configurable**: Parameters via strongly-typed [Serializable] classes embedded in ONE ScriptableObject
 - **Prioritized**: Execution order controlled by priority
 - **Toggleable**: Can be enabled/disabled at runtime
+- **Provider-Based**: Uses external data through clean interfaces
+
+### ⚠️ **CRITICAL: Configuration Architecture**
+**All 7 modifier configurations are embedded within a SINGLE DifficultyConfig ScriptableObject using polymorphic serialization.**
+
+## Built-in Modifiers (7 Total)
+
+### 1. WinStreakModifier ✅ ORIGINAL
+**Purpose**: Increases difficulty based on consecutive wins
+**Data Source**: `IWinStreakProvider.GetWinStreak()`
+**Config**: `WinStreakConfig` ([Serializable] class, NOT ScriptableObject)
+
+```csharp
+public class WinStreakModifier : BaseDifficultyModifier<WinStreakConfig>
+{
+    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    {
+        var winStreak = this.winStreakProvider.GetWinStreak();
+        if (winStreak < this.config.WinThreshold) return ModifierResult.NoChange();
+
+        var bonus = Math.Min(
+            (winStreak - this.config.WinThreshold) * this.config.StepSize,
+            this.config.MaxBonus
+        );
+
+        return new ModifierResult
+        {
+            ModifierName = ModifierName,
+            Value = bonus,
+            Reason = $"Win streak bonus ({winStreak} consecutive wins)"
+        };
+    }
+}
+```
+
+### 2. LossStreakModifier ✅ ORIGINAL
+**Purpose**: Decreases difficulty based on consecutive losses
+**Data Source**: `IWinStreakProvider.GetLossStreak()`
+**Config**: `LossStreakConfig` ([Serializable] class)
+
+```csharp
+public class LossStreakModifier : BaseDifficultyModifier<LossStreakConfig>
+{
+    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    {
+        var lossStreak = this.lossStreakProvider.GetLossStreak();
+        if (lossStreak < this.config.LossThreshold) return ModifierResult.NoChange();
+
+        var reduction = -Math.Min(
+            (lossStreak - this.config.LossThreshold) * this.config.StepSize,
+            this.config.MaxReduction
+        );
+
+        return new ModifierResult
+        {
+            ModifierName = ModifierName,
+            Value = reduction,
+            Reason = $"Loss streak compensation ({lossStreak} consecutive losses)"
+        };
+    }
+}
+```
+
+### 3. TimeDecayModifier ✅ ORIGINAL
+**Purpose**: Reduces difficulty for returning players
+**Data Source**: `ITimeDecayProvider.GetTimeSinceLastPlay()`
+**Config**: `TimeDecayConfig` ([Serializable] class)
+
+```csharp
+public class TimeDecayModifier : BaseDifficultyModifier<TimeDecayConfig>
+{
+    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    {
+        var timeSinceLastPlay = this.timeDecayProvider.GetTimeSinceLastPlay();
+        var hoursSince = (float)timeSinceLastPlay.TotalHours;
+
+        if (hoursSince < this.config.GraceHours) return ModifierResult.NoChange();
+
+        var daysSince = hoursSince / 24f;
+        var decay = -Math.Min(daysSince * this.config.DecayPerDay, this.config.MaxDecay);
+
+        return new ModifierResult
+        {
+            ModifierName = ModifierName,
+            Value = decay,
+            Reason = $"Time decay ({daysSince:F1} days since last play)"
+        };
+    }
+}
+```
+
+### 4. RageQuitModifier ✅ ORIGINAL
+**Purpose**: Detects and compensates for rage quits
+**Data Sources**: `IRageQuitProvider.GetLastQuitType()`, `GetCurrentSessionDuration()`, `GetRecentRageQuitCount()`
+**Config**: `RageQuitConfig` ([Serializable] class)
+
+```csharp
+public class RageQuitModifier : BaseDifficultyModifier<RageQuitConfig>
+{
+    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    {
+        var quitType = this.rageQuitProvider.GetLastQuitType();
+        var sessionDuration = this.rageQuitProvider.GetCurrentSessionDuration();
+        var recentRageQuits = this.rageQuitProvider.GetRecentRageQuitCount();
+
+        // Detect rage quit patterns
+        bool isRageQuit = quitType == QuitType.RageQuit ||
+                         (sessionDuration < this.config.RageQuitThreshold && quitType == QuitType.QuitAfterLoss);
+
+        if (!isRageQuit && recentRageQuits == 0) return ModifierResult.NoChange();
+
+        var reduction = isRageQuit ? -this.config.RageQuitReduction : -this.config.QuitReduction;
+
+        // Additional reduction for multiple recent rage quits
+        if (recentRageQuits > 1) reduction *= (1 + recentRageQuits * 0.2f);
+
+        return new ModifierResult
+        {
+            ModifierName = ModifierName,
+            Value = reduction,
+            Reason = $"Rage quit compensation (recent quits: {recentRageQuits})"
+        };
+    }
+}
+```
+
+### 5. CompletionRateModifier ✅ NEW
+**Purpose**: Adjusts difficulty based on overall player success rate
+**Data Sources**: `IWinStreakProvider.GetTotalWins()`, `GetTotalLosses()`, `ILevelProgressProvider.GetCompletionRate()`
+**Config**: `CompletionRateConfig` ([Serializable] class)
+
+```csharp
+public class CompletionRateModifier : BaseDifficultyModifier<CompletionRateConfig>
+{
+    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    {
+        var totalWins = this.winStreakProvider.GetTotalWins();
+        var totalLosses = this.winStreakProvider.GetTotalLosses();
+        var completionRate = this.levelProgressProvider.GetCompletionRate();
+
+        if (totalWins + totalLosses < 10) return ModifierResult.NoChange(); // Need sufficient data
+
+        float adjustment = 0f;
+        string reason = "No completion rate adjustment";
+
+        if (completionRate < this.config.LowCompletionThreshold)
+        {
+            adjustment = this.config.LowCompletionAdjustment;
+            reason = $"Low completion rate ({completionRate:P0}) - reducing difficulty";
+        }
+        else if (completionRate > this.config.HighCompletionThreshold)
+        {
+            adjustment = this.config.HighCompletionAdjustment;
+            reason = $"High completion rate ({completionRate:P0}) - increasing difficulty";
+        }
+
+        return new ModifierResult
+        {
+            ModifierName = ModifierName,
+            Value = adjustment,
+            Reason = reason,
+            Metadata = new Dictionary<string, object>
+            {
+                ["completion_rate"] = completionRate,
+                ["total_wins"] = totalWins,
+                ["total_losses"] = totalLosses
+            }
+        };
+    }
+}
+```
+
+### 6. LevelProgressModifier ✅ NEW
+**Purpose**: Analyzes level progression patterns (attempts, completion time, progression speed)
+**Data Sources**: `ILevelProgressProvider.GetCurrentLevel()`, `GetAverageCompletionTime()`, `GetAttemptsOnCurrentLevel()`, `GetCurrentLevelDifficulty()`
+**Config**: `LevelProgressConfig` ([Serializable] class)
+
+```csharp
+public class LevelProgressModifier : BaseDifficultyModifier<LevelProgressConfig>
+{
+    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    {
+        var currentLevel = this.levelProgressProvider.GetCurrentLevel();
+        var averageTime = this.levelProgressProvider.GetAverageCompletionTime();
+        var attempts = this.levelProgressProvider.GetAttemptsOnCurrentLevel();
+        var levelDifficulty = this.levelProgressProvider.GetCurrentLevelDifficulty();
+
+        float adjustment = 0f;
+        var reasons = new List<string>();
+
+        // Analyze attempts
+        if (attempts > this.config.AttemptsThreshold)
+        {
+            var excessAttempts = attempts - this.config.AttemptsThreshold;
+            var attemptsReduction = excessAttempts * this.config.AttemptsReduction;
+            adjustment += attemptsReduction;
+            reasons.Add($"Too many attempts ({attempts})");
+        }
+
+        // Analyze completion time
+        if (averageTime > 0)
+        {
+            if (averageTime < this.config.FastCompletionTime)
+            {
+                adjustment += this.config.FastCompletionBonus;
+                reasons.Add($"Fast completion ({averageTime:F0}s)");
+            }
+            else if (averageTime > this.config.SlowCompletionTime)
+            {
+                adjustment += this.config.SlowCompletionReduction;
+                reasons.Add($"Slow completion ({averageTime:F0}s)");
+            }
+        }
+
+        // Progressive difficulty scaling
+        var levelFactor = Math.Min(currentLevel / 100f, 1f); // Cap at level 100
+        adjustment *= (1f + levelFactor * 0.1f); // Slightly scale with level
+
+        var reason = reasons.Any() ? string.Join(", ", reasons) : "No progress adjustment";
+
+        return new ModifierResult
+        {
+            ModifierName = ModifierName,
+            Value = adjustment,
+            Reason = reason,
+            Metadata = new Dictionary<string, object>
+            {
+                ["current_level"] = currentLevel,
+                ["average_time"] = averageTime,
+                ["attempts"] = attempts,
+                ["level_difficulty"] = levelDifficulty,
+                ["level_factor"] = levelFactor
+            }
+        };
+    }
+}
+```
+
+### 7. SessionPatternModifier ✅ NEW
+**Purpose**: Detects session patterns and player frustration through duration and behavior analysis
+**Data Sources**: `IRageQuitProvider.GetAverageSessionDuration()`, `GetRecentRageQuitCount()`
+**Config**: `SessionPatternConfig` ([Serializable] class)
+
+```csharp
+public class SessionPatternModifier : BaseDifficultyModifier<SessionPatternConfig>
+{
+    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    {
+        var avgSessionDuration = this.rageQuitProvider.GetAverageSessionDuration();
+        var recentRageQuits = this.rageQuitProvider.GetRecentRageQuitCount();
+
+        float adjustment = 0f;
+        var reasons = new List<string>();
+
+        // Analyze session duration patterns
+        if (avgSessionDuration < this.config.ShortSessionThreshold)
+        {
+            adjustment += this.config.ShortSessionReduction;
+            reasons.Add($"Short sessions ({avgSessionDuration:F0}s avg)");
+        }
+        else if (avgSessionDuration > this.config.LongSessionThreshold)
+        {
+            adjustment += this.config.LongSessionBonus;
+            reasons.Add($"Long engagement ({avgSessionDuration:F0}s avg)");
+        }
+
+        // Analyze rage quit patterns
+        if (recentRageQuits >= this.config.RageQuitCountThreshold)
+        {
+            adjustment += this.config.RageQuitReduction;
+            reasons.Add($"Rage quit pattern ({recentRageQuits} recent quits)");
+        }
+
+        var reason = reasons.Any() ? string.Join(", ", reasons) : "No session pattern adjustment";
+
+        return new ModifierResult
+        {
+            ModifierName = ModifierName,
+            Value = adjustment,
+            Reason = reason,
+            Metadata = new Dictionary<string, object>
+            {
+                ["avg_session_duration"] = avgSessionDuration,
+                ["recent_rage_quits"] = recentRageQuits,
+                ["short_threshold"] = this.config.ShortSessionThreshold,
+                ["long_threshold"] = this.config.LongSessionThreshold
+            }
+        };
+    }
+}
+```
 
 ## Creating Custom Modifiers
 
-### Step 1: Create the Modifier Class
+### ⚠️ **CRITICAL: Corrected Configuration Pattern**
+
+**The configuration system uses a single ScriptableObject with embedded [Serializable] config classes.**
+
+### Step 1: Create the Configuration Class ([Serializable], NOT [CreateAssetMenu])
 
 ```csharp
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Configuration;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers;
+using System;
+using UnityEngine;
+using TheOneStudio.DynamicUserDifficulty.Configuration;
 
 namespace YourNamespace
 {
-    public class YourCustomModifier : BaseDifficultyModifier
+    /// <summary>
+    /// Configuration for your custom modifier.
+    /// [Serializable] class embedded in DifficultyConfig, NOT a separate ScriptableObject.
+    /// </summary>
+    [Serializable]
+    public class SpeedBonusConfig : BaseModifierConfig
     {
-        public override string ModifierName => "YourModifierName";
+        [SerializeField] private float timeThreshold = 60f;
+        [SerializeField] private float bonusAmount = 0.5f;
+        [SerializeField] private bool enableSpecialMode = false;
 
-        public YourCustomModifier(ModifierConfig config) : base(config) { }
+        // Type-safe property access
+        public float TimeThreshold => this.timeThreshold;
+        public float BonusAmount => this.bonusAmount;
+        public bool EnableSpecialMode => this.enableSpecialMode;
 
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        public override string ModifierType => "SpeedBonus";
+
+        public override BaseModifierConfig CreateDefault()
         {
-            // Your calculation logic here
-            float adjustment = 0f;
-            string reason = "No change";
-
-            // Example: Check some condition
-            if (SomeCondition(sessionData))
-            {
-                adjustment = GetParameter("AdjustmentAmount", 0.5f);
-                reason = "Condition met";
-            }
-
-            return new ModifierResult
-            {
-                ModifierName = ModifierName,
-                Value = adjustment,
-                Reason = reason,
-                Metadata = new Dictionary<string, object>
-                {
-                    ["your_data"] = "value"
-                }
-            };
-        }
-
-        private bool SomeCondition(PlayerSessionData data)
-        {
-            // Your condition logic
-            return data.WinStreak > 0;
+            var config = new SpeedBonusConfig();
+            config.timeThreshold = 60f;
+            config.bonusAmount = 0.5f;
+            config.enableSpecialMode = false;
+            return config;
         }
     }
 }
 ```
 
-### Step 2: Register in DI Module
+### Step 2: Create the Modifier Class
 
 ```csharp
-// In DynamicDifficultyModule.cs
+using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Modifiers;
+
+namespace YourNamespace
+{
+    public class SpeedBonusModifier : BaseDifficultyModifier<SpeedBonusConfig>
+    {
+        private readonly ILevelProgressProvider levelProvider;
+
+        public override string ModifierName => "SpeedBonus";
+
+        public SpeedBonusModifier(SpeedBonusConfig config, ILevelProgressProvider provider)
+            : base(config)
+        {
+            this.levelProvider = provider;
+        }
+
+        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        {
+            // Get data from provider
+            var avgTime = this.levelProvider.GetAverageCompletionTime();
+
+            // Check condition using type-safe config properties
+            if (avgTime <= 0 || avgTime >= this.config.TimeThreshold)
+                return NoChange("No speed bonus applicable");
+
+            var adjustment = this.config.BonusAmount;
+
+            // Apply special mode if enabled
+            if (this.config.EnableSpecialMode)
+                adjustment *= 1.5f;
+
+            return new ModifierResult
+            {
+                ModifierName = ModifierName,
+                Value = adjustment,
+                Reason = $"Fast completion bonus (avg: {avgTime:F0}s)",
+                Metadata = new Dictionary<string, object>
+                {
+                    ["average_time"] = avgTime,
+                    ["threshold"] = this.config.TimeThreshold,
+                    ["special_mode"] = this.config.EnableSpecialMode
+                }
+            };
+        }
+    }
+}
+```
+
+### Step 3: Update ModifierConfigContainer
+
+```csharp
+// In ModifierConfigContainer.cs InitializeDefaults() method
+public void InitializeDefaults()
+{
+    this.configs = new()
+    {
+        // Existing 7 modifiers...
+        (WinStreakConfig)new WinStreakConfig().CreateDefault(),
+        (LossStreakConfig)new LossStreakConfig().CreateDefault(),
+        (TimeDecayConfig)new TimeDecayConfig().CreateDefault(),
+        (RageQuitConfig)new RageQuitConfig().CreateDefault(),
+        (CompletionRateConfig)new CompletionRateConfig().CreateDefault(),
+        (LevelProgressConfig)new LevelProgressConfig().CreateDefault(),
+        (SessionPatternConfig)new SessionPatternConfig().CreateDefault(),
+
+        // Add your custom modifier
+        (SpeedBonusConfig)new SpeedBonusConfig().CreateDefault()
+    };
+}
+```
+
+### Step 4: Register in DI Module
+
+```csharp
+// In DynamicDifficultyModule.cs RegisterModifiers() method
 private void RegisterModifiers(IContainerBuilder builder)
 {
     // Existing modifiers...
 
     // Add your custom modifier
-    builder.Register<YourCustomModifier>(Lifetime.Singleton)
+    var speedBonusConfig = this.configContainer.GetConfig<SpeedBonusConfig>("SpeedBonus")
+        ?? new SpeedBonusConfig().CreateDefault() as SpeedBonusConfig;
+
+    builder.Register<SpeedBonusModifier>(Lifetime.Singleton)
+           .WithParameter(speedBonusConfig)
            .As<IDifficultyModifier>();
 }
 ```
 
-### Step 3: Configure in ScriptableObject
+### Step 5: Add Constants
 
-1. Create DifficultyConfig asset
-2. Add ModifierConfig entry:
-```
-ModifierType: "YourModifierName"
-Enabled: true
-Priority: 10
-Parameters:
-  - Key: "AdjustmentAmount"
-    Value: 0.5
+```csharp
+// In DifficultyConstants.cs
+public const string MODIFIER_TYPE_SPEED_BONUS = "SpeedBonus";
 ```
 
 ## Modifier Lifecycle
 
 ### 1. Initialization
 ```csharp
-public YourModifier(ModifierConfig config) : base(config)
+public SpeedBonusModifier(SpeedBonusConfig config, IYourProvider provider) : base(config)
 {
     // One-time setup
-    // Config is injected and stored
+    // Config and provider are injected and stored
+    this.provider = provider;
 }
 ```
 
@@ -114,6 +475,8 @@ public override ModifierResult Calculate(PlayerSessionData sessionData)
 {
     // Called each time difficulty is calculated
     // Should be stateless and pure
+    // Use provider to get external data
+    // Use this.config.PropertyName for type-safe access
     // Return adjustment value
 }
 ```
@@ -130,31 +493,49 @@ public override void OnApplied(DifficultyResult result)
 
 ## Configuration System
 
-### Parameter Access
+### ⚠️ **CRITICAL: Single ScriptableObject Architecture**
+
+**Configuration Structure:**
+
+1. **DifficultyConfig** (ScriptableObject) - Main configuration container
+   - **This is the ONLY ScriptableObject** created as an asset
+   - Contains all settings including embedded modifier configurations
+
+2. **ModifierConfigContainer** - Container holding all modifier configs
+   - Embedded within DifficultyConfig using `[SerializeReference]`
+   - Enables polymorphic serialization of different config types
+
+3. **Individual Config Classes** - All modifier configurations
+   - **These are [Serializable] classes, NOT separate ScriptableObjects**
+   - Embedded within the single DifficultyConfig asset
+
+### Type-Safe Configuration Access
 
 ```csharp
-// Get parameter with default
-float threshold = GetParameter("Threshold", 3.0f);
+// ✅ CORRECT: Type-safe property access
+float threshold = this.config.TimeThreshold;
+float adjustment = this.config.BonusAmount;
+bool enableMode = this.config.EnableSpecialMode;
 
-// Get multiple parameters
-var config = new
+// ✅ CORRECT: Multiple properties
+var settings = new
 {
-    MinValue = GetParameter("MinValue", 1.0f),
-    MaxValue = GetParameter("MaxValue", 10.0f),
-    StepSize = GetParameter("StepSize", 0.5f)
+    MinValue = this.config.MinValue,
+    MaxValue = this.config.MaxValue,
+    StepSize = this.config.StepSize
 };
+
+// ❌ INCORRECT: Old string-based approach (DO NOT USE)
+// float threshold = config.GetParameter("TimeThreshold", 60f);
 ```
 
-### Response Curves
+### Unity Inspector Integration
 
-```csharp
-// Apply animation curve to value
-float rawValue = CalculateRawValue();
-float curvedValue = ApplyCurve(rawValue);
-
-// Curve maps 0-1 input to 0-1 output
-// Configure curve shape in Unity Inspector
-```
+**When you select the single DifficultyConfig asset in Unity:**
+- All 7+ modifier configurations appear in one Inspector
+- Each config section is collapsible and clearly labeled
+- Type-safe serialization ensures proper validation
+- No need to manage multiple separate ScriptableObject assets
 
 ### Dynamic Configuration
 
@@ -163,23 +544,23 @@ public override ModifierResult Calculate(PlayerSessionData sessionData)
 {
     // Check if should run
     if (!ShouldRun(sessionData))
-        return ModifierResult.NoChange();
+        return NoChange("Conditions not met");
 
     // Get dynamic threshold based on player level
-    float threshold = GetDynamicThreshold(sessionData);
+    var dynamicThreshold = GetDynamicThreshold(sessionData);
 
     // Calculate with dynamic values
-    return CalculateWithThreshold(sessionData, threshold);
+    return CalculateWithThreshold(sessionData, dynamicThreshold);
 }
 
 private float GetDynamicThreshold(PlayerSessionData data)
 {
-    // Example: Scale threshold with player progression
-    var baseThreshold = GetParameter("BaseThreshold", 3.0f);
-    var scaleFactor = GetParameter("ScaleFactor", 0.1f);
+    // Example: Scale threshold with provider data
+    var baseThreshold = this.config.BaseThreshold;
+    var scaleFactor = this.config.ScaleFactor;
 
-    // Assuming we track player level somehow
-    int playerLevel = GetPlayerLevel(data);
+    // Use provider to get current context
+    int playerLevel = this.levelProvider.GetCurrentLevel();
 
     return baseThreshold + (playerLevel * scaleFactor);
 }
@@ -189,24 +570,29 @@ private float GetDynamicThreshold(PlayerSessionData data)
 
 ### 1. Keep Calculations Pure
 
-✅ **Good: Pure function**
+✅ **Good: Pure function with provider data**
 ```csharp
 public override ModifierResult Calculate(PlayerSessionData sessionData)
 {
-    // Only read from sessionData
-    // No side effects
+    // Read from providers (external data)
+    var winRate = this.levelProvider.GetCompletionRate();
+    var avgTime = this.levelProvider.GetAverageCompletionTime();
+
+    // Pure calculation
+    var adjustment = CalculateAdjustment(winRate, avgTime);
+
     // Deterministic result
-    return new ModifierResult { Value = sessionData.WinStreak * 0.5f };
+    return new ModifierResult { Value = adjustment };
 }
 ```
 
-❌ **Bad: Side effects**
+❌ **Bad: Side effects and non-deterministic behavior**
 ```csharp
 public override ModifierResult Calculate(PlayerSessionData sessionData)
 {
     // Don't do this!
     SaveToDatabase(sessionData);  // Side effect
-    Random.Range(0, 1);           // Non-deterministic
+    var random = Random.Range(0, 1);  // Non-deterministic
     sessionData.WinStreak++;      // Modifying input
 }
 ```
@@ -215,20 +601,24 @@ public override ModifierResult Calculate(PlayerSessionData sessionData)
 
 ```csharp
 // Good: Descriptive names
-public override string ModifierName => "ConsecutiveWinBonus";
+public override string ModifierName => "CompletionRateAnalysis";
+public override string ModifierName => "SessionPatternDetection";
 
 // Bad: Generic names
 public override string ModifierName => "Modifier1";
+public override string ModifierName => "CustomMod";
 ```
 
 ### 3. Provide Clear Reasons
 
 ```csharp
-// Good: Specific reason
-reason = $"Win streak bonus ({sessionData.WinStreak} consecutive wins)";
+// Good: Specific reason with data
+reason = $"Low completion rate ({completionRate:P0}) - reducing difficulty by {adjustment:F2}";
+reason = $"Fast completion pattern ({avgTime:F0}s avg) - increasing challenge";
 
 // Bad: Generic reason
 reason = "Difficulty changed";
+reason = "Adjustment applied";
 ```
 
 ### 4. Handle Edge Cases
@@ -236,15 +626,19 @@ reason = "Difficulty changed";
 ```csharp
 public override ModifierResult Calculate(PlayerSessionData sessionData)
 {
-    // Check for null
-    if (sessionData?.LastSession == null)
-        return ModifierResult.NoChange();
-
-    // Validate data
-    if (sessionData.WinStreak < 0)
+    // Check for sufficient data
+    var totalGames = this.winStreakProvider.GetTotalWins() + this.winStreakProvider.GetTotalLosses();
+    if (totalGames < 5)
     {
-        Debug.LogWarning($"Invalid win streak: {sessionData.WinStreak}");
-        return ModifierResult.NoChange();
+        return NoChange("Insufficient data for analysis");
+    }
+
+    // Validate provider data
+    var completionRate = this.levelProvider.GetCompletionRate();
+    if (completionRate < 0 || completionRate > 1)
+    {
+        Debug.LogWarning($"Invalid completion rate: {completionRate}");
+        return NoChange("Invalid completion rate data");
     }
 
     // Normal calculation...
@@ -261,228 +655,280 @@ return new ModifierResult
     Reason = reason,
     Metadata = new Dictionary<string, object>
     {
-        ["raw_value"] = rawValue,
-        ["threshold"] = threshold,
-        ["curve_applied"] = curveApplied,
-        ["calculation_time"] = calculationTime
+        ["completion_rate"] = completionRate,
+        ["total_games"] = totalGames,
+        ["avg_time"] = avgTime,
+        ["threshold_used"] = this.config.Threshold,
+        ["calculation_time"] = DateTime.Now
     }
 };
 ```
 
+### 6. Type-Safe Configuration Pattern
+
+```csharp
+// ✅ CORRECT: Create [Serializable] config class
+[Serializable]
+public class MyModifierConfig : BaseModifierConfig
+{
+    [SerializeField] private float threshold = 5f;
+
+    public float Threshold => this.threshold; // Type-safe property
+    public override string ModifierType => "MyModifier";
+
+    public override BaseModifierConfig CreateDefault()
+    {
+        return new MyModifierConfig { threshold = 5f };
+    }
+}
+
+// ❌ INCORRECT: DO NOT create separate ScriptableObject
+// [CreateAssetMenu(...)] // DO NOT USE - configs are embedded, not separate assets
+```
+
 ## Example Modifiers
 
-### 1. Engagement Score Modifier
+### 1. Skill Progression Modifier
 
 ```csharp
-public class EngagementModifier : BaseDifficultyModifier
+/// <summary>
+/// Configuration for Skill Progression modifier - [Serializable] class embedded in DifficultyConfig
+/// </summary>
+[Serializable]
+public class SkillProgressionConfig : BaseModifierConfig
 {
-    public override string ModifierName => "Engagement";
+    [SerializeField] private float fastCompletionTime = 30f;
+    [SerializeField] private float slowCompletionTime = 180f;
+    [SerializeField] private float maxReduction = 2f;
+    [SerializeField] private float maxIncrease = 1.5f;
 
-    public EngagementModifier(ModifierConfig config) : base(config) { }
+    public float FastCompletionTime => this.fastCompletionTime;
+    public float SlowCompletionTime => this.slowCompletionTime;
+    public float MaxReduction => this.maxReduction;
+    public float MaxIncrease => this.maxIncrease;
+
+    public override string ModifierType => "SkillProgression";
+
+    public override BaseModifierConfig CreateDefault()
+    {
+        var config = new SkillProgressionConfig();
+        config.fastCompletionTime = 30f;
+        config.slowCompletionTime = 180f;
+        config.maxReduction = 2f;
+        config.maxIncrease = 1.5f;
+        return config;
+    }
+}
+
+public class SkillProgressionModifier : BaseDifficultyModifier<SkillProgressionConfig>
+{
+    private readonly ILevelProgressProvider levelProvider;
+    private readonly IWinStreakProvider winProvider;
+
+    public override string ModifierName => "SkillProgression";
+
+    public SkillProgressionModifier(SkillProgressionConfig config,
+        ILevelProgressProvider levelProvider,
+        IWinStreakProvider winProvider) : base(config)
+    {
+        this.levelProvider = levelProvider;
+        this.winProvider = winProvider;
+    }
 
     public override ModifierResult Calculate(PlayerSessionData sessionData)
     {
-        if (sessionData.RecentSessions.Count < 3)
-            return ModifierResult.NoChange();
+        // Comprehensive skill analysis using multiple providers
+        var completionRate = this.levelProvider.GetCompletionRate();
+        var avgTime = this.levelProvider.GetAverageCompletionTime();
+        var currentLevel = this.levelProvider.GetCurrentLevel();
+        var totalWins = this.winProvider.GetTotalWins();
 
-        var engagement = CalculateEngagementScore(sessionData);
-        var adjustment = MapEngagementToAdjustment(engagement);
+        if (totalWins < 10) return NoChange("Insufficient game history");
+
+        // Calculate skill score (0-1)
+        var timeScore = CalculateTimeScore(avgTime);
+        var consistencyScore = CalculateConsistencyScore(completionRate);
+        var progressionScore = CalculateProgressionScore(currentLevel, totalWins);
+
+        var overallSkill = (timeScore + consistencyScore + progressionScore) / 3f;
+
+        // Map skill to difficulty adjustment
+        var adjustment = MapSkillToAdjustment(overallSkill);
 
         return new ModifierResult
         {
             ModifierName = ModifierName,
             Value = adjustment,
-            Reason = GetEngagementReason(engagement),
+            Reason = GetSkillBasedReason(overallSkill),
             Metadata = new Dictionary<string, object>
             {
-                ["engagement_score"] = engagement,
-                ["sessions_analyzed"] = sessionData.RecentSessions.Count
+                ["skill_score"] = overallSkill,
+                ["time_score"] = timeScore,
+                ["consistency_score"] = consistencyScore,
+                ["progression_score"] = progressionScore,
+                ["completion_rate"] = completionRate,
+                ["avg_time"] = avgTime,
+                ["current_level"] = currentLevel
             }
         };
     }
 
-    private float CalculateEngagementScore(PlayerSessionData data)
+    private float CalculateTimeScore(float avgTime)
     {
-        var recentSessions = data.RecentSessions.ToList();
+        if (avgTime <= 0) return 0.5f; // No data, assume average
 
-        // Calculate average session duration
-        var avgDuration = recentSessions.Average(s => s.PlayDuration);
+        // Fast completion = higher skill
+        var fastTime = this.config.FastCompletionTime;
+        var slowTime = this.config.SlowCompletionTime;
 
-        // Calculate session frequency
-        var timeSpans = new List<TimeSpan>();
-        for (int i = 1; i < recentSessions.Count; i++)
-        {
-            timeSpans.Add(recentSessions[i].StartTime - recentSessions[i-1].EndTime);
-        }
-        var avgTimeBetween = timeSpans.Any()
-            ? timeSpans.Average(t => t.TotalHours)
-            : 24;
+        if (avgTime <= fastTime) return 1f;
+        if (avgTime >= slowTime) return 0f;
 
-        // Score based on duration and frequency
-        float durationScore = Mathf.Clamp01(avgDuration / 300f); // 5 min = 1.0
-        float frequencyScore = Mathf.Clamp01(24f / avgTimeBetween); // Daily = 1.0
-
-        return (durationScore + frequencyScore) / 2f;
+        // Linear interpolation between fast and slow
+        return 1f - ((avgTime - fastTime) / (slowTime - fastTime));
     }
 
-    private float MapEngagementToAdjustment(float engagement)
+    private float CalculateConsistencyScore(float completionRate)
     {
-        var minAdjustment = GetParameter("MinAdjustment", -0.5f);
-        var maxAdjustment = GetParameter("MaxAdjustment", 0.5f);
-
-        // Low engagement = negative adjustment
-        // High engagement = positive adjustment
-        return Mathf.Lerp(minAdjustment, maxAdjustment, engagement);
+        // High completion rate = higher skill
+        return Math.Max(0f, Math.Min(1f, completionRate));
     }
 
-    private string GetEngagementReason(float engagement)
+    private float CalculateProgressionScore(int currentLevel, int totalWins)
     {
-        if (engagement < 0.3f) return "Low engagement detected";
-        if (engagement < 0.7f) return "Normal engagement";
-        return "High engagement detected";
+        if (totalWins == 0) return 0f;
+
+        // Good progression = reaching higher levels with fewer total wins
+        var progressionRatio = (float)currentLevel / totalWins;
+        return Math.Max(0f, Math.Min(1f, progressionRatio * 10f)); // Scale appropriately
+    }
+
+    private float MapSkillToAdjustment(float skillScore)
+    {
+        // Low skill (0-0.3): Reduce difficulty
+        if (skillScore < 0.3f)
+            return -this.config.MaxReduction * (0.3f - skillScore) / 0.3f;
+
+        // High skill (0.7-1.0): Increase difficulty
+        if (skillScore > 0.7f)
+            return this.config.MaxIncrease * (skillScore - 0.7f) / 0.3f;
+
+        // Average skill (0.3-0.7): No change
+        return 0f;
+    }
+
+    private string GetSkillBasedReason(float skillScore)
+    {
+        if (skillScore < 0.3f) return $"Low skill detected ({skillScore:P0}) - reducing difficulty";
+        if (skillScore > 0.7f) return $"High skill detected ({skillScore:P0}) - increasing difficulty";
+        return $"Average skill level ({skillScore:P0}) - maintaining difficulty";
     }
 }
 ```
 
-### 2. Performance Trend Modifier
+### 2. Engagement Pattern Modifier
 
 ```csharp
-public class PerformanceTrendModifier : BaseDifficultyModifier
+[Serializable]
+public class EngagementPatternConfig : BaseModifierConfig
 {
-    public override string ModifierName => "PerformanceTrend";
+    [SerializeField] private float optimalSessionDuration = 300f;
+    [SerializeField] private float maxHoursForFullScore = 24f;
+    [SerializeField] private float disengagementReduction = 1f;
+    [SerializeField] private float highEngagementBonus = 0.5f;
 
-    public PerformanceTrendModifier(ModifierConfig config) : base(config) { }
+    public float OptimalSessionDuration => this.optimalSessionDuration;
+    public float MaxHoursForFullScore => this.maxHoursForFullScore;
+    public float DisengagementReduction => this.disengagementReduction;
+    public float HighEngagementBonus => this.highEngagementBonus;
 
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    public override string ModifierType => "EngagementPattern";
+
+    public override BaseModifierConfig CreateDefault()
     {
-        if (sessionData.RecentSessions.Count < 5)
-            return ModifierResult.NoChange();
-
-        var trend = CalculatePerformanceTrend(sessionData);
-        var adjustment = GetTrendAdjustment(trend);
-
-        return new ModifierResult
-        {
-            ModifierName = ModifierName,
-            Value = adjustment,
-            Reason = GetTrendDescription(trend),
-            Metadata = new Dictionary<string, object>
-            {
-                ["trend_value"] = trend,
-                ["trend_direction"] = trend > 0 ? "improving" : "declining"
-            }
-        };
-    }
-
-    private float CalculatePerformanceTrend(PlayerSessionData data)
-    {
-        var sessions = data.RecentSessions.ToList();
-        var winRates = new List<float>();
-
-        // Calculate win rate over time windows
-        for (int i = 0; i <= sessions.Count - 3; i++)
-        {
-            var window = sessions.Skip(i).Take(3);
-            var winRate = window.Count(s => s.Won) / 3f;
-            winRates.Add(winRate);
-        }
-
-        // Calculate trend (positive = improving, negative = declining)
-        if (winRates.Count < 2) return 0;
-
-        float trend = 0;
-        for (int i = 1; i < winRates.Count; i++)
-        {
-            trend += winRates[i] - winRates[i - 1];
-        }
-
-        return trend / (winRates.Count - 1);
-    }
-
-    private float GetTrendAdjustment(float trend)
-    {
-        var sensitivity = GetParameter("TrendSensitivity", 1.0f);
-        var maxAdjustment = GetParameter("MaxTrendAdjustment", 0.5f);
-
-        // Improving = increase difficulty
-        // Declining = decrease difficulty
-        return Mathf.Clamp(trend * sensitivity, -maxAdjustment, maxAdjustment);
-    }
-
-    private string GetTrendDescription(float trend)
-    {
-        if (trend > 0.2f) return "Performance improving rapidly";
-        if (trend > 0.05f) return "Performance improving";
-        if (trend < -0.2f) return "Performance declining rapidly";
-        if (trend < -0.05f) return "Performance declining";
-        return "Performance stable";
+        var config = new EngagementPatternConfig();
+        config.optimalSessionDuration = 300f;
+        config.maxHoursForFullScore = 24f;
+        config.disengagementReduction = 1f;
+        config.highEngagementBonus = 0.5f;
+        return config;
     }
 }
-```
 
-### 3. Skill Ceiling Modifier
-
-```csharp
-public class SkillCeilingModifier : BaseDifficultyModifier
+public class EngagementPatternModifier : BaseDifficultyModifier<EngagementPatternConfig>
 {
-    public override string ModifierName => "SkillCeiling";
+    private readonly IRageQuitProvider rageProvider;
+    private readonly ITimeDecayProvider timeProvider;
 
-    public SkillCeilingModifier(ModifierConfig config) : base(config) { }
+    public override string ModifierName => "EngagementPattern";
+
+    public EngagementPatternModifier(EngagementPatternConfig config,
+        IRageQuitProvider rageProvider,
+        ITimeDecayProvider timeProvider) : base(config)
+    {
+        this.rageProvider = rageProvider;
+        this.timeProvider = timeProvider;
+    }
 
     public override ModifierResult Calculate(PlayerSessionData sessionData)
     {
-        // Detect if player is at skill ceiling
-        if (!IsAtSkillCeiling(sessionData))
-            return ModifierResult.NoChange();
+        // Analyze engagement patterns
+        var avgSessionDuration = this.rageProvider.GetAverageSessionDuration();
+        var recentRageQuits = this.rageProvider.GetRecentRageQuitCount();
+        var timeSinceLastPlay = this.timeProvider.GetTimeSinceLastPlay();
 
-        // Apply special adjustment for skilled players
-        var adjustment = GetParameter("CeilingBonus", 0.3f);
+        var engagementScore = CalculateEngagementScore(avgSessionDuration, recentRageQuits, timeSinceLastPlay);
+        var adjustment = MapEngagementToAdjustment(engagementScore);
 
         return new ModifierResult
         {
             ModifierName = ModifierName,
             Value = adjustment,
-            Reason = "Skill ceiling detected - adding challenge",
+            Reason = GetEngagementReason(engagementScore),
             Metadata = new Dictionary<string, object>
             {
-                ["current_difficulty"] = sessionData.CurrentDifficulty,
-                ["win_rate"] = CalculateWinRate(sessionData)
+                ["engagement_score"] = engagementScore,
+                ["avg_session_duration"] = avgSessionDuration,
+                ["recent_rage_quits"] = recentRageQuits,
+                ["hours_since_last_play"] = timeSinceLastPlay.TotalHours
             }
         };
     }
 
-    private bool IsAtSkillCeiling(PlayerSessionData data)
+    private float CalculateEngagementScore(float avgDuration, int rageQuits, TimeSpan timeSince)
     {
-        // Check multiple conditions
-        var highDifficulty = data.CurrentDifficulty >= 8.0f;
-        var highWinRate = CalculateWinRate(data) > 0.8f;
-        var consistentPerformance = IsPerformanceConsistent(data);
+        // Duration score (0-1): Longer sessions = better engagement
+        var durationScore = Math.Min(1f, avgDuration / this.config.OptimalSessionDuration);
 
-        return highDifficulty && highWinRate && consistentPerformance;
+        // Rage quit penalty (0-1): More rage quits = worse engagement
+        var rageQuitScore = Math.Max(0f, 1f - (rageQuits * 0.2f));
+
+        // Recency score (0-1): More recent play = better engagement
+        var hoursSince = (float)timeSince.TotalHours;
+        var recencyScore = Math.Max(0f, 1f - (hoursSince / this.config.MaxHoursForFullScore));
+
+        // Weighted average
+        return (durationScore * 0.4f + rageQuitScore * 0.4f + recencyScore * 0.2f);
     }
 
-    private float CalculateWinRate(PlayerSessionData data)
+    private float MapEngagementToAdjustment(float engagementScore)
     {
-        if (data.RecentSessions.Count == 0) return 0;
-        return data.RecentSessions.Count(s => s.Won) / (float)data.RecentSessions.Count;
+        // Low engagement: Make easier to re-engage
+        if (engagementScore < 0.3f)
+            return -this.config.DisengagementReduction;
+
+        // High engagement: Can handle more challenge
+        if (engagementScore > 0.8f)
+            return this.config.HighEngagementBonus;
+
+        return 0f;
     }
 
-    private bool IsPerformanceConsistent(PlayerSessionData data)
+    private string GetEngagementReason(float engagementScore)
     {
-        if (data.RecentSessions.Count < 5) return false;
-
-        var times = data.RecentSessions
-            .Where(s => s.Won)
-            .Select(s => s.PlayDuration)
-            .ToList();
-
-        if (times.Count < 3) return false;
-
-        var avg = times.Average();
-        var stdDev = Math.Sqrt(times.Average(t => Math.Pow(t - avg, 2)));
-
-        // Low standard deviation = consistent
-        return stdDev < avg * 0.2f;
+        if (engagementScore < 0.3f) return $"Low engagement ({engagementScore:P0}) - reducing difficulty to re-engage";
+        if (engagementScore > 0.8f) return $"High engagement ({engagementScore:P0}) - increasing challenge";
+        return $"Moderate engagement ({engagementScore:P0}) - maintaining current difficulty";
     }
 }
 ```
@@ -493,45 +939,49 @@ public class SkillCeilingModifier : BaseDifficultyModifier
 
 ```csharp
 using NUnit.Framework;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 
 [TestFixture]
-public class YourModifierTests
+public class SpeedBonusModifierTests
 {
-    private YourCustomModifier modifier;
-    private ModifierConfig config;
+    private SpeedBonusModifier modifier;
+    private SpeedBonusConfig config;
+    private Mock<ILevelProgressProvider> mockProvider;
 
     [SetUp]
     public void Setup()
     {
-        config = CreateTestConfig();
-        modifier = new YourCustomModifier(config);
+        config = new SpeedBonusConfig();
+        // Set test values using the CreateDefault pattern
+        config = (SpeedBonusConfig)config.CreateDefault();
+
+        mockProvider = new Mock<ILevelProgressProvider>();
+        modifier = new SpeedBonusModifier(config, mockProvider.Object);
     }
 
     [Test]
-    public void Calculate_WithConditionMet_ReturnsPositiveAdjustment()
+    public void Calculate_WithFastCompletion_ReturnsBonus()
     {
         // Arrange
-        var sessionData = new PlayerSessionData
-        {
-            WinStreak = 5,
-            CurrentDifficulty = 5.0f
-        };
+        mockProvider.Setup(p => p.GetAverageCompletionTime()).Returns(30f); // Fast time
+        var sessionData = new PlayerSessionData();
 
         // Act
         var result = modifier.Calculate(sessionData);
 
         // Assert
         Assert.Greater(result.Value, 0);
-        Assert.IsNotNull(result.Reason);
-        Assert.AreEqual("YourModifierName", result.ModifierName);
+        Assert.Contains("Fast completion bonus", result.Reason);
+        Assert.AreEqual("SpeedBonus", result.ModifierName);
+        Assert.IsTrue(result.Metadata.ContainsKey("average_time"));
     }
 
     [Test]
-    public void Calculate_WithNoData_ReturnsNoChange()
+    public void Calculate_WithSlowCompletion_ReturnsNoChange()
     {
         // Arrange
+        mockProvider.Setup(p => p.GetAverageCompletionTime()).Returns(120f); // Slow time
         var sessionData = new PlayerSessionData();
 
         // Act
@@ -539,72 +989,98 @@ public class YourModifierTests
 
         // Assert
         Assert.AreEqual(0, result.Value);
+        Assert.Contains("No speed bonus applicable", result.Reason);
     }
 
-    [TestCase(0, 0f)]
-    [TestCase(3, 1.5f)]
-    [TestCase(5, 2.5f)]
-    public void Calculate_WithVariousStreaks_ReturnsExpectedValue(
-        int streak, float expected)
+    [TestCase(15f, 0.5f)] // Very fast
+    [TestCase(45f, 0.5f)] // Medium fast
+    [TestCase(75f, 0f)]   // Too slow
+    public void Calculate_WithVariousCompletionTimes_ReturnsExpectedValues(
+        float completionTime, float expectedBonus)
     {
         // Arrange
-        var sessionData = new PlayerSessionData { WinStreak = streak };
+        mockProvider.Setup(p => p.GetAverageCompletionTime()).Returns(completionTime);
+        var sessionData = new PlayerSessionData();
 
         // Act
         var result = modifier.Calculate(sessionData);
 
         // Assert
-        Assert.AreEqual(expected, result.Value, 0.01f);
-    }
-
-    private ModifierConfig CreateTestConfig()
-    {
-        return new ModifierConfig
-        {
-            ModifierType = "YourModifierName",
-            Enabled = true,
-            Priority = 10,
-            Parameters = new List<ModifierParameter>
-            {
-                new ModifierParameter { Key = "AdjustmentAmount", Value = 0.5f }
-            }
-        };
+        Assert.AreEqual(expectedBonus, result.Value, 0.01f);
     }
 }
 ```
 
-### Integration Test
+### Integration Test with Multiple Providers
 
 ```csharp
 [Test]
-public void Modifier_IntegratesWithService_Correctly()
+public void ModifierUsesAllProviderMethods_Correctly()
 {
     // Arrange
-    var service = CreateServiceWithModifier();
-    var sessionData = CreateTestSessionData();
+    var winProvider = new Mock<IWinStreakProvider>();
+    var levelProvider = new Mock<ILevelProgressProvider>();
+    var rageProvider = new Mock<IRageQuitProvider>();
+
+    winProvider.Setup(p => p.GetTotalWins()).Returns(50);
+    winProvider.Setup(p => p.GetTotalLosses()).Returns(20);
+    levelProvider.Setup(p => p.GetCompletionRate()).Returns(0.7f);
+    levelProvider.Setup(p => p.GetCurrentLevel()).Returns(25);
+    levelProvider.Setup(p => p.GetAverageCompletionTime()).Returns(120f);
+    rageProvider.Setup(p => p.GetAverageSessionDuration()).Returns(300f);
+
+    var modifier = new ComprehensiveModifier(config, winProvider.Object,
+        levelProvider.Object, rageProvider.Object);
 
     // Act
-    var result = service.CalculateDifficulty();
+    var result = modifier.Calculate(sessionData);
 
-    // Assert
-    var yourModifierResult = result.AppliedModifiers
-        .FirstOrDefault(m => m.ModifierName == "YourModifierName");
+    // Assert - Verify all provider methods were called
+    winProvider.Verify(p => p.GetTotalWins(), Times.Once);
+    winProvider.Verify(p => p.GetTotalLosses(), Times.Once);
+    levelProvider.Verify(p => p.GetCompletionRate(), Times.Once);
+    levelProvider.Verify(p => p.GetCurrentLevel(), Times.Once);
+    levelProvider.Verify(p => p.GetAverageCompletionTime(), Times.Once);
+    rageProvider.Verify(p => p.GetAverageSessionDuration(), Times.Once);
 
-    Assert.IsNotNull(yourModifierResult);
-    Assert.Greater(yourModifierResult.Value, 0);
+    // Verify result uses data from all providers
+    Assert.IsTrue(result.Metadata.ContainsKey("total_wins"));
+    Assert.IsTrue(result.Metadata.ContainsKey("completion_rate"));
+    Assert.IsTrue(result.Metadata.ContainsKey("avg_session_duration"));
+}
+```
+
+### Configuration Testing
+
+```csharp
+[Test]
+public void Configuration_EmbeddedInDifficultyConfig_WorksCorrectly()
+{
+    // Arrange
+    var mainConfig = DifficultyConfig.CreateDefault();
+    var speedBonusConfig = mainConfig.GetModifierConfig<SpeedBonusConfig>("SpeedBonus");
+
+    // Act & Assert
+    Assert.IsNotNull(speedBonusConfig);
+    Assert.AreEqual("SpeedBonus", speedBonusConfig.ModifierType);
+    Assert.AreEqual(60f, speedBonusConfig.TimeThreshold);
+    Assert.AreEqual(0.5f, speedBonusConfig.BonusAmount);
 }
 ```
 
 ### Manual Testing Checklist
 
 - [ ] Modifier registers correctly in DI
-- [ ] Parameters load from config
+- [ ] Configuration loads properly from single DifficultyConfig
+- [ ] Provider methods are called correctly
 - [ ] Calculation returns expected values
 - [ ] Edge cases handled gracefully
 - [ ] Performance impact minimal (< 1ms)
 - [ ] Debug logs work correctly
 - [ ] Metadata populated for debugging
 - [ ] OnApplied hook fires correctly
+- [ ] Integration with all 7 modifiers works
+- [ ] Unity Inspector shows embedded config properly
 
 ## Troubleshooting
 
@@ -612,24 +1088,33 @@ public void Modifier_IntegratesWithService_Correctly()
 
 1. **Modifier not running**
    - Check if registered in DI
-   - Verify IsEnabled = true
+   - Verify IsEnabled = true in the single config
    - Check priority order
+   - Ensure provider dependencies are satisfied
 
-2. **Wrong values**
-   - Verify parameter names match
-   - Check config values
-   - Test response curve
+2. **Configuration Issues** ⚠️ **UPDATED**
+   - Only ONE DifficultyConfig ScriptableObject should exist
+   - Config classes use [Serializable], not [CreateAssetMenu]
+   - All modifier configs are embedded in the single asset
+   - Use type-safe property access: `this.config.PropertyName`
 
-3. **Performance issues**
+3. **Wrong values**
+   - Verify provider data is correct
+   - Check configuration values in Unity Inspector
+   - Test with mock providers
+
+4. **Performance issues**
    - Cache expensive calculations
    - Avoid LINQ in hot paths
    - Profile with Unity Profiler
+   - Check provider method performance
 
-4. **Null reference exceptions**
-   - Check sessionData for null
-   - Verify config injected
-   - Handle empty collections
+5. **Provider-related exceptions**
+   - Check provider implementations
+   - Verify provider registration in DI
+   - Handle null provider data gracefully
 
 ---
 
-*Last Updated: 2025-09-16*
+*Last Updated: 2025-01-22*
+*Configuration Structure Corrected - Single ScriptableObject with Embedded [Serializable] Configs*

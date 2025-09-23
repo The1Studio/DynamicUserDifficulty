@@ -35,7 +35,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                     return ModifierResult.NoChange();
                 }
 
+                // Use all three provider methods for comprehensive tracking
+                var lastPlayTime = this.timeDecayProvider.GetLastPlayTime();
                 var timeSincePlay = this.timeDecayProvider.GetTimeSinceLastPlay();
+                var daysAway = this.timeDecayProvider.GetDaysAwayFromGame();
+
                 var hoursSincePlay = timeSincePlay.TotalHours;
                 // Use strongly-typed properties instead of string parameters
                 var decayPerDay = this.config.DecayPerDay;
@@ -47,12 +51,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 
             if (hoursSincePlay > graceHours)
             {
-                // Calculate days away after grace period
-                var effectiveHours = hoursSincePlay - graceHours;
-                var daysAway = effectiveHours / DifficultyConstants.HOURS_IN_DAY;
+                // Use provider's daysAway value for more accurate calculation
+                // Provider might have custom logic for counting days
+                float effectiveDays = daysAway;
+
+                // If grace period hasn't passed for a full day, adjust
+                if (daysAway == 0 && hoursSincePlay > graceHours)
+                {
+                    var effectiveHours = hoursSincePlay - graceHours;
+                    effectiveDays = (float)(effectiveHours / DifficultyConstants.HOURS_IN_DAY);
+                }
 
                 // Calculate decay
-                value = -(float)(daysAway * decayPerDay);
+                value = -(float)(effectiveDays * decayPerDay);
 
                 // Apply maximum decay limit
                 value = Mathf.Max(value, -maxDecay);
@@ -60,22 +71,22 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 // Response curve logic removed from typed config
                 // Can be re-added if needed
 
-                // Format reason based on duration
-                if (daysAway < 1f)
+                // Format reason based on duration using provider's daysAway
+                if (daysAway < 1)
                 {
-                    reason = $"Away for {hoursSincePlay:F1} hours";
+                    reason = $"Away for {hoursSincePlay:F1} hours (last play: {lastPlayTime:MMM dd HH:mm})";
                 }
                 else if (daysAway < DifficultyConstants.TIME_DECAY_WEEK_THRESHOLD)
                 {
-                    reason = $"Away for {daysAway:F1} days";
+                    reason = $"Away for {daysAway} days (last play: {lastPlayTime:MMM dd})";
                 }
                 else
                 {
                     var weeks = daysAway / DifficultyConstants.DAYS_IN_WEEK;
-                    reason = $"Away for {weeks:F1} weeks";
+                    reason = $"Away for {weeks:F1} weeks (last play: {lastPlayTime:MMM dd})";
                 }
 
-                this.LogDebug($"Time decay: {hoursSincePlay:F1} hours -> {value:F2} adjustment");
+                this.LogDebug($"Time decay: {daysAway} days ({hoursSincePlay:F1} hours) -> {value:F2} adjustment");
             }
 
                 return new()
@@ -85,8 +96,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                     Reason       = reason,
                     Metadata =
                     {
+                        ["last_play_time"] = lastPlayTime.ToString("O"), // Using GetLastPlayTime()
+                        ["time_since_play"] = timeSincePlay.ToString(), // Using GetTimeSinceLastPlay()
+                        ["days_away_provider"] = daysAway,  // Using GetDaysAwayFromGame()
                         ["hours_away"] = hoursSincePlay,
-                        ["days_away"] = hoursSincePlay / DifficultyConstants.HOURS_IN_DAY,
+                        ["days_away_calculated"] = hoursSincePlay / DifficultyConstants.HOURS_IN_DAY,
                         ["grace_hours"] = graceHours,
                         ["applied"] = value < DifficultyConstants.ZERO_VALUE
                     }

@@ -61,12 +61,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 this.logger?.Info($"[DynamicDifficultyService] Calculated difficulty: " +
                          $"{result.PreviousDifficulty:F2} -> {result.NewDifficulty:F2}");
 
-                // Update stored difficulty value
-                if (Math.Abs(result.NewDifficulty - currentDifficulty) > 0.01f)
-                {
-                    this.dataProvider.SetCurrentDifficulty(result.NewDifficulty);
-                }
-
+                // NOTE: This is a pure calculation service - it does NOT store state
+                // The caller is responsible for persisting the new difficulty if needed
                 return result;
             }
             catch (Exception e)
@@ -120,6 +116,54 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         public float ClampDifficulty(float difficulty)
         {
             return Math.Max(this.config.MinDifficulty, Math.Min(this.config.MaxDifficulty, difficulty));
+        }
+
+        /// <summary>
+        /// Utility method to determine quit type based on session data.
+        /// This centralizes the logic for determining rage quits vs normal quits vs mid-play quits.
+        /// </summary>
+        public static QuitType DetermineQuitType(float sessionDuration, bool wasLastLevelWon, DateTime lastLevelEndTime)
+        {
+            var timeSinceLevelEnd = (DateTime.Now - lastLevelEndTime).TotalSeconds;
+
+            // Check if player quit soon after losing a level
+            if (!wasLastLevelWon)
+            {
+                // Immediate quit after loss - definite rage quit
+                if (timeSinceLevelEnd < DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD)
+                {
+                    return QuitType.RageQuit;
+                }
+                // Quick quit after loss with short session - likely rage quit
+                if (timeSinceLevelEnd < DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD * 2 &&
+                    sessionDuration < DifficultyConstants.MIN_SESSION_DURATION)
+                {
+                    return QuitType.RageQuit;
+                }
+                // Stuck on level for a while then quit - mid-play quit
+                if (sessionDuration > DifficultyConstants.MIN_SESSION_DURATION &&
+                    sessionDuration < DifficultyConstants.MIN_SESSION_DURATION * 3)
+                {
+                    return QuitType.MidPlay;
+                }
+            }
+
+            // Very short sessions are rage quits regardless of outcome
+            if (sessionDuration < DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD)
+            {
+                return QuitType.RageQuit;
+            }
+
+            // Medium duration sessions without completion might be mid-play
+            if (sessionDuration >= DifficultyConstants.MIN_SESSION_DURATION &&
+                sessionDuration < DifficultyConstants.MIN_SESSION_DURATION * 5 &&
+                timeSinceLevelEnd > DifficultyConstants.MIN_SESSION_DURATION)
+            {
+                return QuitType.MidPlay;
+            }
+
+            // Normal quit for longer sessions or after winning
+            return QuitType.Normal;
         }
     }
 }

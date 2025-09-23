@@ -55,6 +55,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         public const int MAX_RECENT_SESSIONS = 10;
         public const int MIN_SESSIONS_FOR_TREND = 3;
         public const int CACHE_EXPIRY_MINUTES = 5;
+        public const float MIN_SESSION_DURATION = 120f; // Minimum session duration in seconds (2 minutes)
 
         // ========== AGGREGATION ==========
         public const float DEFAULT_AGGREGATION_WEIGHT = 1f;
@@ -62,55 +63,38 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
         // ========== PRECISION ==========
         public const float EPSILON = 0.01f; // For float comparisons
-        public const float ZERO_VALUE = 0f;
+        public const float ZERO_VALUE = 0f; // Still used by aggregator and modifiers
 
         // ========== MODIFIER PRIORITIES ==========
         public const int DEFAULT_MODIFIER_PRIORITY = 0;
 
         // ========== ANIMATION CURVES ==========
-        public const float CURVE_START_TIME = 0f;
-        public const float CURVE_START_VALUE = 0f;
-        public const float CURVE_END_TIME = 1f;
-        public const float CURVE_END_VALUE = 1f;
-
-        // ========== PLAYERPREFS KEYS ==========
-        public const string PREFS_CURRENT_DIFFICULTY = "DUD_CurrentDifficulty";
-        public const string PREFS_WIN_STREAK = "DUD_WinStreak";
-        public const string PREFS_LOSS_STREAK = "DUD_LossStreak";
-        public const string PREFS_LAST_PLAY_TIME = "DUD_LastPlayTime";
-        public const string PREFS_SESSION_DATA = "DUD_SessionData";
-
-        // ========== PARAMETER KEYS ==========
-        public const string PARAM_WIN_THRESHOLD = "WinThreshold";
-        public const string PARAM_LOSS_THRESHOLD = "LossThreshold";
-        public const string PARAM_STEP_SIZE = "StepSize";
-        public const string PARAM_MAX_BONUS = "MaxBonus";
-        public const string PARAM_MAX_REDUCTION = "MaxReduction";
-        public const string PARAM_DECAY_PER_DAY = "DecayPerDay";
-        public const string PARAM_MAX_DECAY = "MaxDecay";
-        public const string PARAM_GRACE_HOURS = "GraceHours";
-        public const string PARAM_RAGE_QUIT_THRESHOLD = "RageQuitThreshold";
-        public const string PARAM_RAGE_QUIT_REDUCTION = "RageQuitReduction";
-        public const string PARAM_QUIT_REDUCTION = "QuitReduction";
-        public const string PARAM_MID_PLAY_REDUCTION = "MidPlayReduction";
-        public const string PARAM_RAGE_QUIT_TIME = "RageQuitTime";
-        public const string PARAM_RAGE_QUIT_PENALTY = "RageQuitPenalty";
-        public const string PARAM_LOSS_MULTIPLIER = "LossMultiplier";
-        public const string PARAM_MAX_PENALTY = "MaxPenalty";
-        public const string PARAM_GRACE_PERIOD_HOURS = "GracePeriodHours";
+        public const float CURVE_START_TIME = 0f;  // Still used by ModifierConfig
+        public const float CURVE_START_VALUE = 0f; // Still used by ModifierConfig
+        public const float CURVE_END_TIME = 1f;    // Still used by ModifierConfig
+        public const float CURVE_END_VALUE = 1f;   // Still used by ModifierConfig
 
         // ========== MODIFIER TYPE NAMES ==========
         /// <summary>Identifier for Win Streak modifier in configurations</summary>
         public const string MODIFIER_TYPE_WIN_STREAK = "WinStreak";
-        
+
         /// <summary>Identifier for Loss Streak modifier in configurations</summary>
         public const string MODIFIER_TYPE_LOSS_STREAK = "LossStreak";
-        
+
         /// <summary>Identifier for Time Decay modifier in configurations</summary>
         public const string MODIFIER_TYPE_TIME_DECAY = "TimeDecay";
-        
+
         /// <summary>Identifier for Rage Quit modifier in configurations</summary>
         public const string MODIFIER_TYPE_RAGE_QUIT = "RageQuit";
+
+        /// <summary>Identifier for Completion Rate modifier in configurations</summary>
+        public const string MODIFIER_TYPE_COMPLETION_RATE = "CompletionRate";
+
+        /// <summary>Identifier for Level Progress modifier in configurations</summary>
+        public const string MODIFIER_TYPE_LEVEL_PROGRESS = "LevelProgress";
+
+        /// <summary>Identifier for Session Pattern modifier in configurations</summary>
+        public const string MODIFIER_TYPE_SESSION_PATTERN = "SessionPattern";
 
         // ========== CONFIG PATH ==========
         /// <summary>Resources path for loading DifficultyConfig (only location)</summary>
@@ -129,25 +113,26 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         // ========== DATETIME FORMATS ==========
         /// <summary>Date format for daily session tracking (yyyy-MM-dd)</summary>
         public const string DATETIME_FORMAT_DATE = "yyyy-MM-dd";
-        
+
         /// <summary>ISO 8601 format for precise datetime serialization</summary>
         public const string DATETIME_FORMAT_ISO = "O";
 
         // ========== RESET VALUES ==========
         /// <summary>Value used to reset win/loss streaks to zero</summary>
-        public const int STREAK_RESET_VALUE = 0;
+        public const int STREAK_RESET_VALUE = 0; // Still used by PlayerSessionData
+
         // ========== FOLDER NAMES ==========
         /// <summary>Base Assets folder name for Unity folder operations</summary>
         public const string FOLDER_NAME_ASSETS = "Assets";
-        
+
         /// <summary>Resources folder name for Unity folder operations</summary>
         public const string FOLDER_NAME_RESOURCES = "Resources";
-        
+
         /// <summary>Configs folder name for Unity folder operations</summary>
         public const string FOLDER_NAME_CONFIGS = "Configs";
 
         // ========== INTEGRATION PATHS ==========
         /// <summary>Path to GameLifetimeScope for integration validation</summary>
-        public const string INTEGRATION_GAMELIFETIMESCOPE_PATH = "Assets/Scripts/GameLifetimeScope.cs";
+        public const string INTEGRATION_GAMELIFETIMESCOPE_PATH = "Assets/Scripts/GameLifetimeScope.cs"; // Still used by validator
     }
 }

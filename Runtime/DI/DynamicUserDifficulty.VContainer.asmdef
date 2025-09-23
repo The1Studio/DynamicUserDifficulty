@@ -5,7 +5,8 @@
         "DynamicUserDifficulty",
         "VContainer",
         "VContainer.Unity",
-        "TheOne.Logging"
+        "TheOne.Logging",
+        "GameFoundation.DI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

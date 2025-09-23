@@ -1,18 +1,18 @@
-using System.Collections.Generic;
-using System.Linq;
 using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Calculators;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
-using TheOneStudio.DynamicUserDifficulty.Providers;
+using TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
 namespace TheOneStudio.DynamicUserDifficulty.DI
 {
+    using GameFoundation.DI;
+
     /// <summary>
     /// VContainer module for registering Dynamic Difficulty dependencies.
     /// Automatically registers all difficulty modifiers - the game determines which ones
@@ -85,6 +85,12 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                 ?? new TimeDecayConfig().CreateDefault() as TimeDecayConfig;
             var rageQuitConfig = configContainer.GetConfig<RageQuitConfig>(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT)
                 ?? new RageQuitConfig().CreateDefault() as RageQuitConfig;
+            var completionRateConfig = configContainer.GetConfig<CompletionRateConfig>(DifficultyConstants.MODIFIER_TYPE_COMPLETION_RATE)
+                ?? new CompletionRateConfig().CreateDefault() as CompletionRateConfig;
+            var levelProgressConfig = configContainer.GetConfig<LevelProgressConfig>(DifficultyConstants.MODIFIER_TYPE_LEVEL_PROGRESS)
+                ?? new LevelProgressConfig().CreateDefault() as LevelProgressConfig;
+            var sessionPatternConfig = configContainer.GetConfig<SessionPatternConfig>(DifficultyConstants.MODIFIER_TYPE_SESSION_PATTERN)
+                ?? new SessionPatternConfig().CreateDefault() as SessionPatternConfig;
 
             // Register all modifiers with typed configs
             builder.Register<WinStreakModifier>(Lifetime.Singleton)
@@ -103,12 +109,24 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
                 .WithParameter(rageQuitConfig)
                 .As<IDifficultyModifier>();
 
+            builder.Register<CompletionRateModifier>(Lifetime.Singleton)
+                .WithParameter(completionRateConfig)
+                .As<IDifficultyModifier>();
+
+            builder.Register<LevelProgressModifier>(Lifetime.Singleton)
+                .WithParameter(levelProgressConfig)
+                .As<IDifficultyModifier>();
+
+            builder.Register<SessionPatternModifier>(Lifetime.Singleton)
+                .WithParameter(sessionPatternConfig)
+                .As<IDifficultyModifier>();
+
             // Use conditional compilation for debug output in production code
             #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (this.loggerManager != null)
             {
                 var logger = this.loggerManager.GetLogger(this);
-                logger.Info("[DynamicDifficultyModule] Registered 4 difficulty modifiers with typed configs: WinStreak, LossStreak, TimeDecay, RageQuit");
+                logger.Info("[DynamicDifficultyModule] Registered 7 difficulty modifiers with typed configs: WinStreak, LossStreak, TimeDecay, RageQuit, CompletionRate, LevelProgress, SessionPattern");
             }
             #endif
         }
