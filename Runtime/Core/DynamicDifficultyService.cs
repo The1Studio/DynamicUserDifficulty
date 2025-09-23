@@ -70,13 +70,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 this.logger?.Error($"[DynamicDifficultyService] Calculation failed: {e.Message}");
 
                 // Return unchanged difficulty on error
-                return new DifficultyResult
+                return new()
                 {
-                    NewDifficulty = currentDifficulty,
+                    NewDifficulty      = currentDifficulty,
                     PreviousDifficulty = currentDifficulty,
-                    AppliedModifiers = new List<ModifierResult>(),
-                    CalculatedAt = DateTime.Now,
-                    PrimaryReason = "Calculation error"
+                    AppliedModifiers   = new(),
+                    CalculatedAt       = DateTime.Now,
+                    PrimaryReason      = "Calculation error"
                 };
             }
         }

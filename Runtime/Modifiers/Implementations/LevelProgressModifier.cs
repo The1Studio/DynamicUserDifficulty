@@ -126,7 +126,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
 
                 var finalReason = reasons.Count > 0 ? string.Join(", ", reasons) : "Normal level progression";
 
-                return new ModifierResult
+                return new()
                 {
                     ModifierName = this.ModifierName,
                     Value = value,

@@ -49,7 +49,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                 // Check minimum attempts requirement
                 if (totalAttempts < this.config.MinAttemptsRequired)
                 {
-                    return new ModifierResult
+                    return new()
                     {
                         ModifierName = this.ModifierName,
                         Value = 0f,
@@ -90,7 +90,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
 
                 this.LogDebug($"Completion rate {weightedRate:P0} (W:{totalWins}/L:{totalLosses}) -> adjustment {value:F2}");
 
-                return new ModifierResult
+                return new()
                 {
                     ModifierName = this.ModifierName,
                     Value = value,

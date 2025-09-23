@@ -110,13 +110,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         /// <summary>Unity Create Asset menu path for DifficultyConfig</summary>
         public const string MENU_CREATE_ASSET = "DynamicDifficulty/Config";
 
-        // ========== DATETIME FORMATS ==========
-        /// <summary>Date format for daily session tracking (yyyy-MM-dd)</summary>
-        public const string DATETIME_FORMAT_DATE = "yyyy-MM-dd";
-
-        /// <summary>ISO 8601 format for precise datetime serialization</summary>
-        public const string DATETIME_FORMAT_ISO = "O";
-
         // ========== RESET VALUES ==========
         /// <summary>Value used to reset win/loss streaks to zero</summary>
         public const int STREAK_RESET_VALUE = 0; // Still used by PlayerSessionData
@@ -127,9 +120,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
         /// <summary>Resources folder name for Unity folder operations</summary>
         public const string FOLDER_NAME_RESOURCES = "Resources";
-
-        /// <summary>Configs folder name for Unity folder operations</summary>
-        public const string FOLDER_NAME_CONFIGS = "Configs";
 
         // ========== INTEGRATION PATHS ==========
         /// <summary>Path to GameLifetimeScope for integration validation</summary>
