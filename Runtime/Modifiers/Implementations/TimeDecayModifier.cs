@@ -3,6 +3,7 @@ using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
+using UnityEngine.Scripting;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
     /// Reduces difficulty based on time since last play
     /// Requires ITimeDecayProvider to be implemented by the game
     /// </summary>
+    [Preserve]
     public class TimeDecayModifier : BaseDifficultyModifier<TimeDecayConfig>
     {
         private readonly ITimeDecayProvider timeDecayProvider;
@@ -102,8 +104,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                         ["hours_away"] = hoursSincePlay,
                         ["days_away_calculated"] = hoursSincePlay / DifficultyConstants.HOURS_IN_DAY,
                         ["grace_hours"] = graceHours,
-                        ["applied"] = value < DifficultyConstants.ZERO_VALUE
-                    }
+                        ["applied"] = value < DifficultyConstants.ZERO_VALUE,
+                    },
                 };
             }
             catch (Exception e)

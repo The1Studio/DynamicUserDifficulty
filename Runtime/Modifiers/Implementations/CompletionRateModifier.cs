@@ -4,6 +4,7 @@ using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
+using UnityEngine.Scripting;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
     /// Adjusts difficulty based on player's overall completion rate.
     /// Uses total wins/losses to calculate success rate and adjusts accordingly.
     /// </summary>
+    [Preserve]
     public class CompletionRateModifier : BaseDifficultyModifier<CompletionRateConfig>
     {
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_COMPLETION_RATE;
@@ -57,8 +59,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                         Metadata =
                         {
                             ["totalAttempts"] = totalAttempts,
-                            ["required"] = this.config.MinAttemptsRequired
-                        }
+                            ["required"] = this.config.MinAttemptsRequired,
+                        },
                     };
                 }
 
@@ -102,8 +104,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                         ["weightedRate"] = weightedRate,
                         ["totalWins"] = totalWins,
                         ["totalLosses"] = totalLosses,
-                        ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE
-                    }
+                        ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE,
+                    },
                 };
             }
             catch (Exception e)

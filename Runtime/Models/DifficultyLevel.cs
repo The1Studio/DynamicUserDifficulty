@@ -18,6 +18,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         /// <summary>
         /// Hard difficulty (8-10)
         /// </summary>
-        Hard = 2
+        Hard = 2,
     }
 }

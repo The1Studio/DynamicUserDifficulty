@@ -5,6 +5,7 @@ using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
+using UnityEngine.Scripting;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 using UnityEngine;
 
@@ -15,6 +16,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
     /// Adjusts difficulty based on play session patterns including duration,
     /// frequency of rage quits, and session end reasons.
     /// </summary>
+    [Preserve]
     public class SessionPatternModifier : BaseDifficultyModifier<SessionPatternConfig>
     {
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_SESSION_PATTERN;
@@ -146,8 +148,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                         ["avgSessionDuration"] = avgSessionDuration,
                         ["rageQuitCount"] = recentRageQuitCount,
                         ["midLevelQuitRatio"] = midLevelRatio,
-                        ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE
-                    }
+                        ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE,
+                    },
                 };
             }
             catch (Exception e)

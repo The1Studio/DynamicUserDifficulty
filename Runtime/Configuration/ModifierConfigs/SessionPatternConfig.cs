@@ -78,7 +78,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
                 consistentShortSessionsDecrease = 0.8f,
                 rageQuitPatternDecrease = 1f,
                 midLevelQuitDecrease = 0.4f,
-                midLevelQuitRatio = 0.3f
+                midLevelQuitRatio = 0.3f,
             };
             config.SetEnabled(true);
             config.SetPriority(5);

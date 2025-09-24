@@ -2,6 +2,7 @@ using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
+using UnityEngine.Scripting;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
     /// Decreases difficulty based on consecutive losses
     /// Requires IWinStreakProvider to be implemented by the game
     /// </summary>
+    [Preserve]
     public class LossStreakModifier : BaseDifficultyModifier<LossStreakConfig>
     {
         private readonly IWinStreakProvider winStreakProvider;
@@ -69,8 +71,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                     {
                         ["streak"] = lossStreak,
                         ["threshold"] = lossThreshold,
-                        ["applied"] = value < DifficultyConstants.ZERO_VALUE
-                    }
+                        ["applied"] = value < DifficultyConstants.ZERO_VALUE,
+                    },
                 };
             }
             catch (System.Exception e)

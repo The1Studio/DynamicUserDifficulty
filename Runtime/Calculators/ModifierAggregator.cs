@@ -3,12 +3,14 @@ using System.Linq;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace TheOneStudio.DynamicUserDifficulty.Calculators
 {
     /// <summary>
     /// Aggregates multiple modifier results into a single difficulty adjustment
     /// </summary>
+    [Preserve]
     public class ModifierAggregator
     {
         /// <summary>

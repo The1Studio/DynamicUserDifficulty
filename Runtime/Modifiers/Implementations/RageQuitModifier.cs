@@ -2,6 +2,7 @@ using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
+using UnityEngine.Scripting;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
@@ -10,6 +11,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
     /// Reduces difficulty when rage quit is detected
     /// Requires IRageQuitProvider to be implemented by the game
     /// </summary>
+    [Preserve]
     public class RageQuitModifier : BaseDifficultyModifier<RageQuitConfig>
     {
         private readonly IRageQuitProvider rageQuitProvider;
@@ -83,8 +85,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                         ["last_quit_type"] = lastQuitType.ToString(),
                         ["session_duration"] = sessionDuration,
                         ["recent_rage_quits"] = recentRageQuits,
-                        ["rage_quit_detected"] = lastQuitType == QuitType.RageQuit
-                    }
+                        ["rage_quit_detected"] = lastQuitType == QuitType.RageQuit,
+                    },
                 };
             }
             catch (System.Exception e)

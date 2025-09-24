@@ -72,7 +72,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
                 fastCompletionBonus = 0.3f,
                 slowCompletionPenalty = 0.3f,
                 expectedLevelsPerHour = 15,
-                levelProgressionFactor = 0.1f
+                levelProgressionFactor = 0.1f,
             };
             config.SetEnabled(true);
             config.SetPriority(4);

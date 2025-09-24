@@ -56,7 +56,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
                 lowCompletionDecrease = 0.5f,
                 highCompletionIncrease = 0.5f,
                 minAttemptsRequired = 10,
-                totalStatsWeight = 0.3f
+                totalStatsWeight = 0.3f,
             };
             config.SetEnabled(true);
             config.SetPriority(3);

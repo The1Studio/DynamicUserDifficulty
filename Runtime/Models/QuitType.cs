@@ -18,6 +18,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         /// <summary>
         /// Quit during mid-play, might be stuck
         /// </summary>
-        MidPlay
+        MidPlay,
     }
 }

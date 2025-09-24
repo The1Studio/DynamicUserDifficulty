@@ -5,6 +5,7 @@ using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
+using UnityEngine.Scripting;
 
 namespace TheOneStudio.DynamicUserDifficulty.Calculators
 {
@@ -13,12 +14,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
     /// <summary>
     /// Default implementation of difficulty calculator
     /// </summary>
+    [Preserve]
     public class DifficultyCalculator : IDifficultyCalculator
     {
         private readonly DifficultyConfig config;
         private readonly ModifierAggregator aggregator;
         private readonly TheOne.Logging.ILogger logger;
 
+        [Preserve]
         public DifficultyCalculator(DifficultyConfig config, ModifierAggregator aggregator, ILoggerManager loggerManager)
         {
             this.config = config;
@@ -35,7 +38,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
                 {
                     PreviousDifficulty = this.config.DefaultDifficulty,
                     NewDifficulty = this.config.DefaultDifficulty,
-                    PrimaryReason = "No session data"
+                    PrimaryReason = "No session data",
                 };
             }
 
@@ -90,7 +93,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
                 NewDifficulty = newDifficulty,
                 AppliedModifiers = modifierResults,
                 CalculatedAt = DateTime.Now,
-                PrimaryReason = this.GetPrimaryReason(modifierResults)
+                PrimaryReason = this.GetPrimaryReason(modifierResults),
             };
 
             if (this.config.EnableDebugLogs)

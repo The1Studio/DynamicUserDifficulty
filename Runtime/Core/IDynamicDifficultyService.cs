@@ -2,6 +2,8 @@ using TheOneStudio.DynamicUserDifficulty.Models;
 
 namespace TheOneStudio.DynamicUserDifficulty.Core
 {
+    using System;
+
     /// <summary>
     /// Stateless calculation service for dynamic difficulty.
     /// This service does NOT store any data - it only calculates difficulty based on input data.
@@ -54,5 +56,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         /// <param name="difficulty">Difficulty value to clamp</param>
         /// <returns>Clamped difficulty value</returns>
         float ClampDifficulty(float difficulty);
+
+        /// <summary>
+        /// Determines quit type based on session data.
+        /// This method analyzes session behavior to classify how/why the player ended their session.
+        /// </summary>
+        /// <param name="sessionDuration">Duration of the session in seconds</param>
+        /// <param name="wasLastLevelWon">Whether the last level played was completed successfully</param>
+        /// <param name="lastLevelEndTime">When the last level ended</param>
+        /// <returns>Classified quit type</returns>
+        QuitType DetermineQuitType(float sessionDuration, bool wasLastLevelWon, DateTime lastLevelEndTime);
     }
 }

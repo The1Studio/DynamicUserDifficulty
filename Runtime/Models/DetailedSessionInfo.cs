@@ -112,6 +112,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         /// <summary>
         /// Unknown reason
         /// </summary>
-        Unknown
+        Unknown,
     }
 }

@@ -4,9 +4,9 @@
     "references": [
         "DynamicUserDifficulty",
         "VContainer",
-        "VContainer.Unity",
         "TheOne.Logging",
-        "GameFoundation.DI"
+        "GameFoundation.DI",
+        "TheOne.Extensions"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

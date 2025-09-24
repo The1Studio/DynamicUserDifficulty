@@ -48,6 +48,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
         /// <summary>
         /// Rage quit (quick loss)
         /// </summary>
-        RageQuit
+        RageQuit,
     }
 }

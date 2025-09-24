@@ -4,6 +4,7 @@ using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
+using UnityEngine.Scripting;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
     /// Adjusts difficulty based on level progression metrics including attempts,
     /// completion time, and progression speed.
     /// </summary>
+    [Preserve]
     public class LevelProgressModifier : BaseDifficultyModifier<LevelProgressConfig>
     {
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_LEVEL_PROGRESS;
@@ -138,8 +140,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                         ["levelDifficulty"] = levelDifficulty,
                         ["completionRate"] = completionRate,
                         ["avgCompletionTime"] = avgCompletionTime,
-                        ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE
-                    }
+                        ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE,
+                    },
                 };
             }
             catch (Exception e)

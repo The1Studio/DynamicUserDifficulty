@@ -6,7 +6,7 @@ using TheOneStudio.DynamicUserDifficulty.Calculators;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
-using TheOneStudio.DynamicUserDifficulty.Providers;
+using UnityEngine.Scripting;
 
 namespace TheOneStudio.DynamicUserDifficulty.Core
 {
@@ -17,22 +17,21 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
     /// This service does NOT store any data - it only calculates difficulty based on input data.
     /// All data should be retrieved from external services.
     /// </summary>
+    [Preserve]
     public class DynamicDifficultyService : IDynamicDifficultyService
     {
-        private readonly IDifficultyDataProvider dataProvider;
         private readonly IDifficultyCalculator calculator;
         private readonly DifficultyConfig config;
         private readonly List<IDifficultyModifier> modifiers;
         private readonly ILogger logger;
 
+        [Preserve]
         public DynamicDifficultyService(
-            IDifficultyDataProvider dataProvider,
             IDifficultyCalculator calculator,
             DifficultyConfig config,
             IEnumerable<IDifficultyModifier> modifiers,
             ILoggerManager loggerManager)
         {
-            this.dataProvider = dataProvider ?? throw new ArgumentNullException(nameof(dataProvider));
             this.calculator = calculator ?? throw new ArgumentNullException(nameof(calculator));
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.modifiers = modifiers?.ToList() ?? new List<IDifficultyModifier>();
@@ -76,7 +75,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                     PreviousDifficulty = currentDifficulty,
                     AppliedModifiers   = new(),
                     CalculatedAt       = DateTime.Now,
-                    PrimaryReason      = "Calculation error"
+                    PrimaryReason      = "Calculation error",
                 };
             }
         }
@@ -96,7 +95,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 LossStreak = lossStreak,
                 LastPlayTime = DateTime.Now.AddHours(-hoursSinceLastPlay),
                 QuitType = lastQuitType,
-                SessionCount = 1
+                SessionCount = 1,
             };
 
             var result = this.CalculateDifficulty(currentDifficulty, sessionData);
@@ -119,10 +118,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         }
 
         /// <summary>
-        /// Utility method to determine quit type based on session data.
-        /// This centralizes the logic for determining rage quits vs normal quits vs mid-play quits.
+        /// Determines quit type based on session data.
+        /// This method analyzes session behavior to classify how/why the player ended their session.
         /// </summary>
-        public static QuitType DetermineQuitType(float sessionDuration, bool wasLastLevelWon, DateTime lastLevelEndTime)
+        /// <param name="sessionDuration">Duration of the session in seconds</param>
+        /// <param name="wasLastLevelWon">Whether the last level played was completed successfully</param>
+        /// <param name="lastLevelEndTime">When the last level ended</param>
+        /// <returns>Classified quit type</returns>
+        public QuitType DetermineQuitType(float sessionDuration, bool wasLastLevelWon, DateTime lastLevelEndTime)
         {
             var timeSinceLevelEnd = (DateTime.Now - lastLevelEndTime).TotalSeconds;
 

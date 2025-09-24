@@ -92,7 +92,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
                 (RageQuitConfig)new RageQuitConfig().CreateDefault(),
                 (CompletionRateConfig)new CompletionRateConfig().CreateDefault(),
                 (LevelProgressConfig)new LevelProgressConfig().CreateDefault(),
-                (SessionPatternConfig)new SessionPatternConfig().CreateDefault()
+                (SessionPatternConfig)new SessionPatternConfig().CreateDefault(),
             };
         }
 

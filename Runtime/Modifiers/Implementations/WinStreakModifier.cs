@@ -2,6 +2,7 @@ using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
+using UnityEngine.Scripting;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
     /// Increases difficulty based on consecutive wins
     /// Requires IWinStreakProvider to be implemented by the game
     /// </summary>
+    [Preserve]
     public class WinStreakModifier : BaseDifficultyModifier<WinStreakConfig>
     {
         private readonly IWinStreakProvider winStreakProvider;
@@ -18,6 +20,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_WIN_STREAK;
 
         // Constructor for typed config
+        [Preserve]
         public WinStreakModifier(WinStreakConfig config, IWinStreakProvider winStreakProvider, ILoggerManager loggerManager = null) : base(config, loggerManager)
         {
             this.winStreakProvider = winStreakProvider ?? throw new System.ArgumentNullException(nameof(winStreakProvider));
@@ -66,8 +69,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                     {
                         ["streak"] = winStreak,
                         ["threshold"] = winThreshold,
-                        ["applied"] = value > DifficultyConstants.ZERO_VALUE
-                    }
+                        ["applied"] = value > DifficultyConstants.ZERO_VALUE,
+                    },
                 };
             }
             catch (System.Exception e)

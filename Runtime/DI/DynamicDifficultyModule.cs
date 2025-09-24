@@ -7,70 +7,46 @@ using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
 namespace TheOneStudio.DynamicUserDifficulty.DI
 {
-    using GameFoundation.DI;
-
     /// <summary>
-    /// VContainer module for registering Dynamic Difficulty dependencies.
+    /// VContainer extension methods for registering Dynamic Difficulty dependencies.
     /// Automatically registers all difficulty modifiers - the game determines which ones
     /// are active by implementing the corresponding provider interfaces.
     /// </summary>
-    public class DynamicDifficultyModule : IInstaller
+    public static class DynamicDifficultyModule
     {
-        private readonly DifficultyConfig config;
-        private readonly ILoggerManager loggerManager;
-
-        public DynamicDifficultyModule(DifficultyConfig config = null, ILoggerManager loggerManager = null)
-        {
-            this.config = config;
-            this.loggerManager = loggerManager;
-        }
-
-        public void Install(IContainerBuilder builder)
+        /// <summary>
+        /// Register Dynamic User Difficulty system with all 7 modifiers.
+        /// </summary>
+        public static void RegisterDynamicDifficulty(this IContainerBuilder builder, DifficultyConfig config = null)
         {
             // Try to load or create default config if not provided
-            var actualConfig = this.config ?? this.LoadOrCreateDefaultConfig();
+            var actualConfig = config ?? LoadOrCreateDefaultConfig();
 
             // Register configuration
             builder.RegisterInstance(actualConfig);
 
-            // Register logger manager if provided
-            if (this.loggerManager != null)
-            {
-                builder.RegisterInstance(this.loggerManager);
-            }
-
             // Register core services
-            builder.Register<IDynamicDifficultyService, DynamicDifficultyService>(Lifetime.Singleton);
-            builder.Register<IDifficultyCalculator, DifficultyCalculator>(Lifetime.Singleton);
+            builder.Register<DynamicDifficultyService>(Lifetime.Singleton).AsInterfacesAndSelf();
+            builder.Register<DifficultyCalculator>(Lifetime.Singleton).AsInterfacesAndSelf();
             builder.Register<ModifierAggregator>(Lifetime.Singleton);
             builder.Register<DifficultyManager>(Lifetime.Singleton);
 
             // Register ALL modifiers by default - no configuration needed!
             // The game determines which modifiers are active by implementing the corresponding provider interfaces
-            this.RegisterAllModifiers(builder);
-
-            // Use conditional compilation for debug output in production code
-            #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (this.loggerManager != null)
-            {
-                var logger = this.loggerManager.GetLogger(this);
-                logger.Info("[DynamicDifficultyModule] All difficulty modifiers registered. Active modifiers depend on which provider interfaces are implemented.");
-            }
-            #endif
+            RegisterAllModifiers(builder, actualConfig);
         }
 
         /// <summary>
         /// Registers all available difficulty modifiers.
         /// Each modifier will only be active if its corresponding provider interface is implemented.
         /// </summary>
-        private void RegisterAllModifiers(IContainerBuilder builder)
+        private static void RegisterAllModifiers(IContainerBuilder builder, DifficultyConfig config)
         {
             // Get configs from the configuration or create defaults
-            var configContainer = this.config?.ModifierConfigs ?? new ModifierConfigContainer();
+            var configContainer = config?.ModifierConfigs ?? new ModifierConfigContainer();
             if (configContainer.AllConfigs.Count == 0)
             {
                 configContainer.InitializeDefaults();
@@ -120,37 +96,22 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             builder.Register<SessionPatternModifier>(Lifetime.Singleton)
                 .WithParameter(sessionPatternConfig)
                 .As<IDifficultyModifier>();
-
-            // Use conditional compilation for debug output in production code
-            #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (this.loggerManager != null)
-            {
-                var logger = this.loggerManager.GetLogger(this);
-                logger.Info("[DynamicDifficultyModule] Registered 7 difficulty modifiers with typed configs: WinStreak, LossStreak, TimeDecay, RageQuit, CompletionRate, LevelProgress, SessionPattern");
-            }
-            #endif
         }
 
-        // Removed CreateModifierConfig method - now using typed configs directly
-
-        private DifficultyConfig LoadOrCreateDefaultConfig()
+        private static DifficultyConfig LoadOrCreateDefaultConfig()
         {
             // Load from the single standard location
             var config = Resources.Load<DifficultyConfig>(DifficultyConstants.CONFIG_RESOURCES_PATH);
             if (config != null)
             {
                 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-                if (this.loggerManager != null)
-                {
-                    var logger = this.loggerManager.GetLogger(this);
-                    logger.Info($"[DynamicDifficultyModule] Loaded DifficultyConfig from Resources/{DifficultyConstants.CONFIG_RESOURCES_PATH}");
-                }
+                Debug.Log($"[DynamicDifficultyModule] Loaded DifficultyConfig from Resources/{DifficultyConstants.CONFIG_RESOURCES_PATH}");
                 #endif
                 return config;
             }
 
             // Keep this as Debug.LogWarning since it's an important configuration issue that should always be visible
-            UnityEngine.Debug.LogWarning($"[DynamicDifficultyModule] DifficultyConfig not found at: {DifficultyConstants.CONFIG_RESOURCES_PATH}. " +
+            Debug.LogWarning($"[DynamicDifficultyModule] DifficultyConfig not found at: {DifficultyConstants.CONFIG_RESOURCES_PATH}. " +
                            "Creating default configuration.");
             return ScriptableObject.CreateInstance<DifficultyConfig>();
         }
