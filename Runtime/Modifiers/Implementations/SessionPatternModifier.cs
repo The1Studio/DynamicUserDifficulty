@@ -1,17 +1,14 @@
 using System;
 using System.Linq;
 using TheOne.Logging;
-using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using UnityEngine.Scripting;
 using TheOneStudio.DynamicUserDifficulty.Providers;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
 {
-    using ILogger = TheOne.Logging.ILogger;
     /// <summary>
     /// Adjusts difficulty based on play session patterns including duration,
     /// frequency of rage quits, and session end reasons.

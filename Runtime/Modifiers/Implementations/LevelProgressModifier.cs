@@ -1,16 +1,13 @@
 using System;
 using TheOne.Logging;
-using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using UnityEngine.Scripting;
 using TheOneStudio.DynamicUserDifficulty.Providers;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
 {
-    using ILogger = TheOne.Logging.ILogger;
     /// <summary>
     /// Adjusts difficulty based on level progression metrics including attempts,
     /// completion time, and progression speed.
