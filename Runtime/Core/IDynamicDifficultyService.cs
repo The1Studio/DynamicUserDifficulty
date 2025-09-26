@@ -10,13 +10,23 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
     public interface IDynamicDifficultyService
     {
         /// <summary>
-        /// Calculates the recommended difficulty based on provided player data.
-        /// This is a pure function - same input always produces same output.
+        /// Gets the current difficulty value from the provider.
         /// </summary>
-        /// <param name="currentDifficulty">Current difficulty from external service</param>
+        float CurrentDifficulty { get; }
+
+        /// <summary>
+        /// Calculates the recommended difficulty based on provider data.
+        /// Uses IDifficultyDataProvider internally to get/set difficulty.
+        /// </summary>
         /// <param name="sessionData">Player session data from external service (can be null to use providers)</param>
         /// <returns>Calculated difficulty result with adjustment details</returns>
-        DifficultyResult CalculateDifficulty(float currentDifficulty, PlayerSessionData sessionData);
+        DifficultyResult CalculateDifficulty(PlayerSessionData sessionData = null);
+
+        /// <summary>
+        /// Applies the calculated difficulty result to the provider.
+        /// </summary>
+        /// <param name="result">The difficulty result to apply</param>
+        void ApplyDifficulty(DifficultyResult result);
 
         /// <summary>
         /// Gets the recommended difficulty for a new player.

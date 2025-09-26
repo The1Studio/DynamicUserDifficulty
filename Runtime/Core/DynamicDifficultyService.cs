@@ -6,6 +6,7 @@ using TheOneStudio.DynamicUserDifficulty.Calculators;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
+using TheOneStudio.DynamicUserDifficulty.Providers;
 using UnityEngine.Scripting;
 
 namespace TheOneStudio.DynamicUserDifficulty.Core
@@ -21,6 +22,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
     public class DynamicDifficultyService : IDynamicDifficultyService
     {
         private readonly IDifficultyCalculator calculator;
+        private readonly IDifficultyDataProvider dataProvider;
         private readonly DifficultyConfig config;
         private readonly List<IDifficultyModifier> modifiers;
         private readonly ILogger logger;
@@ -28,11 +30,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         [Preserve]
         public DynamicDifficultyService(
             IDifficultyCalculator calculator,
+            IDifficultyDataProvider dataProvider,
             DifficultyConfig config,
             IEnumerable<IDifficultyModifier> modifiers,
             ILoggerManager loggerManager)
         {
             this.calculator = calculator ?? throw new ArgumentNullException(nameof(calculator));
+            this.dataProvider = dataProvider ?? throw new ArgumentNullException(nameof(dataProvider));
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.modifiers = modifiers?.ToList() ?? new List<IDifficultyModifier>();
             this.logger = loggerManager?.GetLogger(this);
@@ -40,10 +44,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
             this.logger?.Info($"[DynamicDifficultyService] Initialized stateless service with {this.modifiers.Count} modifiers");
         }
 
-        public DifficultyResult CalculateDifficulty(float currentDifficulty, PlayerSessionData sessionData)
+        public float CurrentDifficulty => this.dataProvider?.GetCurrentDifficulty() ?? DifficultyConstants.DEFAULT_DIFFICULTY;
+
+        public DifficultyResult CalculateDifficulty(PlayerSessionData sessionData = null)
         {
             try
             {
+                // Get current difficulty from provider
+                var currentDifficulty = this.dataProvider.GetCurrentDifficulty();
                 // Get enabled modifiers sorted by priority
                 var enabledModifiers = this.modifiers
                     .Where(m => m != null && m.IsEnabled)
@@ -56,24 +64,40 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 this.logger?.Info($"[DynamicDifficultyService] Calculated difficulty: " +
                          $"{result.PreviousDifficulty:F2} -> {result.NewDifficulty:F2}");
 
-                // NOTE: This is a pure calculation service - it does NOT store state
-                // The caller is responsible for persisting the new difficulty if needed
+                // NOTE: Result is returned for inspection, but not automatically applied
+                // Use ApplyDifficulty() to persist the change
                 return result;
             }
             catch (Exception e)
             {
                 this.logger?.Error($"[DynamicDifficultyService] Calculation failed: {e.Message}");
 
+                var currentDiff = this.dataProvider?.GetCurrentDifficulty() ?? DifficultyConstants.DEFAULT_DIFFICULTY;
+
                 // Return unchanged difficulty on error
                 return new()
                 {
-                    NewDifficulty      = currentDifficulty,
-                    PreviousDifficulty = currentDifficulty,
+                    NewDifficulty      = currentDiff,
+                    PreviousDifficulty = currentDiff,
                     AppliedModifiers   = new(),
                     CalculatedAt       = DateTime.Now,
                     PrimaryReason      = "Calculation error",
                 };
             }
+        }
+
+        public void ApplyDifficulty(DifficultyResult result)
+        {
+            if (result == null)
+            {
+                this.logger?.Warning("[DynamicDifficultyService] Cannot apply null difficulty result");
+                return;
+            }
+
+            // Use provider to persist the difficulty
+            this.dataProvider.SetCurrentDifficulty(result.NewDifficulty);
+
+            this.logger?.Info($"[DynamicDifficultyService] Applied difficulty: {result.NewDifficulty:F2}");
         }
 
         public float GetDefaultDifficulty()
