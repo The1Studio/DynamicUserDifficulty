@@ -15,6 +15,22 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         public const float HOURS_IN_DAY = 24f;
         public const int DAYS_IN_WEEK = 7;
 
+        // ========== SESSION MANAGEMENT ==========
+        /// <summary>Maximum number of recent sessions to keep in memory</summary>
+        public const int MAX_RECENT_SESSIONS = 10;
+        
+        /// <summary>Short session threshold in seconds (10 seconds)</summary>
+        public const float SHORT_SESSION_THRESHOLD_SECONDS = 10f;
+        
+        /// <summary>Normal session threshold in seconds (30 minutes)</summary>
+        public const float NORMAL_SESSION_THRESHOLD_SECONDS = 1800f;
+        
+        /// <summary>Default session duration in seconds when no data available</summary>
+        public const float DEFAULT_SESSION_DURATION_SECONDS = 60f;
+        
+        /// <summary>Default level completion time in seconds when no data available</summary>
+        public const float DEFAULT_COMPLETION_TIME_SECONDS = 60f;
+
         // ========== PRECISION ==========
         public const float EPSILON = 0.01f; // For float comparisons and difficulty change threshold
         public const float ZERO_VALUE = 0f; // Used by aggregator and modifiers
