@@ -276,13 +276,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Models
         public void RecentSessions_LimitedToMaxSize()
         {
             // Arrange & Act
-            for (int i = 0; i < DifficultyConstants.MAX_RECENT_SESSIONS + 5; i++)
+            for (int i = 0; i < 10 + 5; i++) // Test max recent sessions limit
             {
                 this.sessionData.RecordWin(i, 60f + i);
             }
 
             // Assert
-            Assert.AreEqual(DifficultyConstants.MAX_RECENT_SESSIONS, this.sessionData.RecentSessions.Count);
+            Assert.AreEqual(10, this.sessionData.RecentSessions.Count); // Max recent sessions
         }
     }
 }

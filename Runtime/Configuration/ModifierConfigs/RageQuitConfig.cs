@@ -14,19 +14,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         [Header("Rage Quit Settings")]
         [SerializeField][Range(5f, 120f)]
         [Tooltip("Time threshold in seconds to consider as rage quit")]
-        private float rageQuitThreshold = DifficultyConstants.RAGE_QUIT_DEFAULT_THRESHOLD;
+        private float rageQuitThreshold = 30f;
 
         [SerializeField][Range(0.5f, 3f)]
         [Tooltip("Difficulty reduction for rage quit")]
-        private float rageQuitReduction = DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION;
+        private float rageQuitReduction = 1f;
 
         [SerializeField][Range(0.1f, 2f)]
         [Tooltip("Difficulty reduction for normal quit")]
-        private float quitReduction = DifficultyConstants.RAGE_QUIT_DEFAULT_QUIT_REDUCTION;
+        private float quitReduction = 0.5f;
 
         [SerializeField][Range(0.1f, 1f)]
         [Tooltip("Difficulty reduction for mid-play quit")]
-        private float midPlayReduction = DifficultyConstants.RAGE_QUIT_DEFAULT_MID_PLAY_REDUCTION;
+        private float midPlayReduction = 0.3f;
 
         // BaseModifierConfig implementation
         public override string ModifierType => DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT;

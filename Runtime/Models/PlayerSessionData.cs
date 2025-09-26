@@ -35,7 +35,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
             this.WinStreak         = DifficultyConstants.STREAK_RESET_VALUE;
             this.LossStreak        = DifficultyConstants.STREAK_RESET_VALUE;
             this.LastPlayTime      = DateTime.Now;
-            this.RecentSessions       = new(DifficultyConstants.MAX_RECENT_SESSIONS);
+            this.RecentSessions       = new(10); // Max recent sessions to track
             this.DetailedSessions  = new();
         }
 
@@ -63,7 +63,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
 
         private void AddRecentSession(SessionInfo session)
         {
-            if (this.RecentSessions.Count >= DifficultyConstants.MAX_RECENT_SESSIONS)
+            if (this.RecentSessions.Count >= 10) // Max recent sessions limit
             {
                 this.RecentSessions.Dequeue();
             }

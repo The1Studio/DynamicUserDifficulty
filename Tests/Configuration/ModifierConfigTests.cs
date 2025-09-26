@@ -44,9 +44,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             // Assert
             Assert.AreEqual(DifficultyConstants.MODIFIER_TYPE_WIN_STREAK, config.ModifierType);
             Assert.IsTrue(config.IsEnabled);
-            Assert.AreEqual(DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD, config.WinThreshold);
-            Assert.AreEqual(DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE, config.StepSize);
-            Assert.AreEqual(DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS, config.MaxBonus);
+            Assert.AreEqual(3f, config.WinThreshold); // Default win threshold
+            Assert.AreEqual(0.5f, config.StepSize); // Default step size
+            Assert.AreEqual(2f, config.MaxBonus); // Default max bonus
         }
 
         [Test]
@@ -58,9 +58,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             // Assert
             Assert.AreEqual(DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK, config.ModifierType);
             Assert.IsTrue(config.IsEnabled);
-            Assert.AreEqual(DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD, config.LossThreshold);
-            Assert.AreEqual(DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE, config.StepSize);
-            Assert.AreEqual(DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION, config.MaxReduction);
+            Assert.AreEqual(2f, config.LossThreshold); // Default loss threshold
+            Assert.AreEqual(0.3f, config.StepSize); // Default step size
+            Assert.AreEqual(1.5f, config.MaxReduction); // Default max reduction
         }
 
         [Test]
@@ -72,9 +72,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             // Assert
             Assert.AreEqual(DifficultyConstants.MODIFIER_TYPE_TIME_DECAY, config.ModifierType);
             Assert.IsTrue(config.IsEnabled);
-            Assert.AreEqual(DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS, config.GraceHours);
-            Assert.AreEqual(DifficultyConstants.TIME_DECAY_DEFAULT_DECAY_PER_DAY, config.DecayPerDay);
-            Assert.AreEqual(DifficultyConstants.TIME_DECAY_DEFAULT_MAX_DECAY, config.MaxDecay);
+            Assert.AreEqual(6f, config.GraceHours); // Default grace hours
+            Assert.AreEqual(0.5f, config.DecayPerDay); // Default decay per day
+            Assert.AreEqual(2f, config.MaxDecay); // Default max decay
         }
 
         [Test]
@@ -86,10 +86,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             // Assert
             Assert.AreEqual(DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT, config.ModifierType);
             Assert.IsTrue(config.IsEnabled);
-            Assert.AreEqual(DifficultyConstants.RAGE_QUIT_DEFAULT_THRESHOLD, config.RageQuitThreshold);
-            Assert.AreEqual(DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION, config.RageQuitReduction);
-            Assert.AreEqual(DifficultyConstants.RAGE_QUIT_DEFAULT_QUIT_REDUCTION, config.QuitReduction);
-            Assert.AreEqual(DifficultyConstants.RAGE_QUIT_DEFAULT_MID_PLAY_REDUCTION, config.MidPlayReduction);
+            Assert.AreEqual(30f, config.RageQuitThreshold); // Default rage quit threshold
+            Assert.AreEqual(1f, config.RageQuitReduction); // Default rage quit reduction
+            Assert.AreEqual(0.5f, config.QuitReduction); // Default quit reduction
+            Assert.AreEqual(0.3f, config.MidPlayReduction); // Default mid play reduction
         }
 
         [Test]

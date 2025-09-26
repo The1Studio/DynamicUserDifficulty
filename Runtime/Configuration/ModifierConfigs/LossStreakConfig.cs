@@ -14,15 +14,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         [Header("Loss Streak Settings")]
         [SerializeField][Range(1, 10)]
         [Tooltip("Number of consecutive losses needed to trigger difficulty decrease")]
-        private float lossThreshold = DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD;
+        private float lossThreshold = 2f;
 
         [SerializeField][Range(0.1f, 2f)]
         [Tooltip("Difficulty decrease per threshold exceeded")]
-        private float stepSize = DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE;
+        private float stepSize = 0.3f;
 
         [SerializeField][Range(0.5f, 5f)]
         [Tooltip("Maximum difficulty reduction from loss streaks")]
-        private float maxReduction = DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION;
+        private float maxReduction = 1.5f;
 
         // BaseModifierConfig implementation
         public override string ModifierType => DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK;

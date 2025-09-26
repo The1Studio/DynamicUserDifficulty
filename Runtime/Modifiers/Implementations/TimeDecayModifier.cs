@@ -78,7 +78,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 {
                     reason = $"Away for {hoursSincePlay:F1} hours (last play: {lastPlayTime:MMM dd HH:mm})";
                 }
-                else if (daysAway < DifficultyConstants.TIME_DECAY_WEEK_THRESHOLD)
+                else if (daysAway < 7) // Week threshold
                 {
                     reason = $"Away for {daysAway} days (last play: {lastPlayTime:MMM dd})";
                 }

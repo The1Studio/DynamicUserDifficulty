@@ -35,7 +35,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             Assert.AreEqual(DifficultyConstants.MIN_DIFFICULTY, this.config.MinDifficulty);
             Assert.AreEqual(DifficultyConstants.MAX_DIFFICULTY, this.config.MaxDifficulty);
             Assert.AreEqual(DifficultyConstants.DEFAULT_DIFFICULTY, this.config.DefaultDifficulty);
-            Assert.AreEqual(DifficultyConstants.DEFAULT_MAX_CHANGE_PER_SESSION, this.config.MaxChangePerSession);
+            Assert.AreEqual(2f, this.config.MaxChangePerSession); // Default max change per session
         }
 
         [Test]
@@ -90,15 +90,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             // Assert
             Assert.IsNotNull(winConfig);
             Assert.AreEqual(
-                DifficultyConstants.WIN_STREAK_DEFAULT_THRESHOLD,
+                3f, // Default win threshold
                 winConfig.WinThreshold
             );
             Assert.AreEqual(
-                DifficultyConstants.WIN_STREAK_DEFAULT_STEP_SIZE,
+                0.5f, // Default step size
                 winConfig.StepSize
             );
             Assert.AreEqual(
-                DifficultyConstants.WIN_STREAK_DEFAULT_MAX_BONUS,
+                2f, // Default max bonus
                 winConfig.MaxBonus
             );
         }
@@ -112,15 +112,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             // Assert
             Assert.IsNotNull(lossConfig);
             Assert.AreEqual(
-                DifficultyConstants.LOSS_STREAK_DEFAULT_THRESHOLD,
+                2f, // Default loss threshold
                 lossConfig.LossThreshold
             );
             Assert.AreEqual(
-                DifficultyConstants.LOSS_STREAK_DEFAULT_STEP_SIZE,
+                0.3f, // Default step size
                 lossConfig.StepSize
             );
             Assert.AreEqual(
-                DifficultyConstants.LOSS_STREAK_DEFAULT_MAX_REDUCTION,
+                1.5f, // Default max reduction
                 lossConfig.MaxReduction
             );
         }
@@ -134,15 +134,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
             // Assert
             Assert.IsNotNull(timeConfig);
             Assert.AreEqual(
-                DifficultyConstants.TIME_DECAY_DEFAULT_DECAY_PER_DAY,
+                0.5f, // Default decay per day
                 timeConfig.DecayPerDay
             );
             Assert.AreEqual(
-                DifficultyConstants.TIME_DECAY_DEFAULT_MAX_DECAY,
+                2f, // Default max decay
                 timeConfig.MaxDecay
             );
             Assert.AreEqual(
-                DifficultyConstants.TIME_DECAY_DEFAULT_GRACE_HOURS,
+                6f, // Default grace hours
                 timeConfig.GraceHours
             );
         }
@@ -160,15 +160,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Configuration
                 rageConfig.RageQuitThreshold
             );
             Assert.AreEqual(
-                DifficultyConstants.RAGE_QUIT_DEFAULT_REDUCTION,
+                1f, // Default rage quit reduction
                 rageConfig.RageQuitReduction
             );
             Assert.AreEqual(
-                DifficultyConstants.RAGE_QUIT_DEFAULT_QUIT_REDUCTION,
+                0.5f, // Default quit reduction
                 rageConfig.QuitReduction
             );
             Assert.AreEqual(
-                DifficultyConstants.RAGE_QUIT_DEFAULT_MID_PLAY_REDUCTION,
+                0.3f, // Default mid play reduction
                 rageConfig.MidPlayReduction
             );
         }
