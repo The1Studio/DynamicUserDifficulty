@@ -56,7 +56,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                 {
                     // Get the most recent level completion time
                     var lastSession = sessionData.RecentSessions.Peek();
-                    if (lastSession != null && lastSession.PlayDuration > 0)
+                    if (lastSession is { PlayDuration: > 0 })
                     {
                         var timeRatio = lastSession.PlayDuration / avgCompletionTime;
 

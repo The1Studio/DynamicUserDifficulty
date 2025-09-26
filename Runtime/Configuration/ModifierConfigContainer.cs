@@ -70,7 +70,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             if (this.configs == null) return Enumerable.Empty<IModifierConfig>();
 
             return this.configs
-                .Where(c => c != null && c.IsEnabled)
+                .Where(c => c is { IsEnabled: true })
                 .OrderBy(c => c.Priority);
         }
 

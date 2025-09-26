@@ -35,11 +35,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
             IEnumerable<IDifficultyModifier> modifiers,
             ILoggerManager loggerManager)
         {
-            this.calculator = calculator ?? throw new ArgumentNullException(nameof(calculator));
+            this.calculator   = calculator ?? throw new ArgumentNullException(nameof(calculator));
             this.dataProvider = dataProvider ?? throw new ArgumentNullException(nameof(dataProvider));
-            this.config = config ?? throw new ArgumentNullException(nameof(config));
-            this.modifiers = modifiers?.ToList() ?? new List<IDifficultyModifier>();
-            this.logger = loggerManager?.GetLogger(this);
+            this.config       = config ?? throw new ArgumentNullException(nameof(config));
+            this.modifiers    = modifiers?.ToList() ?? new List<IDifficultyModifier>();
+            this.logger       = loggerManager?.GetLogger(this);
 
             this.logger?.Info($"[DynamicDifficultyService] Initialized stateless service with {this.modifiers.Count} modifiers");
         }
@@ -50,11 +50,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         {
             try
             {
-                // Get current difficulty from provider
-                var currentDifficulty = this.dataProvider.GetCurrentDifficulty();
+                // Get current difficulty from provider with null safety
+                var currentDifficulty = this.dataProvider?.GetCurrentDifficulty() ?? DifficultyConstants.DEFAULT_DIFFICULTY;
                 // Get enabled modifiers sorted by priority
                 var enabledModifiers = this.modifiers
-                    .Where(m => m != null && m.IsEnabled)
+                    .Where(m => m is { IsEnabled: true })
                     .OrderBy(m => m.Priority);
 
                 // Calculate new difficulty using pure function
@@ -94,8 +94,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 return;
             }
 
-            // Use provider to persist the difficulty
-            this.dataProvider.SetCurrentDifficulty(result.NewDifficulty);
+            // Use provider to persist the difficulty with null safety
+            this.dataProvider?.SetCurrentDifficulty(result.NewDifficulty);
 
             this.logger?.Info($"[DynamicDifficultyService] Applied difficulty: {result.NewDifficulty:F2}");
         }

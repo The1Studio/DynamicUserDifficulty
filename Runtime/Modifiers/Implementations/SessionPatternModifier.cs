@@ -62,7 +62,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                 }
 
                 // 3. Check recent session patterns
-                if (sessionData.RecentSessions != null && sessionData.RecentSessions.Count >= 3)
+                if (sessionData.RecentSessions is { Count: >= 3 })
                 {
                     var recentSessions = sessionData.RecentSessions.Take(this.config.SessionHistorySize).ToList();
 
@@ -90,7 +90,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
 
                 // 4. Check detailed session info if available
                 float midLevelRatio = 0f;
-                if (sessionData.DetailedSessions != null && sessionData.DetailedSessions.Count >= 3)
+                if (sessionData.DetailedSessions is { Count: >= 3 })
                 {
                     var recentDetailed = sessionData.DetailedSessions.Take(this.config.SessionHistorySize).ToList();
 
