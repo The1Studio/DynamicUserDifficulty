@@ -109,7 +109,7 @@ public class SessionPatternConfig : BaseModifierConfig
             difficultyImprovementThreshold = 1.2f,
         };
         config.SetEnabled(true);
-        config.SetPriority(5);
+        config.SetPriority(7);
         return config;
     }
 }

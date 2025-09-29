@@ -59,7 +59,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
                 totalStatsWeight = 0.3f,
             };
             config.SetEnabled(true);
-            config.SetPriority(3);
+            config.SetPriority(4);
             return config;
         }
     }

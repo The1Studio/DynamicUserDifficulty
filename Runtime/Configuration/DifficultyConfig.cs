@@ -33,12 +33,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         [SerializeField][Tooltip("Threshold for normal sessions in seconds")]
         private float normalSessionThreshold = 1800f; // 30 minutes
 
-        [SerializeField][Tooltip("Default session duration fallback in seconds")]
-        private float defaultSessionDuration = 60f;
-
-        [SerializeField][Tooltip("Default level completion time fallback in seconds")]
-        private float defaultCompletionTime = 60f;
-
         [SerializeField][Tooltip("Maximum recent sessions to analyze")]
         private int maxRecentSessions = 10;
 
@@ -46,9 +40,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         private int minSessionsForTrend = 3;
 
         [Header("Rage Quit Detection")]
-        [SerializeField][Tooltip("Time threshold in seconds for detecting rage quit")]
-        private float rageQuitTimeThreshold = 30f;
-
         [SerializeField][Tooltip("Difficulty reduction for rage quit")]
         private float rageQuitReduction = 1f;
 
@@ -84,13 +75,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         public float MinSessionDuration => this.minSessionDuration;
         public float ShortSessionThreshold => this.shortSessionThreshold;
         public float NormalSessionThreshold => this.normalSessionThreshold;
-        public float DefaultSessionDuration => this.defaultSessionDuration;
-        public float DefaultCompletionTime => this.defaultCompletionTime;
         public int MaxRecentSessions => this.maxRecentSessions;
         public int MinSessionsForTrend => this.minSessionsForTrend;
 
         // Rage Quit
-        public float RageQuitTimeThreshold => this.rageQuitTimeThreshold;
         public float RageQuitReduction => this.rageQuitReduction;
         public float NormalQuitReduction => this.normalQuitReduction;
         public float MidPlayQuitReduction => this.midPlayQuitReduction;
@@ -130,13 +118,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             config.minSessionDuration = 120f;
             config.shortSessionThreshold = 10f;
             config.normalSessionThreshold = 1800f;
-            config.defaultSessionDuration = 60f;
-            config.defaultCompletionTime = 60f;
             config.maxRecentSessions = 10;
             config.minSessionsForTrend = 3;
 
             // Rage quit defaults
-            config.rageQuitTimeThreshold = 30f;
             config.rageQuitReduction = 1f;
             config.normalQuitReduction = 0.5f;
             config.midPlayQuitReduction = 0.3f;
@@ -163,8 +148,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             if (this.minSessionDuration < 0) this.minSessionDuration = 0;
             if (this.shortSessionThreshold < 0) this.shortSessionThreshold = 0;
             if (this.normalSessionThreshold < 0) this.normalSessionThreshold = 0;
-            if (this.defaultSessionDuration < 0) this.defaultSessionDuration = 0;
-            if (this.defaultCompletionTime < 0) this.defaultCompletionTime = 0;
             if (this.maxRecentSessions < 1) this.maxRecentSessions = 1;
             if (this.minSessionsForTrend < 1) this.minSessionsForTrend = 1;
             if (this.cacheExpiryMinutes < 1) this.cacheExpiryMinutes = 1;

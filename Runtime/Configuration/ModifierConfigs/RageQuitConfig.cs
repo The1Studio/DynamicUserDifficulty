@@ -41,7 +41,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         {
             var config = new RageQuitConfig();
             config.SetEnabled(true);
-            config.SetPriority(4);
+            config.SetPriority(5);
             // Field values are already set to defaults via DifficultyConstants
             return config;
         }

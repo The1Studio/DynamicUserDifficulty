@@ -138,7 +138,7 @@ public class LevelProgressConfig : BaseModifierConfig
             estimatedHoursPerSession = 0.33f,
         };
         config.SetEnabled(true);
-        config.SetPriority(4);
+        config.SetPriority(6);
         return config;
     }
 }
