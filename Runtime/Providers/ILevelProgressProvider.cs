@@ -31,5 +31,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Providers
         /// Gets the difficulty rating of the current level (if available) from external service
         /// </summary>
         float GetCurrentLevelDifficulty();
+
+        /// <summary>
+        /// Gets the performance percentage for current level completion time relative to time limit or average.
+        /// Values < 1.0 = faster than expected, values > 1.0 = slower than expected
+        /// </summary>
+        float GetCurrentLevelTimePercentage();
     }
 }

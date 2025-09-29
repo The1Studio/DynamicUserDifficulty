@@ -289,27 +289,65 @@ Adjusts difficulty based on overall player success rate.
 | LowCompletionAdjustment | -0.5f | Reduction for low completion rate |
 | HighCompletionAdjustment | 0.5f | Increase for high completion rate |
 
-#### LevelProgressModifier ✅
+#### LevelProgressModifier ✅ **ENHANCED WITH NEW FEATURES**
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
-Analyzes level progression patterns and adjusts difficulty.
+Analyzes level progression patterns with enhanced time-based calculations and configurable performance thresholds.
 
 **Data Sources:**
 - `ILevelProgressProvider.GetCurrentLevel()`
 - `ILevelProgressProvider.GetAverageCompletionTime()`
 - `ILevelProgressProvider.GetAttemptsOnCurrentLevel()`
 - `ILevelProgressProvider.GetCurrentLevelDifficulty()`
+- `ILevelProgressProvider.GetCurrentLevelTimePercentage()` **🆕 NEW**
 
-**Parameters:**
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| AttemptsThreshold | 5 | Max attempts before reduction |
-| FastCompletionTime | 60f | Fast completion threshold (seconds) |
-| SlowCompletionTime | 300f | Slow completion threshold (seconds) |
-| AttemptsReduction | -0.3f | Reduction per excess attempt |
-| FastCompletionBonus | 0.2f | Bonus for fast completion |
-| SlowCompletionReduction | -0.1f | Reduction for slow completion |
+**Enhanced Parameters (11 total):**
+| Parameter | Default | Range | Description |
+|-----------|---------|-------|-------------|
+| HighAttemptsThreshold | 5 | 3-10 | Max attempts before reduction |
+| DifficultyDecreasePerAttempt | 0.2f | 0.1f-0.5f | Reduction per excess attempt |
+| FastCompletionRatio | 0.7f | 0.3f-0.9f | Fast completion threshold ratio |
+| SlowCompletionRatio | 1.5f | 1.1f-2.0f | Slow completion threshold ratio |
+| FastCompletionBonus | 0.3f | 0.1f-1f | Bonus for fast completion |
+| SlowCompletionPenalty | 0.3f | 0.1f-1f | Reduction for slow completion |
+| **MaxPenaltyMultiplier** | **1.0f** | **0.5f-1.5f** | **🆕 Maximum penalty multiplier for slow completion** |
+| **FastCompletionMultiplier** | **1.0f** | **0.1f-0.9f** | **🆕 Multiplier for fast completion bonus** |
+| **HardLevelThreshold** | **3f** | **2f-5f** | **🆕 Minimum level difficulty for mastery bonus** |
+| **MasteryCompletionRate** | **0.7f** | **0.5f-1f** | **🆕 Completion rate threshold for mastery** |
+| **MasteryBonus** | **0.3f** | **0.1f-0.5f** | **🆕 Difficulty increase for mastering hard levels** |
+| **EasyLevelThreshold** | **2f** | **1f-3f** | **🆕 Maximum level difficulty for struggle detection** |
+| **StruggleCompletionRate** | **0.3f** | **0.1f-0.5f** | **🆕 Completion rate threshold for struggle** |
+| **StrugglePenalty** | **0.3f** | **0.1f-0.5f** | **🆕 Difficulty decrease for struggling on easy levels** |
+| **EstimatedHoursPerSession** | **0.33f** | **0.1f-1f** | **🆕 Estimated hours per session for progression calculation** |
+
+**Enhanced Time-Based Calculation:**
+The modifier now uses `GetCurrentLevelTimePercentage()` as the primary time metric, with fallback to session-based completion time:
+
+```csharp
+// Primary: Use PercentUsingTimeToComplete from UITemplate
+var timePercentage = levelProgressProvider.GetCurrentLevelTimePercentage();
+if (timePercentage > 0)
+{
+    // Values < 1.0 = faster than expected, values > 1.0 = slower than expected
+    if (timePercentage < config.FastCompletionRatio)
+    {
+        var bonus = config.FastCompletionBonus * (1.0f - timePercentage) * config.FastCompletionMultiplier;
+        // Apply bonus with configurable multiplier
+    }
+    else if (timePercentage > config.SlowCompletionRatio)
+    {
+        var penalty = config.SlowCompletionPenalty * Math.Min(timePercentage - 1.0f, config.MaxPenaltyMultiplier);
+        // Apply penalty with configurable cap
+    }
+}
+else
+{
+    // Fallback: Use session-based completion time
+    var avgCompletionTime = levelProgressProvider.GetAverageCompletionTime();
+    // Calculate time ratio and apply adjustments
+}
+```
 
 #### SessionPatternModifier ✅
 
@@ -456,11 +494,11 @@ Rage quit detection interface.
 | GetRecentRageQuitCount() | int | RageQuitModifier ✅, SessionPatternModifier ✅ | Recent rage quit count |
 | GetAverageSessionDuration() | float | SessionPatternModifier ✅ | Average session duration |
 
-### ILevelProgressProvider (Optional) - Using 5/5 methods ✅
+### ILevelProgressProvider (Optional) - Using 6/6 methods ✅ **ENHANCED**
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Providers`
 
-Level progress tracking interface.
+Level progress tracking interface with new time-based method.
 
 | Method | Returns | Used By | Description |
 |--------|---------|---------|-------------|
@@ -469,11 +507,12 @@ Level progress tracking interface.
 | GetAttemptsOnCurrentLevel() | int | LevelProgressModifier ✅ | Attempts on current level |
 | GetCompletionRate() | float | CompletionRateModifier ✅ | Overall completion rate |
 | GetCurrentLevelDifficulty() | float | LevelProgressModifier ✅ | Current level's difficulty |
+| **GetCurrentLevelTimePercentage()** | **float** | **LevelProgressModifier** ✅ | **🆕 Performance percentage for current level completion time (< 1.0 = faster than expected, > 1.0 = slower than expected)** |
 
 ### **🎯 Provider Utilization Summary**
 
-**Total Provider Methods: 21**
-**Methods Used by Modifiers: 21/21 (100% utilization)** ✅
+**Total Provider Methods: 22 (was 21)**
+**Methods Used by Modifiers: 22/22 (100% utilization)** ✅
 
 | Provider Interface | Methods | Used | Utilization | Modifiers Using |
 |-------------------|---------|------|-------------|-----------------|
@@ -481,7 +520,7 @@ Level progress tracking interface.
 | **IWinStreakProvider** | 4 | 4 | 100% | WinStreakModifier, LossStreakModifier, CompletionRateModifier |
 | **ITimeDecayProvider** | 3 | 3 | 100% | TimeDecayModifier |
 | **IRageQuitProvider** | 4 | 4 | 100% | RageQuitModifier, SessionPatternModifier |
-| **ILevelProgressProvider** | 5 | 5 | 100% | CompletionRateModifier, LevelProgressModifier |
+| **ILevelProgressProvider** | **6** | **6** | **100%** | **CompletionRateModifier, LevelProgressModifier** |
 
 ### PlayerPrefsDataProvider
 
@@ -661,6 +700,27 @@ public class GameController
 }
 ```
 
+### Enhanced LevelProgressModifier Usage ✅
+```csharp
+public class EnhancedLevelProgressProvider : ILevelProgressProvider
+{
+    private readonly UITemplateLevelDataController levelController;
+
+    public float GetCurrentLevelTimePercentage()
+    {
+        // 🆕 NEW: Return UITemplate's PercentUsingTimeToComplete
+        var levelData = levelController.GetCurrentLevelData();
+        return levelData?.PercentUsingTimeToComplete ?? 0f;
+    }
+
+    public int GetCurrentLevel() => levelController.CurrentLevel;
+    public float GetAverageCompletionTime() => levelController.GetAverageTime();
+    public int GetAttemptsOnCurrentLevel() => levelController.GetAttempts();
+    public float GetCompletionRate() => levelController.GetCompletionRate();
+    public float GetCurrentLevelDifficulty() => levelController.GetLevelDifficulty();
+}
+```
+
 ### Custom Modifier with Provider Methods ✅
 ```csharp
 public class AdvancedPlayerModifier : BaseDifficultyModifier
@@ -686,6 +746,7 @@ public class AdvancedPlayerModifier : BaseDifficultyModifier
         var avgTime = levelProvider.GetAverageCompletionTime();
         var attempts = levelProvider.GetAttemptsOnCurrentLevel();
         var levelDifficulty = levelProvider.GetCurrentLevelDifficulty();
+        var timePercentage = levelProvider.GetCurrentLevelTimePercentage(); // 🆕 NEW
 
         var avgSessionDuration = rageProvider.GetAverageSessionDuration();
         var recentRageQuits = rageProvider.GetRecentRageQuitCount();
@@ -693,14 +754,15 @@ public class AdvancedPlayerModifier : BaseDifficultyModifier
         // Complex analysis using all available data
         var skillScore = CalculateSkillScore(completionRate, avgTime, attempts);
         var engagementScore = CalculateEngagementScore(avgSessionDuration, recentRageQuits);
+        var timeEfficiencyScore = CalculateTimeEfficiencyScore(timePercentage); // 🆕 NEW
 
-        var adjustment = (skillScore + engagementScore) / 2f;
+        var adjustment = (skillScore + engagementScore + timeEfficiencyScore) / 3f;
 
         return new ModifierResult
         {
             ModifierName = ModifierName,
             Value = adjustment,
-            Reason = $"Advanced analysis: skill={skillScore:F2}, engagement={engagementScore:F2}",
+            Reason = $"Advanced analysis: skill={skillScore:F2}, engagement={engagementScore:F2}, time={timeEfficiencyScore:F2}",
             Metadata = new Dictionary<string, object>
             {
                 ["completion_rate"] = completionRate,
@@ -708,6 +770,7 @@ public class AdvancedPlayerModifier : BaseDifficultyModifier
                 ["avg_time"] = avgTime,
                 ["attempts"] = attempts,
                 ["level_difficulty"] = levelDifficulty,
+                ["time_percentage"] = timePercentage, // 🆕 NEW
                 ["avg_session_duration"] = avgSessionDuration,
                 ["recent_rage_quits"] = recentRageQuits
             }
@@ -746,10 +809,11 @@ Enable debug logs in DifficultyConfig to see:
 - Session tracking
 - Performance metrics
 - Provider method calls ✅
+- Time-based calculations ✅
 
 ---
 
-*API Version: 2.1.0*
-*Last Updated: 2025-01-22*
+*API Version: 2.2.0*
+*Last Updated: 2025-01-26*
 *Namespace: TheOneStudio.DynamicUserDifficulty.*
-*7 Modifiers • 21/21 Provider Methods Used (100% Utilization) • Production Ready*
+*7 Modifiers • 22/22 Provider Methods Used (100% Utilization) • Enhanced LevelProgressModifier • Production Ready*

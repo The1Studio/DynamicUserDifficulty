@@ -39,12 +39,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         {
             public float CompletionRate { get; set; } = 0.5f;
 
-            public float GetCompletionRate() => this.CompletionRate;
-            public int GetCurrentLevel() => 1;
-            public float GetAverageCompletionTime() => 60f;
-            public int GetAttemptsOnCurrentLevel() => 1;
-            public void RecordLevelCompletion(int levelId, float completionTime, bool won) { }
-            public float GetCurrentLevelDifficulty() => 3f;
+            public float GetCompletionRate()                                                => this.CompletionRate;
+            public int   GetCurrentLevel()                                                  => 1;
+            public float GetAverageCompletionTime()                                         => 60f;
+            public int   GetAttemptsOnCurrentLevel()                                        => 1;
+            public void  RecordLevelCompletion(int levelId, float completionTime, bool won) { }
+            public float GetCurrentLevelDifficulty()     => 3f;
+            public float GetCurrentLevelTimePercentage()
+            {
+                return 1f;
+            }
         }
 
         [SetUp]

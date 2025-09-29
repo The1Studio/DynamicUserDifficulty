@@ -89,12 +89,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Utilities
         public float CurrentLevelDifficulty { get; set; } = 3f;
         public float CompletionRate { get; set; } = 0.75f;
         public float AverageCompletionTime { get; set; } = 120f; // 2 minutes
+        public float CurrentLevelTimePercentage { get; set; } = 1.0f; // 100% of expected time
 
         public int GetAttemptsOnCurrentLevel() => this.AttemptsOnCurrentLevel;
         public int GetCurrentLevel() => this.CurrentLevel;
         public float GetCurrentLevelDifficulty() => this.CurrentLevelDifficulty;
         public float GetCompletionRate() => this.CompletionRate;
         public float GetAverageCompletionTime() => this.AverageCompletionTime;
+        public float GetCurrentLevelTimePercentage() => this.CurrentLevelTimePercentage;
 
         public void IncrementAttempts()
         {

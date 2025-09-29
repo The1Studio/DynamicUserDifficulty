@@ -32,6 +32,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             public int GetAttemptsOnCurrentLevel() => this.AttemptsOnCurrentLevel;
             public float GetCompletionRate() => this.CompletionRate;
             public float GetCurrentLevelDifficulty() => this.CurrentLevelDifficulty;
+            public float GetCurrentLevelTimePercentage() => 1.0f;
             public void RecordLevelCompletion(int levelId, float completionTime, bool won) { }
         }
 

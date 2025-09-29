@@ -191,66 +191,159 @@ public class CompletionRateModifier : BaseDifficultyModifier<CompletionRateConfi
 }
 ```
 
-### 6. LevelProgressModifier ✅ NEW
-**Purpose**: Analyzes level progression patterns (attempts, completion time, progression speed)
-**Data Sources**: `ILevelProgressProvider.GetCurrentLevel()`, `GetAverageCompletionTime()`, `GetAttemptsOnCurrentLevel()`, `GetCurrentLevelDifficulty()`
-**Config**: `LevelProgressConfig` ([Serializable] class)
+### 6. LevelProgressModifier ✅ **ENHANCED WITH NEW FEATURES** 🚀
+
+**Purpose**: Analyzes level progression patterns with enhanced time-based calculations and configurable performance thresholds
+**Data Sources**:
+- `ILevelProgressProvider.GetCurrentLevel()`
+- `ILevelProgressProvider.GetAverageCompletionTime()`
+- `ILevelProgressProvider.GetAttemptsOnCurrentLevel()`
+- `ILevelProgressProvider.GetCurrentLevelDifficulty()`
+- **`ILevelProgressProvider.GetCurrentLevelTimePercentage()` 🆕 NEW**
+
+**Config**: `LevelProgressConfig` ([Serializable] class) **with 15 configurable parameters**
+
+#### **Enhanced Configuration Parameters**
+
+**Time Performance Settings** 🆕:
+- `maxPenaltyMultiplier` (Range 0.5f-1.5f, default 1.0f) - Maximum penalty multiplier for slow completion
+- `fastCompletionMultiplier` (Range 0.1f-0.9f, default 1.0f) - Multiplier for fast completion bonus
+
+**Difficulty Performance Settings** 🆕:
+- `hardLevelThreshold` (Range 2f-5f, default 3f) - Minimum level difficulty for mastery bonus
+- `masteryCompletionRate` (Range 0.5f-1f, default 0.7f) - Completion rate threshold for mastery
+- `masteryBonus` (Range 0.1f-0.5f, default 0.3f) - Difficulty increase for mastering hard levels
+- `easyLevelThreshold` (Range 1f-3f, default 2f) - Maximum level difficulty for struggle detection
+- `struggleCompletionRate` (Range 0.1f-0.5f, default 0.3f) - Completion rate threshold for struggle
+- `strugglePenalty` (Range 0.1f-0.5f, default 0.3f) - Difficulty decrease for struggling on easy levels
+
+**Session Time Estimation** 🆕:
+- `estimatedHoursPerSession` (Range 0.1f-1f, default 0.33f) - Estimated hours per session for progression calculation
+
+#### **Enhanced Implementation with PercentUsingTimeToComplete Integration**
 
 ```csharp
 public class LevelProgressModifier : BaseDifficultyModifier<LevelProgressConfig>
 {
     public override ModifierResult Calculate(PlayerSessionData sessionData)
     {
-        var currentLevel = this.levelProgressProvider.GetCurrentLevel();
-        var averageTime = this.levelProgressProvider.GetAverageCompletionTime();
-        var attempts = this.levelProgressProvider.GetAttemptsOnCurrentLevel();
-        var levelDifficulty = this.levelProgressProvider.GetCurrentLevelDifficulty();
-
-        float adjustment = 0f;
+        var value = 0f;
         var reasons = new List<string>();
 
-        // Analyze attempts
-        if (attempts > this.config.AttemptsThreshold)
+        // 1. Check attempts on current level
+        var attempts = this.levelProgressProvider.GetAttemptsOnCurrentLevel();
+        if (attempts > this.config.HighAttemptsThreshold)
         {
-            var excessAttempts = attempts - this.config.AttemptsThreshold;
-            var attemptsReduction = excessAttempts * this.config.AttemptsReduction;
-            adjustment += attemptsReduction;
-            reasons.Add($"Too many attempts ({attempts})");
+            var attemptsAdjustment = -(attempts - this.config.HighAttemptsThreshold) *
+                                   this.config.DifficultyDecreasePerAttempt;
+            value += attemptsAdjustment;
+            reasons.Add($"High attempts ({attempts})");
         }
 
-        // Analyze completion time
-        if (averageTime > 0)
+        // 2. 🆕 PRIMARY: Use PercentUsingTimeToComplete from UITemplate
+        var timePercentage = this.levelProgressProvider.GetCurrentLevelTimePercentage();
+        if (timePercentage > 0)
         {
-            if (averageTime < this.config.FastCompletionTime)
+            if (timePercentage < this.config.FastCompletionRatio)
             {
-                adjustment += this.config.FastCompletionBonus;
-                reasons.Add($"Fast completion ({averageTime:F0}s)");
+                // Completing levels faster than expected (< 100% of time limit/average)
+                var bonus = this.config.FastCompletionBonus * (1.0f - timePercentage) *
+                           this.config.FastCompletionMultiplier; // 🆕 Configurable multiplier
+                value += bonus;
+                reasons.Add($"Fast completion ({timePercentage:P0} of expected time)");
             }
-            else if (averageTime > this.config.SlowCompletionTime)
+            else if (timePercentage > this.config.SlowCompletionRatio)
             {
-                adjustment += this.config.SlowCompletionReduction;
-                reasons.Add($"Slow completion ({averageTime:F0}s)");
+                // Taking longer than expected (> 100% of time limit/average)
+                var penalty = this.config.SlowCompletionPenalty *
+                             Math.Min(timePercentage - 1.0f, this.config.MaxPenaltyMultiplier); // 🆕 Configurable cap
+                value -= penalty;
+                reasons.Add($"Slow completion ({timePercentage:P0} of expected time)");
+            }
+        }
+        // 3. FALLBACK: Use session-based completion time if PercentUsingTimeToComplete is not available
+        else
+        {
+            var avgCompletionTime = this.levelProgressProvider.GetAverageCompletionTime();
+            if (avgCompletionTime > 0 && sessionData.RecentSessions.Count > 0)
+            {
+                var lastSession = sessionData.RecentSessions.Peek();
+                if (lastSession is { PlayDuration: > 0 })
+                {
+                    var timeRatio = lastSession.PlayDuration / avgCompletionTime;
+
+                    if (timeRatio < this.config.FastCompletionRatio)
+                    {
+                        value += this.config.FastCompletionBonus;
+                        reasons.Add($"Fast completion ({timeRatio:P0} of avg)");
+                    }
+                    else if (timeRatio > this.config.SlowCompletionRatio)
+                    {
+                        value -= this.config.SlowCompletionPenalty;
+                        reasons.Add($"Slow completion ({timeRatio:P0} of avg)");
+                    }
+                }
             }
         }
 
-        // Progressive difficulty scaling
-        var levelFactor = Math.Min(currentLevel / 100f, 1f); // Cap at level 100
-        adjustment *= (1f + levelFactor * 0.1f); // Slightly scale with level
+        // 4. Check overall level progression speed
+        var currentLevel = this.levelProgressProvider.GetCurrentLevel();
+        if (sessionData.SessionCount > 0)
+        {
+            // 🆕 Use configurable session time estimation
+            var estimatedHoursPlayed = sessionData.SessionCount * this.config.EstimatedHoursPerSession;
+            var expectedLevel = (int)(estimatedHoursPlayed * this.config.ExpectedLevelsPerHour);
 
-        var reason = reasons.Any() ? string.Join(", ", reasons) : "No progress adjustment";
+            if (expectedLevel > 0)
+            {
+                var levelDifference = currentLevel - expectedLevel;
+                var progressionAdjustment = levelDifference * this.config.LevelProgressionFactor;
+
+                if (Math.Abs(progressionAdjustment) > 0.01f)
+                {
+                    value += progressionAdjustment;
+                    if (levelDifference > 0)
+                        reasons.Add($"Fast progression (L{currentLevel} vs expected L{expectedLevel})");
+                    else
+                        reasons.Add($"Slow progression (L{currentLevel} vs expected L{expectedLevel})");
+                }
+            }
+        }
+
+        // 5. 🆕 NEW: Check level difficulty vs player performance using configurable thresholds
+        var levelDifficulty = this.levelProgressProvider.GetCurrentLevelDifficulty();
+        var completionRate = this.levelProgressProvider.GetCompletionRate();
+
+        // If player is succeeding on hard levels, increase difficulty further
+        if (levelDifficulty >= this.config.HardLevelThreshold &&
+            completionRate > this.config.MasteryCompletionRate)
+        {
+            value += this.config.MasteryBonus;
+            reasons.Add("Mastering hard levels");
+        }
+        // If player is struggling on easy levels, decrease difficulty more
+        else if (levelDifficulty <= this.config.EasyLevelThreshold &&
+                 completionRate < this.config.StruggleCompletionRate)
+        {
+            value -= this.config.StrugglePenalty;
+            reasons.Add("Struggling on easy levels");
+        }
+
+        var finalReason = reasons.Count > 0 ? string.Join(", ", reasons) : "Normal level progression";
 
         return new ModifierResult
         {
-            ModifierName = ModifierName,
-            Value = adjustment,
-            Reason = reason,
-            Metadata = new Dictionary<string, object>
-            {
-                ["current_level"] = currentLevel,
-                ["average_time"] = averageTime,
+            ModifierName = this.ModifierName,
+            Value = value,
+            Reason = finalReason,
+            Metadata = {
                 ["attempts"] = attempts,
-                ["level_difficulty"] = levelDifficulty,
-                ["level_factor"] = levelFactor
+                ["currentLevel"] = currentLevel,
+                ["levelDifficulty"] = levelDifficulty,
+                ["completionRate"] = completionRate,
+                ["timePercentage"] = timePercentage, // 🆕 NEW
+                ["avgCompletionTime"] = this.levelProgressProvider.GetAverageCompletionTime(),
+                ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE,
             }
         };
     }
@@ -381,12 +474,19 @@ namespace YourNamespace
         {
             // Get data from provider
             var avgTime = this.levelProvider.GetAverageCompletionTime();
+            var timePercentage = this.levelProvider.GetCurrentLevelTimePercentage(); // 🆕 NEW
 
             // Check condition using type-safe config properties
             if (avgTime <= 0 || avgTime >= this.config.TimeThreshold)
                 return NoChange("No speed bonus applicable");
 
             var adjustment = this.config.BonusAmount;
+
+            // 🆕 Use new time percentage for more accurate calculation
+            if (timePercentage > 0 && timePercentage < 0.8f) // Faster than 80% of expected time
+            {
+                adjustment *= (1.0f - timePercentage); // Scale bonus based on speed
+            }
 
             // Apply special mode if enabled
             if (this.config.EnableSpecialMode)
@@ -396,10 +496,11 @@ namespace YourNamespace
             {
                 ModifierName = ModifierName,
                 Value = adjustment,
-                Reason = $"Fast completion bonus (avg: {avgTime:F0}s)",
+                Reason = $"Fast completion bonus (avg: {avgTime:F0}s, {timePercentage:P0} of expected)",
                 Metadata = new Dictionary<string, object>
                 {
                     ["average_time"] = avgTime,
+                    ["time_percentage"] = timePercentage, // 🆕 NEW
                     ["threshold"] = this.config.TimeThreshold,
                     ["special_mode"] = this.config.EnableSpecialMode
                 }
@@ -577,9 +678,10 @@ public override ModifierResult Calculate(PlayerSessionData sessionData)
     // Read from providers (external data)
     var winRate = this.levelProvider.GetCompletionRate();
     var avgTime = this.levelProvider.GetAverageCompletionTime();
+    var timePercentage = this.levelProvider.GetCurrentLevelTimePercentage(); // 🆕 NEW
 
     // Pure calculation
-    var adjustment = CalculateAdjustment(winRate, avgTime);
+    var adjustment = CalculateAdjustment(winRate, avgTime, timePercentage);
 
     // Deterministic result
     return new ModifierResult { Value = adjustment };
@@ -641,6 +743,14 @@ public override ModifierResult Calculate(PlayerSessionData sessionData)
         return NoChange("Invalid completion rate data");
     }
 
+    // 🆕 Validate new time percentage data
+    var timePercentage = this.levelProvider.GetCurrentLevelTimePercentage();
+    if (timePercentage < 0)
+    {
+        Debug.LogWarning($"Invalid time percentage: {timePercentage}");
+        return NoChange("Invalid time percentage data");
+    }
+
     // Normal calculation...
 }
 ```
@@ -658,6 +768,7 @@ return new ModifierResult
         ["completion_rate"] = completionRate,
         ["total_games"] = totalGames,
         ["avg_time"] = avgTime,
+        ["time_percentage"] = timePercentage, // 🆕 NEW
         ["threshold_used"] = this.config.Threshold,
         ["calculation_time"] = DateTime.Now
     }
@@ -688,46 +799,49 @@ public class MyModifierConfig : BaseModifierConfig
 
 ## Example Modifiers
 
-### 1. Skill Progression Modifier
+### 1. Enhanced Skill Progression Modifier with PercentUsingTimeToComplete
 
 ```csharp
 /// <summary>
-/// Configuration for Skill Progression modifier - [Serializable] class embedded in DifficultyConfig
+/// Configuration for Enhanced Skill Progression modifier - [Serializable] class embedded in DifficultyConfig
 /// </summary>
 [Serializable]
-public class SkillProgressionConfig : BaseModifierConfig
+public class EnhancedSkillProgressionConfig : BaseModifierConfig
 {
-    [SerializeField] private float fastCompletionTime = 30f;
-    [SerializeField] private float slowCompletionTime = 180f;
+    [SerializeField] private float timeEfficiencyWeight = 0.4f;
+    [SerializeField] private float consistencyWeight = 0.35f;
+    [SerializeField] private float progressionWeight = 0.25f;
     [SerializeField] private float maxReduction = 2f;
     [SerializeField] private float maxIncrease = 1.5f;
 
-    public float FastCompletionTime => this.fastCompletionTime;
-    public float SlowCompletionTime => this.slowCompletionTime;
+    public float TimeEfficiencyWeight => this.timeEfficiencyWeight;
+    public float ConsistencyWeight => this.consistencyWeight;
+    public float ProgressionWeight => this.progressionWeight;
     public float MaxReduction => this.maxReduction;
     public float MaxIncrease => this.maxIncrease;
 
-    public override string ModifierType => "SkillProgression";
+    public override string ModifierType => "EnhancedSkillProgression";
 
     public override BaseModifierConfig CreateDefault()
     {
-        var config = new SkillProgressionConfig();
-        config.fastCompletionTime = 30f;
-        config.slowCompletionTime = 180f;
+        var config = new EnhancedSkillProgressionConfig();
+        config.timeEfficiencyWeight = 0.4f;
+        config.consistencyWeight = 0.35f;
+        config.progressionWeight = 0.25f;
         config.maxReduction = 2f;
         config.maxIncrease = 1.5f;
         return config;
     }
 }
 
-public class SkillProgressionModifier : BaseDifficultyModifier<SkillProgressionConfig>
+public class EnhancedSkillProgressionModifier : BaseDifficultyModifier<EnhancedSkillProgressionConfig>
 {
     private readonly ILevelProgressProvider levelProvider;
     private readonly IWinStreakProvider winProvider;
 
-    public override string ModifierName => "SkillProgression";
+    public override string ModifierName => "EnhancedSkillProgression";
 
-    public SkillProgressionModifier(SkillProgressionConfig config,
+    public EnhancedSkillProgressionModifier(EnhancedSkillProgressionConfig config,
         ILevelProgressProvider levelProvider,
         IWinStreakProvider winProvider) : base(config)
     {
@@ -740,17 +854,21 @@ public class SkillProgressionModifier : BaseDifficultyModifier<SkillProgressionC
         // Comprehensive skill analysis using multiple providers
         var completionRate = this.levelProvider.GetCompletionRate();
         var avgTime = this.levelProvider.GetAverageCompletionTime();
+        var timePercentage = this.levelProvider.GetCurrentLevelTimePercentage(); // 🆕 NEW
         var currentLevel = this.levelProvider.GetCurrentLevel();
         var totalWins = this.winProvider.GetTotalWins();
 
         if (totalWins < 10) return NoChange("Insufficient game history");
 
-        // Calculate skill score (0-1)
-        var timeScore = CalculateTimeScore(avgTime);
+        // 🆕 Enhanced time efficiency calculation using PercentUsingTimeToComplete
+        var timeEfficiencyScore = CalculateTimeEfficiencyScore(timePercentage, avgTime);
         var consistencyScore = CalculateConsistencyScore(completionRate);
         var progressionScore = CalculateProgressionScore(currentLevel, totalWins);
 
-        var overallSkill = (timeScore + consistencyScore + progressionScore) / 3f;
+        // Weighted skill calculation
+        var overallSkill = (timeEfficiencyScore * this.config.TimeEfficiencyWeight) +
+                          (consistencyScore * this.config.ConsistencyWeight) +
+                          (progressionScore * this.config.ProgressionWeight);
 
         // Map skill to difficulty adjustment
         var adjustment = MapSkillToAdjustment(overallSkill);
@@ -763,29 +881,41 @@ public class SkillProgressionModifier : BaseDifficultyModifier<SkillProgressionC
             Metadata = new Dictionary<string, object>
             {
                 ["skill_score"] = overallSkill,
-                ["time_score"] = timeScore,
+                ["time_efficiency_score"] = timeEfficiencyScore,
                 ["consistency_score"] = consistencyScore,
                 ["progression_score"] = progressionScore,
                 ["completion_rate"] = completionRate,
                 ["avg_time"] = avgTime,
+                ["time_percentage"] = timePercentage, // 🆕 NEW
                 ["current_level"] = currentLevel
             }
         };
     }
 
-    private float CalculateTimeScore(float avgTime)
+    private float CalculateTimeEfficiencyScore(float timePercentage, float avgTime)
     {
+        // 🆕 Primary: Use PercentUsingTimeToComplete if available
+        if (timePercentage > 0)
+        {
+            // Convert time percentage to efficiency score
+            // Values < 1.0 = faster than expected (higher efficiency)
+            // Values > 1.0 = slower than expected (lower efficiency)
+            if (timePercentage <= 0.5f) return 1f; // Extremely fast
+            if (timePercentage <= 0.8f) return 0.8f; // Fast
+            if (timePercentage <= 1.0f) return 0.6f; // Normal
+            if (timePercentage <= 1.5f) return 0.4f; // Slow
+            return 0.2f; // Very slow
+        }
+
+        // Fallback: Use average completion time
         if (avgTime <= 0) return 0.5f; // No data, assume average
 
-        // Fast completion = higher skill
-        var fastTime = this.config.FastCompletionTime;
-        var slowTime = this.config.SlowCompletionTime;
-
-        if (avgTime <= fastTime) return 1f;
-        if (avgTime >= slowTime) return 0f;
-
-        // Linear interpolation between fast and slow
-        return 1f - ((avgTime - fastTime) / (slowTime - fastTime));
+        // Simple time-based scoring (adjust thresholds based on your game)
+        if (avgTime <= 30f) return 1f;   // Very fast
+        if (avgTime <= 60f) return 0.8f; // Fast
+        if (avgTime <= 120f) return 0.6f; // Normal
+        if (avgTime <= 300f) return 0.4f; // Slow
+        return 0.2f; // Very slow
     }
 
     private float CalculateConsistencyScore(float completionRate)
@@ -826,107 +956,139 @@ public class SkillProgressionModifier : BaseDifficultyModifier<SkillProgressionC
 }
 ```
 
-### 2. Engagement Pattern Modifier
+### 2. Time-Based Engagement Pattern Modifier
 
 ```csharp
 [Serializable]
-public class EngagementPatternConfig : BaseModifierConfig
+public class TimeBasedEngagementConfig : BaseModifierConfig
 {
-    [SerializeField] private float optimalSessionDuration = 300f;
-    [SerializeField] private float maxHoursForFullScore = 24f;
-    [SerializeField] private float disengagementReduction = 1f;
-    [SerializeField] private float highEngagementBonus = 0.5f;
+    [SerializeField] private float optimalTimePercentage = 0.8f;
+    [SerializeField] private float strugglingTimeThreshold = 1.5f;
+    [SerializeField] private float masteringTimeThreshold = 0.6f;
+    [SerializeField] private float engagementBonus = 0.4f;
+    [SerializeField] private float strugglingPenalty = 0.6f;
 
-    public float OptimalSessionDuration => this.optimalSessionDuration;
-    public float MaxHoursForFullScore => this.maxHoursForFullScore;
-    public float DisengagementReduction => this.disengagementReduction;
-    public float HighEngagementBonus => this.highEngagementBonus;
+    public float OptimalTimePercentage => this.optimalTimePercentage;
+    public float StrugglingTimeThreshold => this.strugglingTimeThreshold;
+    public float MasteringTimeThreshold => this.masteringTimeThreshold;
+    public float EngagementBonus => this.engagementBonus;
+    public float StrugglingPenalty => this.strugglingPenalty;
 
-    public override string ModifierType => "EngagementPattern";
+    public override string ModifierType => "TimeBasedEngagement";
 
     public override BaseModifierConfig CreateDefault()
     {
-        var config = new EngagementPatternConfig();
-        config.optimalSessionDuration = 300f;
-        config.maxHoursForFullScore = 24f;
-        config.disengagementReduction = 1f;
-        config.highEngagementBonus = 0.5f;
+        var config = new TimeBasedEngagementConfig();
+        config.optimalTimePercentage = 0.8f;
+        config.strugglingTimeThreshold = 1.5f;
+        config.masteringTimeThreshold = 0.6f;
+        config.engagementBonus = 0.4f;
+        config.strugglingPenalty = 0.6f;
         return config;
     }
 }
 
-public class EngagementPatternModifier : BaseDifficultyModifier<EngagementPatternConfig>
+public class TimeBasedEngagementModifier : BaseDifficultyModifier<TimeBasedEngagementConfig>
 {
+    private readonly ILevelProgressProvider levelProvider;
     private readonly IRageQuitProvider rageProvider;
-    private readonly ITimeDecayProvider timeProvider;
 
-    public override string ModifierName => "EngagementPattern";
+    public override string ModifierName => "TimeBasedEngagement";
 
-    public EngagementPatternModifier(EngagementPatternConfig config,
-        IRageQuitProvider rageProvider,
-        ITimeDecayProvider timeProvider) : base(config)
+    public TimeBasedEngagementModifier(TimeBasedEngagementConfig config,
+        ILevelProgressProvider levelProvider,
+        IRageQuitProvider rageProvider) : base(config)
     {
+        this.levelProvider = levelProvider;
         this.rageProvider = rageProvider;
-        this.timeProvider = timeProvider;
     }
 
     public override ModifierResult Calculate(PlayerSessionData sessionData)
     {
-        // Analyze engagement patterns
+        // 🆕 Use PercentUsingTimeToComplete for more accurate engagement analysis
+        var timePercentage = this.levelProvider.GetCurrentLevelTimePercentage();
         var avgSessionDuration = this.rageProvider.GetAverageSessionDuration();
         var recentRageQuits = this.rageProvider.GetRecentRageQuitCount();
-        var timeSinceLastPlay = this.timeProvider.GetTimeSinceLastPlay();
 
-        var engagementScore = CalculateEngagementScore(avgSessionDuration, recentRageQuits, timeSinceLastPlay);
-        var adjustment = MapEngagementToAdjustment(engagementScore);
+        var engagementScore = CalculateEngagementScore(timePercentage, avgSessionDuration, recentRageQuits);
+        var adjustment = MapEngagementToAdjustment(engagementScore, timePercentage);
 
         return new ModifierResult
         {
             ModifierName = ModifierName,
             Value = adjustment,
-            Reason = GetEngagementReason(engagementScore),
+            Reason = GetEngagementReason(engagementScore, timePercentage),
             Metadata = new Dictionary<string, object>
             {
                 ["engagement_score"] = engagementScore,
+                ["time_percentage"] = timePercentage, // 🆕 NEW
                 ["avg_session_duration"] = avgSessionDuration,
                 ["recent_rage_quits"] = recentRageQuits,
-                ["hours_since_last_play"] = timeSinceLastPlay.TotalHours
+                ["time_based_analysis"] = timePercentage > 0 // 🆕 NEW
             }
         };
     }
 
-    private float CalculateEngagementScore(float avgDuration, int rageQuits, TimeSpan timeSince)
+    private float CalculateEngagementScore(float timePercentage, float avgDuration, int rageQuits)
     {
-        // Duration score (0-1): Longer sessions = better engagement
-        var durationScore = Math.Min(1f, avgDuration / this.config.OptimalSessionDuration);
+        // 🆕 Enhanced engagement calculation using time percentage
+        var timeEngagementScore = 0.5f; // Default neutral score
 
-        // Rage quit penalty (0-1): More rage quits = worse engagement
-        var rageQuitScore = Math.Max(0f, 1f - (rageQuits * 0.2f));
+        if (timePercentage > 0)
+        {
+            // Players taking optimal time show good engagement
+            if (timePercentage <= this.config.OptimalTimePercentage)
+                timeEngagementScore = 0.8f;
+            // Players struggling might be frustrated
+            else if (timePercentage >= this.config.StrugglingTimeThreshold)
+                timeEngagementScore = 0.2f;
+            // Players mastering quickly might want more challenge
+            else if (timePercentage <= this.config.MasteringTimeThreshold)
+                timeEngagementScore = 1.0f;
+        }
 
-        // Recency score (0-1): More recent play = better engagement
-        var hoursSince = (float)timeSince.TotalHours;
-        var recencyScore = Math.Max(0f, 1f - (hoursSince / this.config.MaxHoursForFullScore));
+        // Session duration engagement (0-1)
+        var durationScore = Math.Min(1f, avgDuration / 300f); // 5 minutes optimal
 
-        // Weighted average
-        return (durationScore * 0.4f + rageQuitScore * 0.4f + recencyScore * 0.2f);
+        // Rage quit penalty (0-1)
+        var rageQuitScore = Math.Max(0f, 1f - (rageQuits * 0.25f));
+
+        // Weighted combination with emphasis on time-based engagement
+        return (timeEngagementScore * 0.5f + durationScore * 0.3f + rageQuitScore * 0.2f);
     }
 
-    private float MapEngagementToAdjustment(float engagementScore)
+    private float MapEngagementToAdjustment(float engagementScore, float timePercentage)
     {
-        // Low engagement: Make easier to re-engage
-        if (engagementScore < 0.3f)
-            return -this.config.DisengagementReduction;
+        // 🆕 Time-aware adjustment mapping
+        if (timePercentage > 0)
+        {
+            // Player mastering levels quickly - increase challenge
+            if (timePercentage <= this.config.MasteringTimeThreshold && engagementScore > 0.7f)
+                return this.config.EngagementBonus;
 
-        // High engagement: Can handle more challenge
-        if (engagementScore > 0.8f)
-            return this.config.HighEngagementBonus;
+            // Player struggling significantly - reduce difficulty
+            if (timePercentage >= this.config.StrugglingTimeThreshold && engagementScore < 0.4f)
+                return -this.config.StrugglingPenalty;
+        }
+
+        // Standard engagement-based adjustments
+        if (engagementScore < 0.3f) return -0.4f;
+        if (engagementScore > 0.8f) return 0.3f;
 
         return 0f;
     }
 
-    private string GetEngagementReason(float engagementScore)
+    private string GetEngagementReason(float engagementScore, float timePercentage)
     {
-        if (engagementScore < 0.3f) return $"Low engagement ({engagementScore:P0}) - reducing difficulty to re-engage";
+        if (timePercentage > 0)
+        {
+            if (timePercentage <= this.config.MasteringTimeThreshold)
+                return $"Mastering levels quickly ({timePercentage:P0} of expected time) - increasing challenge";
+            if (timePercentage >= this.config.StrugglingTimeThreshold)
+                return $"Struggling with timing ({timePercentage:P0} of expected time) - providing assistance";
+        }
+
+        if (engagementScore < 0.3f) return $"Low engagement ({engagementScore:P0}) - reducing difficulty";
         if (engagementScore > 0.8f) return $"High engagement ({engagementScore:P0}) - increasing challenge";
         return $"Moderate engagement ({engagementScore:P0}) - maintaining current difficulty";
     }
@@ -943,28 +1105,28 @@ using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 
 [TestFixture]
-public class SpeedBonusModifierTests
+public class EnhancedModifierTests
 {
-    private SpeedBonusModifier modifier;
-    private SpeedBonusConfig config;
+    private LevelProgressModifier modifier;
+    private LevelProgressConfig config;
     private Mock<ILevelProgressProvider> mockProvider;
 
     [SetUp]
     public void Setup()
     {
-        config = new SpeedBonusConfig();
-        // Set test values using the CreateDefault pattern
-        config = (SpeedBonusConfig)config.CreateDefault();
+        config = new LevelProgressConfig();
+        config = (LevelProgressConfig)config.CreateDefault();
 
         mockProvider = new Mock<ILevelProgressProvider>();
-        modifier = new SpeedBonusModifier(config, mockProvider.Object);
+        modifier = new LevelProgressModifier(config, mockProvider.Object);
     }
 
     [Test]
-    public void Calculate_WithFastCompletion_ReturnsBonus()
+    public void Calculate_WithFastTimePercentage_ReturnsBonus()
     {
         // Arrange
-        mockProvider.Setup(p => p.GetAverageCompletionTime()).Returns(30f); // Fast time
+        mockProvider.Setup(p => p.GetCurrentLevelTimePercentage()).Returns(0.6f); // Fast completion
+        mockProvider.Setup(p => p.GetAttemptsOnCurrentLevel()).Returns(3);
         var sessionData = new PlayerSessionData();
 
         // Act
@@ -972,81 +1134,112 @@ public class SpeedBonusModifierTests
 
         // Assert
         Assert.Greater(result.Value, 0);
-        Assert.Contains("Fast completion bonus", result.Reason);
-        Assert.AreEqual("SpeedBonus", result.ModifierName);
-        Assert.IsTrue(result.Metadata.ContainsKey("average_time"));
+        Assert.Contains("Fast completion", result.Reason);
+        Assert.AreEqual("LevelProgress", result.ModifierName);
+        Assert.IsTrue(result.Metadata.ContainsKey("time_percentage")); // 🆕 NEW
     }
 
     [Test]
-    public void Calculate_WithSlowCompletion_ReturnsNoChange()
+    public void Calculate_WithSlowTimePercentage_AppliesPenalty()
     {
         // Arrange
-        mockProvider.Setup(p => p.GetAverageCompletionTime()).Returns(120f); // Slow time
+        mockProvider.Setup(p => p.GetCurrentLevelTimePercentage()).Returns(1.8f); // Slow completion
+        mockProvider.Setup(p => p.GetAttemptsOnCurrentLevel()).Returns(3);
         var sessionData = new PlayerSessionData();
 
         // Act
         var result = modifier.Calculate(sessionData);
 
         // Assert
-        Assert.AreEqual(0, result.Value);
-        Assert.Contains("No speed bonus applicable", result.Reason);
+        Assert.Less(result.Value, 0);
+        Assert.Contains("Slow completion", result.Reason);
+        Assert.IsTrue(result.Metadata.ContainsKey("time_percentage")); // 🆕 NEW
     }
 
-    [TestCase(15f, 0.5f)] // Very fast
-    [TestCase(45f, 0.5f)] // Medium fast
-    [TestCase(75f, 0f)]   // Too slow
-    public void Calculate_WithVariousCompletionTimes_ReturnsExpectedValues(
-        float completionTime, float expectedBonus)
+    [TestCase(0.5f, 0.3f)] // Very fast - significant bonus
+    [TestCase(0.8f, 0.1f)] // Moderately fast - small bonus
+    [TestCase(1.2f, 0f)]   // Normal speed - no change
+    [TestCase(1.8f, -0.2f)] // Slow - penalty applied
+    public void Calculate_WithVariousTimePercentages_ReturnsExpectedValues(
+        float timePercentage, float expectedSign)
     {
         // Arrange
-        mockProvider.Setup(p => p.GetAverageCompletionTime()).Returns(completionTime);
+        mockProvider.Setup(p => p.GetCurrentLevelTimePercentage()).Returns(timePercentage);
+        mockProvider.Setup(p => p.GetAttemptsOnCurrentLevel()).Returns(3);
         var sessionData = new PlayerSessionData();
 
         // Act
         var result = modifier.Calculate(sessionData);
 
         // Assert
-        Assert.AreEqual(expectedBonus, result.Value, 0.01f);
+        if (expectedSign > 0)
+            Assert.Greater(result.Value, 0, $"Expected positive adjustment for time percentage {timePercentage}");
+        else if (expectedSign < 0)
+            Assert.Less(result.Value, 0, $"Expected negative adjustment for time percentage {timePercentage}");
+        else
+            Assert.AreEqual(0, result.Value, 0.01f, $"Expected no adjustment for time percentage {timePercentage}");
+    }
+
+    [Test]
+    public void Calculate_FallsBackToSessionTime_WhenTimePercentageUnavailable()
+    {
+        // Arrange
+        mockProvider.Setup(p => p.GetCurrentLevelTimePercentage()).Returns(0f); // Not available
+        mockProvider.Setup(p => p.GetAverageCompletionTime()).Returns(60f);
+        mockProvider.Setup(p => p.GetAttemptsOnCurrentLevel()).Returns(3);
+
+        var sessionData = new PlayerSessionData();
+        sessionData.RecentSessions.Enqueue(new SessionInfo { PlayDuration = 30f }); // Fast completion
+
+        // Act
+        var result = modifier.Calculate(sessionData);
+
+        // Assert
+        Assert.Greater(result.Value, 0); // Should get bonus from fast session time
+        Assert.Contains("Fast completion", result.Reason);
+        // Verify fallback was used
+        mockProvider.Verify(p => p.GetCurrentLevelTimePercentage(), Times.Once);
+        mockProvider.Verify(p => p.GetAverageCompletionTime(), Times.Once);
     }
 }
 ```
 
-### Integration Test with Multiple Providers
+### Integration Test with All Provider Methods
 
 ```csharp
 [Test]
-public void ModifierUsesAllProviderMethods_Correctly()
+public void EnhancedModifierUsesAllProviderMethods_Correctly()
 {
     // Arrange
-    var winProvider = new Mock<IWinStreakProvider>();
     var levelProvider = new Mock<ILevelProgressProvider>();
-    var rageProvider = new Mock<IRageQuitProvider>();
 
-    winProvider.Setup(p => p.GetTotalWins()).Returns(50);
-    winProvider.Setup(p => p.GetTotalLosses()).Returns(20);
-    levelProvider.Setup(p => p.GetCompletionRate()).Returns(0.7f);
     levelProvider.Setup(p => p.GetCurrentLevel()).Returns(25);
     levelProvider.Setup(p => p.GetAverageCompletionTime()).Returns(120f);
-    rageProvider.Setup(p => p.GetAverageSessionDuration()).Returns(300f);
+    levelProvider.Setup(p => p.GetAttemptsOnCurrentLevel()).Returns(3);
+    levelProvider.Setup(p => p.GetCompletionRate()).Returns(0.7f);
+    levelProvider.Setup(p => p.GetCurrentLevelDifficulty()).Returns(4.0f);
+    levelProvider.Setup(p => p.GetCurrentLevelTimePercentage()).Returns(0.8f); // 🆕 NEW
 
-    var modifier = new ComprehensiveModifier(config, winProvider.Object,
-        levelProvider.Object, rageProvider.Object);
+    var modifier = new LevelProgressModifier(config, levelProvider.Object);
 
     // Act
     var result = modifier.Calculate(sessionData);
 
     // Assert - Verify all provider methods were called
-    winProvider.Verify(p => p.GetTotalWins(), Times.Once);
-    winProvider.Verify(p => p.GetTotalLosses(), Times.Once);
-    levelProvider.Verify(p => p.GetCompletionRate(), Times.Once);
     levelProvider.Verify(p => p.GetCurrentLevel(), Times.Once);
-    levelProvider.Verify(p => p.GetAverageCompletionTime(), Times.Once);
-    rageProvider.Verify(p => p.GetAverageSessionDuration(), Times.Once);
+    levelProvider.Verify(p => p.GetAverageCompletionTime(), Times.AtLeastOnce);
+    levelProvider.Verify(p => p.GetAttemptsOnCurrentLevel(), Times.Once);
+    levelProvider.Verify(p => p.GetCompletionRate(), Times.Once);
+    levelProvider.Verify(p => p.GetCurrentLevelDifficulty(), Times.Once);
+    levelProvider.Verify(p => p.GetCurrentLevelTimePercentage(), Times.Once); // 🆕 NEW
 
-    // Verify result uses data from all providers
-    Assert.IsTrue(result.Metadata.ContainsKey("total_wins"));
-    Assert.IsTrue(result.Metadata.ContainsKey("completion_rate"));
-    Assert.IsTrue(result.Metadata.ContainsKey("avg_session_duration"));
+    // Verify result uses data from all provider methods
+    Assert.IsTrue(result.Metadata.ContainsKey("attempts"));
+    Assert.IsTrue(result.Metadata.ContainsKey("currentLevel"));
+    Assert.IsTrue(result.Metadata.ContainsKey("levelDifficulty"));
+    Assert.IsTrue(result.Metadata.ContainsKey("completionRate"));
+    Assert.IsTrue(result.Metadata.ContainsKey("avgCompletionTime"));
+    Assert.IsTrue(result.Metadata.ContainsKey("time_percentage")); // 🆕 NEW
 }
 ```
 
@@ -1054,33 +1247,44 @@ public void ModifierUsesAllProviderMethods_Correctly()
 
 ```csharp
 [Test]
-public void Configuration_EmbeddedInDifficultyConfig_WorksCorrectly()
+public void EnhancedConfiguration_EmbeddedInDifficultyConfig_WorksCorrectly()
 {
     // Arrange
     var mainConfig = DifficultyConfig.CreateDefault();
-    var speedBonusConfig = mainConfig.GetModifierConfig<SpeedBonusConfig>("SpeedBonus");
+    var levelProgressConfig = mainConfig.GetModifierConfig<LevelProgressConfig>("LevelProgress");
 
     // Act & Assert
-    Assert.IsNotNull(speedBonusConfig);
-    Assert.AreEqual("SpeedBonus", speedBonusConfig.ModifierType);
-    Assert.AreEqual(60f, speedBonusConfig.TimeThreshold);
-    Assert.AreEqual(0.5f, speedBonusConfig.BonusAmount);
+    Assert.IsNotNull(levelProgressConfig);
+    Assert.AreEqual("LevelProgress", levelProgressConfig.ModifierType);
+
+    // Test new configuration parameters
+    Assert.AreEqual(1.0f, levelProgressConfig.MaxPenaltyMultiplier);
+    Assert.AreEqual(1.0f, levelProgressConfig.FastCompletionMultiplier);
+    Assert.AreEqual(3f, levelProgressConfig.HardLevelThreshold);
+    Assert.AreEqual(0.7f, levelProgressConfig.MasteryCompletionRate);
+    Assert.AreEqual(0.3f, levelProgressConfig.MasteryBonus);
+    Assert.AreEqual(2f, levelProgressConfig.EasyLevelThreshold);
+    Assert.AreEqual(0.3f, levelProgressConfig.StruggleCompletionRate);
+    Assert.AreEqual(0.3f, levelProgressConfig.StrugglePenalty);
+    Assert.AreEqual(0.33f, levelProgressConfig.EstimatedHoursPerSession);
 }
 ```
 
 ### Manual Testing Checklist
 
-- [ ] Modifier registers correctly in DI
-- [ ] Configuration loads properly from single DifficultyConfig
-- [ ] Provider methods are called correctly
-- [ ] Calculation returns expected values
-- [ ] Edge cases handled gracefully
+- [ ] Enhanced modifier registers correctly in DI
+- [ ] All 15 configuration parameters load properly from single DifficultyConfig
+- [ ] `GetCurrentLevelTimePercentage()` provider method is called correctly
+- [ ] Time-based calculations use PercentUsingTimeToComplete as primary metric
+- [ ] Fallback to session-based completion time works when time percentage unavailable
+- [ ] New configuration parameters (maxPenaltyMultiplier, fastCompletionMultiplier, etc.) affect calculations
+- [ ] Mastery and struggle detection works with configurable thresholds
+- [ ] Edge cases handled gracefully (zero/negative values)
 - [ ] Performance impact minimal (< 1ms)
-- [ ] Debug logs work correctly
-- [ ] Metadata populated for debugging
-- [ ] OnApplied hook fires correctly
-- [ ] Integration with all 7 modifiers works
-- [ ] Unity Inspector shows embedded config properly
+- [ ] Debug logs include time percentage information
+- [ ] Metadata populated with all new fields for debugging
+- [ ] Integration with all 7 modifiers still works
+- [ ] Unity Inspector shows all enhanced config parameters properly
 
 ## Troubleshooting
 
@@ -1092,29 +1296,39 @@ public void Configuration_EmbeddedInDifficultyConfig_WorksCorrectly()
    - Check priority order
    - Ensure provider dependencies are satisfied
 
-2. **Configuration Issues** ⚠️ **UPDATED**
+2. **Enhanced Configuration Issues** ⚠️ **UPDATED**
    - Only ONE DifficultyConfig ScriptableObject should exist
-   - Config classes use [Serializable], not [CreateAssetMenu]
+   - LevelProgressConfig should have all 15 parameters visible in Inspector
+   - All modifier configs use [Serializable], not [CreateAssetMenu]
    - All modifier configs are embedded in the single asset
-   - Use type-safe property access: `this.config.PropertyName`
+   - Use type-safe property access: `this.config.MaxPenaltyMultiplier`
 
-3. **Wrong values**
-   - Verify provider data is correct
-   - Check configuration values in Unity Inspector
-   - Test with mock providers
+3. **Time Percentage Issues** 🆕 **NEW**
+   - Verify `GetCurrentLevelTimePercentage()` implementation returns valid values (0-positive)
+   - Check UITemplate integration provides `PercentUsingTimeToComplete` data
+   - Ensure fallback to session-based time calculation works
+   - Values < 1.0 should indicate faster than expected completion
 
-4. **Performance issues**
+4. **Wrong values**
+   - Verify provider data is correct, especially new time percentage method
+   - Check all 15 configuration values in Unity Inspector
+   - Test with mock providers to isolate calculation logic
+   - Validate time-based calculation logic
+
+5. **Performance issues**
    - Cache expensive calculations
    - Avoid LINQ in hot paths
    - Profile with Unity Profiler
-   - Check provider method performance
+   - Check provider method performance, especially new time percentage calculation
 
-5. **Provider-related exceptions**
-   - Check provider implementations
+6. **Provider-related exceptions**
+   - Check provider implementations include new `GetCurrentLevelTimePercentage()` method
    - Verify provider registration in DI
    - Handle null provider data gracefully
+   - Validate time percentage values are non-negative
 
 ---
 
-*Last Updated: 2025-01-22*
-*Configuration Structure Corrected - Single ScriptableObject with Embedded [Serializable] Configs*
+*Last Updated: 2025-01-26*
+*Enhanced LevelProgressModifier with PercentUsingTimeToComplete Integration*
+*15 Configuration Parameters • Primary/Fallback Time Calculation Architecture • Production Ready*
