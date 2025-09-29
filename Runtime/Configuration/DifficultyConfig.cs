@@ -23,10 +23,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         [SerializeField][Range(0.5f, 5f)]
         private float maxChangePerSession = 2f;
 
-        [Header("Precision & Thresholds")]
-        [SerializeField][Tooltip("Minimum change in difficulty to be considered significant")]
-        private float difficultyChangeThreshold = 0.01f;
-
         [Header("Caching")]
         [SerializeField][Tooltip("Cache expiry time in minutes")]
         private int cacheExpiryMinutes = 5;
@@ -44,12 +40,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         public float MaxDifficulty => this.maxDifficulty;
         public float DefaultDifficulty => this.defaultDifficulty;
         public float MaxChangePerSession => this.maxChangePerSession;
-
-        // Precision
-        public float DifficultyChangeThreshold => this.difficultyChangeThreshold;
-
-        // Caching
-        public int CacheExpiryMinutes => this.cacheExpiryMinutes;
 
         // Other
         public ModifierConfigContainer ModifierConfigs => this.modifierConfigs;
@@ -77,7 +67,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             config.maxChangePerSession = 2f;
 
             // Other defaults
-            config.difficultyChangeThreshold = 0.01f;
             config.cacheExpiryMinutes = 5;
 
             // Add default modifiers
