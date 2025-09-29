@@ -75,7 +75,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
 
         // 3. Check overall level progression speed
         var currentLevel = this.levelProgressProvider.GetCurrentLevel();
-        
+
         // Get average completion time to estimate progression rate
         var avgCompletionTime = this.levelProgressProvider.GetAverageCompletionTime();
         if (avgCompletionTime > 0 && currentLevel > 0)
@@ -125,7 +125,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
 
         var finalReason = reasons.Count > 0 ? string.Join(", ", reasons) : "Normal level progression";
 
-        return new ModifierResult
+        return new()
         {
             ModifierName = this.ModifierName,
             Value = value,

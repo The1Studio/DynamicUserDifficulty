@@ -50,8 +50,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         {
             try
             {
-                // Get current difficulty from provider with null safety
-                var currentDifficulty = this.dataProvider?.GetCurrentDifficulty() ?? DifficultyConstants.DEFAULT_DIFFICULTY;
                 // Get enabled modifiers sorted by priority
                 var enabledModifiers = this.modifiers
                     .Where(m => m is { IsEnabled: true })
@@ -93,16 +91,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 return;
             }
 
-            // Clamp the difficulty to ensure it's within valid bounds
-            var clampedDifficulty = this.ClampDifficulty(result.NewDifficulty);
-            
-            // Use provider to persist the clamped difficulty with null safety
-            this.dataProvider?.SetCurrentDifficulty(clampedDifficulty);
+            // Use provider to persist the difficulty with null safety
+            this.dataProvider?.SetCurrentDifficulty(result.NewDifficulty);
 
-            this.logger?.Info($"[DynamicDifficultyService] Applied difficulty: {clampedDifficulty:F2}" +
-                             (Math.Abs(clampedDifficulty - result.NewDifficulty) > 0.01f 
-                                ? $" (clamped from {result.NewDifficulty:F2})" 
-                                : ""));
+            this.logger?.Info($"[DynamicDifficultyService] Applied difficulty: {result.NewDifficulty:F2}");
         }
 
         public float GetDefaultDifficulty()

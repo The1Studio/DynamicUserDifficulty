@@ -18,38 +18,29 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
     // ========== LEVEL AND PROGRESS DEFAULTS ==========
     /// <summary>Default starting level when no level data is available</summary>
     public const int DEFAULT_STARTING_LEVEL = 1;
-    
+
     /// <summary>Default time percentage when completion data is not available (100% of expected time)</summary>
     public const float DEFAULT_TIME_PERCENTAGE = 1.0f;
 
     // ========== SESSION MANAGEMENT ==========
     /// <summary>Maximum number of recent sessions to keep in memory</summary>
     public const int MAX_RECENT_SESSIONS = 10;
-    
+
     /// <summary>Short session threshold in seconds (10 seconds)</summary>
     public const float SHORT_SESSION_THRESHOLD_SECONDS = 10f;
-    
+
     /// <summary>Normal session threshold in seconds (30 minutes)</summary>
     public const float NORMAL_SESSION_THRESHOLD_SECONDS = 1800f;
-    
+
     /// <summary>Default session duration in seconds when no data available</summary>
     public const float DEFAULT_SESSION_DURATION_SECONDS = 60f;
-    
+
     /// <summary>Default level completion time in seconds when no data available</summary>
     public const float DEFAULT_COMPLETION_TIME_SECONDS = 60f;
 
     // ========== PRECISION ==========
     public const float EPSILON = 0.01f; // For float comparisons and difficulty change threshold
     public const float ZERO_VALUE = 0f; // Used by aggregator and modifiers
-
-    // ========== MODIFIER PRIORITIES ==========
-    public const int DEFAULT_MODIFIER_PRIORITY = 0;
-
-    // ========== ANIMATION CURVES ==========
-    public const float CURVE_START_TIME = 0f;  // Used by ModifierConfig
-    public const float CURVE_START_VALUE = 0f; // Used by ModifierConfig
-    public const float CURVE_END_TIME = 1f;    // Used by ModifierConfig
-    public const float CURVE_END_VALUE = 1f;   // Used by ModifierConfig
 
     // ========== MODIFIER TYPE NAMES ==========
     /// <summary>Identifier for Win Streak modifier in configurations</summary>

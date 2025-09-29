@@ -65,7 +65,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
         // 3. Use rage quit data from provider
         var lastQuitType = this.rageQuitProvider.GetLastQuitType();
         var recentRageQuitCount = this.rageQuitProvider.GetRecentRageQuitCount();
-        
+
         // Check for rage quit patterns
         if (recentRageQuitCount >= this.config.RageQuitCountThreshold)
         {
@@ -88,7 +88,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
         if (avgSessionDuration > 0)
         {
             var sessionRatio = avgSessionDuration / this.config.MinNormalSessionDuration;
-            
+
             // Check if sessions are consistently too short
             if (sessionRatio < this.config.ShortSessionRatio)
             {
@@ -101,7 +101,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
 
         var finalReason = reasons.Count > 0 ? string.Join(", ", reasons) : "Normal session patterns";
 
-        return new ModifierResult
+        return new()
         {
             ModifierName = this.ModifierName,
             Value = value,
