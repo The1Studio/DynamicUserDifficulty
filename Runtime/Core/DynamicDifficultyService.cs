@@ -93,10 +93,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                 return;
             }
 
-            // Use provider to persist the difficulty with null safety
-            this.dataProvider?.SetCurrentDifficulty(result.NewDifficulty);
+            // Clamp the difficulty to ensure it's within valid bounds
+            var clampedDifficulty = this.ClampDifficulty(result.NewDifficulty);
+            
+            // Use provider to persist the clamped difficulty with null safety
+            this.dataProvider?.SetCurrentDifficulty(clampedDifficulty);
 
-            this.logger?.Info($"[DynamicDifficultyService] Applied difficulty: {result.NewDifficulty:F2}");
+            this.logger?.Info($"[DynamicDifficultyService] Applied difficulty: {clampedDifficulty:F2}" +
+                             (Math.Abs(clampedDifficulty - result.NewDifficulty) > 0.01f 
+                                ? $" (clamped from {result.NewDifficulty:F2})" 
+                                : ""));
         }
 
         public float GetDefaultDifficulty()
