@@ -7,14 +7,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
     /// <summary>
     /// Interface for difficulty calculation logic
     /// </summary>
+    /// <summary>
+    /// Interface for difficulty calculation logic.
+    /// Uses provider interfaces to get all required data.
+    /// </summary>
     public interface IDifficultyCalculator
     {
         /// <summary>
-        /// Calculates the new difficulty based on session data and modifiers
+        /// Calculates new difficulty based on data from provider interfaces.
+        /// This is a pure function that retrieves all data from providers.
         /// </summary>
-        /// <param name="sessionData">Current player session data</param>
-        /// <param name="modifiers">Collection of difficulty modifiers to apply</param>
-        /// <returns>Result containing the calculated difficulty and applied modifiers</returns>
-        DifficultyResult Calculate(PlayerSessionData sessionData, IEnumerable<IDifficultyModifier> modifiers);
+        /// <param name="modifiers">Collection of modifiers to apply</param>
+        /// <returns>Result containing new difficulty and calculation details</returns>
+        DifficultyResult Calculate(IEnumerable<IDifficultyModifier> modifiers);
     }
 }

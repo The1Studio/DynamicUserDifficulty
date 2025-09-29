@@ -58,7 +58,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.SessionDuration = 100f;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(-0.5f, result.Value); // Normal quit reduction from config
@@ -73,7 +73,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.SessionDuration = 25f; // Below rage quit threshold of 30 seconds
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(-1f, result.Value); // Full rage quit reduction from config
@@ -87,7 +87,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.SessionDuration = 60f; // Above rage quit threshold
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(-0.5f, result.Value); // Normal quit reduction from config
@@ -101,7 +101,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.SessionDuration = 120f;
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         Assert.AreEqual(-0.3f, result.Value); // Mid-play reduction from config
@@ -115,7 +115,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.SessionDuration = 120f;
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         Assert.AreEqual(-0.3f, result.Value); // Mid-play reduction (progress not used in current implementation)
@@ -131,7 +131,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.SessionDuration = 120f;
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert - Normal quit still gets penalty, so let's test the actual behavior
         Assert.AreEqual(-0.5f, result.Value); // Normal quit reduction as expected from implementation
@@ -145,7 +145,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.SessionDuration = 30f; // Exactly at rage quit threshold
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         Assert.AreEqual(-0.5f, result.Value); // Normal quit reduction (not rage quit at exact threshold)
@@ -159,7 +159,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.SessionDuration = 31f; // Just above rage quit threshold
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         Assert.AreEqual(-0.5f, result.Value); // Normal quit reduction
@@ -183,7 +183,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.SessionDuration = 50f;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.LessOrEqual(result.Value, 0f,
@@ -195,7 +195,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public void Calculate_WithNullSessionData_ReturnsNoChange()
     {
         // Act
-        var result = this.modifier.Calculate(null);
+        var result = this.modifier.Calculate();
 
         // Assert - Should return NoChange result, not throw exception
         Assert.AreEqual(0f, result.Value);
@@ -210,8 +210,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.SessionDuration = 45f;
 
             // Act
-            var result1 = this.modifier.Calculate(this.sessionData);
-            var result2 = this.modifier.Calculate(this.sessionData);
+            var result1 = this.modifier.Calculate();
+            var result2 = this.modifier.Calculate();
 
             // Assert - Same input should produce same output
             Assert.AreEqual(result1.Value, result2.Value);
@@ -225,8 +225,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.SessionDuration = 15f; // Below threshold for rage quit
 
             // Act - Rage quit modifier shouldn't be affected by current difficulty
-            var resultLowDiff  = this.modifier.Calculate(this.sessionData);
-            var resultHighDiff = this.modifier.Calculate(this.sessionData);
+            var resultLowDiff  = this.modifier.Calculate();
+            var resultHighDiff = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(resultLowDiff.Value, resultHighDiff.Value);
@@ -251,12 +251,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         // Low progress scenario
         this.mockProvider.LastQuitType = QuitType.MidPlay;
         this.mockProvider.SessionDuration = 120f;
-        var lowProgressResult = this.modifier.Calculate(this.sessionData);
+        var lowProgressResult = this.modifier.Calculate();
 
         // High progress scenario - same setup, just conceptually different progress
         this.mockProvider.LastQuitType = QuitType.MidPlay;
         this.mockProvider.SessionDuration = 120f;
-        var highProgressResult = this.modifier.Calculate(this.sessionData);
+        var highProgressResult = this.modifier.Calculate();
 
         // Assert that penalty is the same (no progress scaling in current implementation)
         Assert.AreEqual(lowProgressResult.Value, highProgressResult.Value);

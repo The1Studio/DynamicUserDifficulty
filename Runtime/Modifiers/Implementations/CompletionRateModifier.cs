@@ -31,11 +31,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
             this.levelProgressProvider = levelProgressProvider;
         }
 
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        public override ModifierResult Calculate()
         {
             try
             {
-                if (sessionData == null || this.winStreakProvider == null || this.levelProgressProvider == null)
+                // Get data from providers - stateless approach
+                if (this.winStreakProvider == null || this.levelProgressProvider == null)
                 {
                     return ModifierResult.NoChange();
                 }

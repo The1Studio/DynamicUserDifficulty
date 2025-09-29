@@ -27,16 +27,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         }
 
 
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        public override ModifierResult Calculate()
         {
             try
             {
-                // Return NoChange if session data is null (convention for null handling)
-                if (sessionData == null)
-                {
-                    return ModifierResult.NoChange();
-                }
-
+                // Get data from providers - stateless approach
                 // Use all three provider methods for comprehensive tracking
                 var lastPlayTime = this.timeDecayProvider.GetLastPlayTime();
                 var timeSincePlay = this.timeDecayProvider.GetTimeSinceLastPlay();

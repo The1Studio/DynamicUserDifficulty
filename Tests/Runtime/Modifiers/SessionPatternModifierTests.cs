@@ -62,7 +62,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_WithNullSessionData_ReturnsNoChange()
         {
             // Act
-            var result = this.modifier.Calculate(null);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -76,7 +76,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.CurrentSessionDuration = 30f; // < 60f threshold
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.Less(result.Value, 0f);
@@ -92,7 +92,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.RecentRageQuitCount = 2;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.Less(result.Value, 0f);
@@ -116,7 +116,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             }
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.Less(result.Value, 0f);
@@ -139,7 +139,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             }
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.Less(result.Value, 0f);
@@ -166,7 +166,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             }
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -181,7 +181,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.RecentRageQuitCount = 2; // Rage quit (needs >= 2)
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             // Should combine very short (-0.5f) and rage quit (-0.5f * 1f) = -1.0f
@@ -193,7 +193,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_ReturnsCorrectMetadata()
         {
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.IsNotNull(result.Metadata);
@@ -218,7 +218,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.CurrentSessionDuration = 45f; // Very short
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.Less(result.Value, 0f);
@@ -236,7 +236,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             );
 
             // Act - Should not throw, but return NoChange
-            TestDelegate action = () => faultyModifier.Calculate(this.sessionData);
+            TestDelegate action = () => faultyModifier.Calculate();
 
             // Assert
             Assert.DoesNotThrow(action);
@@ -249,7 +249,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.CurrentSessionDuration = 59f; // Just below very short threshold (60f)
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             // Should apply very short penalty
@@ -279,7 +279,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             });
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.IsNotNull(result.Metadata);

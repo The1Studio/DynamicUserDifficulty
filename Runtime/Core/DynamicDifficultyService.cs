@@ -46,7 +46,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
 
         public float CurrentDifficulty => this.dataProvider?.GetCurrentDifficulty() ?? DifficultyConstants.DEFAULT_DIFFICULTY;
 
-        public DifficultyResult CalculateDifficulty(PlayerSessionData sessionData = null)
+        public DifficultyResult CalculateDifficulty()
         {
             try
             {
@@ -57,9 +57,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                     .Where(m => m is { IsEnabled: true })
                     .OrderBy(m => m.Priority);
 
-                // Calculate new difficulty using pure function
-                // If sessionData is null, the calculator will use providers to get data
-                var result = this.calculator.Calculate(sessionData, enabledModifiers);
+                // Calculate new difficulty - all data comes from providers
+                var result = this.calculator.Calculate(enabledModifiers);
 
                 this.logger?.Info($"[DynamicDifficultyService] Calculated difficulty: " +
                          $"{result.PreviousDifficulty:F2} -> {result.NewDifficulty:F2}");

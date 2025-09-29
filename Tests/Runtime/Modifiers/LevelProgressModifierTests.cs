@@ -61,7 +61,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_WithNullSessionData_ReturnsNoChange()
         {
             // Act
-            var result = this.modifier.Calculate(null);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -76,7 +76,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.sessionData.SessionCount = 0; // Avoid progression calculation
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.That(result.Value, Is.LessThan(0f), "Result should indicate difficulty decrease for high attempts");
@@ -94,7 +94,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             // This is simulated in the modifier with lastCompletionTime
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             // Since we can't directly control lastCompletionTime in this test,
@@ -113,7 +113,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             // Actual: 5, Difference: -10
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             // The progression penalty should be applied
@@ -129,7 +129,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             // Expected: ~15, Actual: 30, Difference: +15
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.IsNotNull(result.Metadata);
@@ -144,7 +144,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.CurrentLevel = 5; // Slow progression
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             // Should combine attempt penalty and progression penalty
@@ -157,7 +157,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_ReturnsCorrectMetadata()
         {
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.IsNotNull(result.Metadata);
@@ -181,7 +181,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.sessionData.SessionCount = 0;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             // Should handle gracefully without division by zero
@@ -200,7 +200,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             );
 
             // Act - Should not throw, but return NoChange
-            TestDelegate action = () => faultyModifier.Calculate(this.sessionData);
+            TestDelegate action = () => faultyModifier.Calculate();
 
             // Assert
             Assert.DoesNotThrow(action);
@@ -214,7 +214,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.sessionData.SessionCount = 0; // Avoid progression calculation
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             // With 5 attempts (exactly at threshold), no penalty should be applied
@@ -229,7 +229,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.CurrentLevelDifficulty = 5f;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.IsTrue(result.Metadata.ContainsKey("levelDifficulty"));

@@ -7,37 +7,41 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
     /// This service does NOT store any data - it only calculates and returns a difficulty float value.
     /// All data should be retrieved from external services via providers.
     /// </summary>
+    /// <summary>
+    /// Main service interface for dynamic difficulty calculation.
+    /// This is a stateless calculation engine that uses provider interfaces for all data.
+    /// </summary>
     public interface IDynamicDifficultyService
     {
         /// <summary>
-        /// Gets the current difficulty value from the provider.
+        /// Gets the current difficulty value (1-10 scale)
         /// </summary>
         float CurrentDifficulty { get; }
 
         /// <summary>
-        /// Calculates the recommended difficulty based on provider data.
-        /// Uses IDifficultyDataProvider internally to get/set difficulty.
+        /// Calculates new difficulty based on data from provider interfaces.
+        /// This is a pure function that doesn't modify state.
         /// </summary>
-        /// <param name="sessionData">Player session data from external service (can be null to use providers)</param>
-        /// <returns>Calculated difficulty result with adjustment details</returns>
-        DifficultyResult CalculateDifficulty(PlayerSessionData sessionData = null);
+        /// <returns>Result containing new difficulty and calculation details</returns>
+        DifficultyResult CalculateDifficulty();
 
         /// <summary>
-        /// Applies the calculated difficulty result to the provider.
+        /// Applies a calculated difficulty result, updating the current difficulty value.
+        /// This is the only method that modifies state.
         /// </summary>
-        /// <param name="result">The difficulty result to apply</param>
+        /// <param name="result">The calculated result to apply</param>
         void ApplyDifficulty(DifficultyResult result);
 
         /// <summary>
-        /// Gets the recommended difficulty for a new player.
+        /// Gets the default difficulty value from configuration
         /// </summary>
-        /// <returns>Default starting difficulty</returns>
+        /// <returns>Default difficulty value</returns>
         float GetDefaultDifficulty();
 
         /// <summary>
-        /// Clamps a difficulty value to the valid range.
+        /// Clamps a difficulty value to the configured min/max range
         /// </summary>
-        /// <param name="difficulty">Difficulty value to clamp</param>
+        /// <param name="difficulty">Value to clamp</param>
         /// <returns>Clamped difficulty value</returns>
         float ClampDifficulty(float difficulty);
     }

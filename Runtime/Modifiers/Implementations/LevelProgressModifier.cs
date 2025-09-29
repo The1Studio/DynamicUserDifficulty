@@ -28,11 +28,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
             this.levelProgressProvider = levelProgressProvider;
         }
 
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        public override ModifierResult Calculate()
 {
     try
     {
-        if (sessionData == null || this.levelProgressProvider == null)
+        // Get data from providers - stateless approach
+        if (this.levelProgressProvider == null)
         {
             return ModifierResult.NoChange();
         }
@@ -72,42 +73,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
             }
         }
 
-        // 3. Fallback to session-based completion time if PercentUsingTimeToComplete is not available
-        else
-        {
-            var avgCompletionTime = this.levelProgressProvider.GetAverageCompletionTime();
-            if (avgCompletionTime > 0 && sessionData.RecentSessions.Count > 0)
-            {
-                // Get the most recent level completion time
-                var lastSession = sessionData.RecentSessions.Peek();
-                if (lastSession is { PlayDuration: > 0 })
-                {
-                    var timeRatio = lastSession.PlayDuration / avgCompletionTime;
-
-                    if (timeRatio < this.config.FastCompletionRatio)
-                    {
-                        // Completing levels faster than average
-                        value += this.config.FastCompletionBonus;
-                        reasons.Add($"Fast completion ({timeRatio:P0} of avg)");
-                        this.LogDebug($"Fast completion {timeRatio:P0} < {this.config.FastCompletionRatio:P0} -> increase {this.config.FastCompletionBonus:F2}");
-                    }
-                    else if (timeRatio > this.config.SlowCompletionRatio)
-                    {
-                        // Taking longer than average
-                        value -= this.config.SlowCompletionPenalty;
-                        reasons.Add($"Slow completion ({timeRatio:P0} of avg)");
-                        this.LogDebug($"Slow completion {timeRatio:P0} > {this.config.SlowCompletionRatio:P0} -> decrease {this.config.SlowCompletionPenalty:F2}");
-                    }
-                }
-            }
-        }
-
-        // 4. Check overall level progression speed
+        // 3. Check overall level progression speed
         var currentLevel = this.levelProgressProvider.GetCurrentLevel();
-        if (sessionData.SessionCount > 0)
+        
+        // Get average completion time to estimate progression rate
+        var avgCompletionTime = this.levelProgressProvider.GetAverageCompletionTime();
+        if (avgCompletionTime > 0 && currentLevel > 0)
         {
-            // Estimate hours played using configurable value
-            var estimatedHoursPlayed = sessionData.SessionCount * this.config.EstimatedHoursPerSession;
+            // Use average completion time as a proxy for session count/play time
+            // This is more accurate than using sessionData
+            var estimatedHoursPlayed = (currentLevel * avgCompletionTime) / 3600f; // Convert seconds to hours
             var expectedLevel = (int)(estimatedHoursPlayed * this.config.ExpectedLevelsPerHour);
 
             if (expectedLevel > 0)
@@ -131,7 +106,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
             }
         }
 
-        // 5. Check level difficulty vs player performance using configurable thresholds
+        // 4. Check level difficulty vs player performance using configurable thresholds
         var levelDifficulty = this.levelProgressProvider.GetCurrentLevelDifficulty();
         var completionRate = this.levelProgressProvider.GetCompletionRate();
 
@@ -161,7 +136,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                 ["currentLevel"] = currentLevel,
                 ["levelDifficulty"] = levelDifficulty,
                 ["completionRate"] = completionRate,
-                ["avgCompletionTime"] = this.levelProgressProvider.GetAverageCompletionTime(),
+                ["avgCompletionTime"] = avgCompletionTime,
+                ["timePercentage"] = timePercentage,
                 ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE,
             },
         };

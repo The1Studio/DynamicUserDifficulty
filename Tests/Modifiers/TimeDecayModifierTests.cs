@@ -54,7 +54,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.TimeSinceLastPlay = TimeSpan.FromHours(3); // Within 6 hour grace period
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -67,7 +67,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(1).Add(TimeSpan.FromHours(6)); // 1 day + grace period
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         Assert.AreEqual(-0.5f, result.Value, 0.1f); // One day of decay (0.5f per day)
@@ -80,7 +80,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(3).Add(TimeSpan.FromHours(6)); // 3 days + grace
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         Assert.AreEqual(-1.5f, result.Value, 0.1f); // 3 days * 0.5 decay per day
@@ -93,7 +93,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(10); // Very long time
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         Assert.AreEqual(-2f, result.Value, 0.1f); // Capped at max decay (2f)
@@ -106,7 +106,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.TimeSinceLastPlay = TimeSpan.Zero; // Just played now
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         Assert.AreEqual(0f, result.Value); // Within grace period
@@ -119,7 +119,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(-1); // Future time (negative duration shouldn't happen)
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -132,7 +132,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.TimeSinceLastPlay = TimeSpan.FromHours(6); // Exactly at grace period
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert - Use tolerance for floating point comparison
         Assert.AreEqual(0f, result.Value, 0.0001f);
@@ -145,7 +145,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(7).Add(TimeSpan.FromHours(6)); // 1 week + grace
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         // 7 days * 0.5 decay per day, but capped at max (2f)
@@ -159,8 +159,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.TimeSinceLastPlay = TimeSpan.FromDays(2);
 
             // Act - Call twice without delay since we use controllable mock time
-            var result1 = this.modifier.Calculate(this.sessionData);
-            var result2 = this.modifier.Calculate(this.sessionData);
+            var result1 = this.modifier.Calculate();
+            var result2 = this.modifier.Calculate();
 
             // Assert - Results should be identical since we use controllable time
             Assert.AreEqual(result1.Value, result2.Value, 0.01f);
@@ -195,7 +195,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
                 this.mockProvider.TimeSinceLastPlay = timeSpan;
 
                 // Act
-                var result = this.modifier.Calculate(this.sessionData);
+                var result = this.modifier.Calculate();
 
                 // Assert
                 Assert.LessOrEqual(result.Value, 0f,

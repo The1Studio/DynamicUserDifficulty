@@ -24,11 +24,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         bool IsEnabled { get; set; }
 
         /// <summary>
-        /// Calculates the difficulty adjustment for this modifier
+        /// Calculates the difficulty adjustment based on data from providers.
+        /// This is a pure function that gets all data from injected providers.
         /// </summary>
-        /// <param name="sessionData">Current session data</param>
         /// <returns>The modifier result with adjustment value</returns>
-        ModifierResult Calculate(PlayerSessionData sessionData);
+        ModifierResult Calculate();
 
         /// <summary>
         /// Called after difficulty has been applied

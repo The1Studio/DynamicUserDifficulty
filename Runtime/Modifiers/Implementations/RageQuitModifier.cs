@@ -25,16 +25,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         }
 
 
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        public override ModifierResult Calculate()
         {
             try
             {
-                // Return NoChange if session data is null (convention for null handling)
-                if (sessionData == null)
-                {
-                    return ModifierResult.NoChange();
-                }
-
+                // Get data from providers - stateless approach
                 var lastQuitType = this.rageQuitProvider.GetLastQuitType();
                 var recentRageQuits = this.rageQuitProvider.GetRecentRageQuitCount();
                 var sessionDuration = this.rageQuitProvider.GetCurrentSessionDuration();

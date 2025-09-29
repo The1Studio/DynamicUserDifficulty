@@ -75,7 +75,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_WithNullSessionData_ReturnsNoChange()
         {
             // Act
-            var result = this.modifier.Calculate(null);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -90,7 +90,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockWinStreakProvider.TotalLosses = 2; // Total 4 < 10 required
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -107,7 +107,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockLevelProgressProvider.CompletionRate = 0.25f;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.That(result.Value, Is.LessThan(0f), "Result should indicate difficulty decrease");
@@ -124,7 +124,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockLevelProgressProvider.CompletionRate = 0.85f;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.Greater(result.Value, 0f);
@@ -141,7 +141,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockLevelProgressProvider.CompletionRate = 0.5f;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -158,7 +158,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             // Weighted: 0.23 * (1-0.3) + 0.5 * 0.3 = 0.23 * 0.7 + 0.5 * 0.3 = 0.161 + 0.15 = 0.311 < 0.4
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.Less(result.Value, 0f);
@@ -176,7 +176,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockWinStreakProvider.TotalLosses = 5;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.IsNotNull(result.Metadata);
@@ -207,7 +207,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             );
 
             // Act - Should not throw, but return NoChange
-            TestDelegate action = () => faultyModifier.Calculate(this.sessionData);
+            TestDelegate action = () => faultyModifier.Calculate();
 
             // Assert
             Assert.DoesNotThrow(action);

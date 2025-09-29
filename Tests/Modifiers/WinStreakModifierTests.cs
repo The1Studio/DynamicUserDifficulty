@@ -56,7 +56,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.WinStreak = 2; // Below threshold of 3
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -70,7 +70,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.WinStreak = 3; // At threshold
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0.5f, result.Value); // One step size
@@ -83,7 +83,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.WinStreak = 5; // 2 above threshold
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         // (5 - 3 + 1) * 0.5 = 3 * 0.5 = 1.5
@@ -97,7 +97,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.WinStreak = 10; // Way above threshold
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(2f, result.Value); // Capped at max bonus
@@ -110,7 +110,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.WinStreak = 0;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -120,7 +120,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public void Calculate_WithNullSessionData_ReturnsNoChange()
     {
         // Act
-        var result = this.modifier.Calculate(null);
+        var result = this.modifier.Calculate();
 
         // Assert - Should return NoChange result, not throw exception
         Assert.AreEqual(0f, result.Value);
@@ -148,8 +148,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.WinStreak = 4;
 
             // Act
-            var result1 = this.modifier.Calculate(this.sessionData);
-            var result2 = this.modifier.Calculate(this.sessionData);
+            var result1 = this.modifier.Calculate();
+            var result2 = this.modifier.Calculate();
 
             // Assert - Same input should produce same output
             Assert.AreEqual(result1.Value, result2.Value);
@@ -162,8 +162,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.WinStreak = 4;
 
             // Act - Win streak modifier shouldn't be affected by current difficulty
-            var result1 = this.modifier.Calculate(this.sessionData);
-            var result2 = this.modifier.Calculate(this.sessionData);
+            var result1 = this.modifier.Calculate();
+            var result2 = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(result1.Value, result2.Value);

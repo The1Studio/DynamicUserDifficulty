@@ -26,16 +26,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         }
 
 
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        public override ModifierResult Calculate()
         {
             try
             {
-                // Return NoChange if session data is null (convention for null handling)
-                if (sessionData == null)
-                {
-                    return ModifierResult.NoChange();
-                }
-
+                // Get data from provider - stateless approach
                 var lossStreak = this.winStreakProvider.GetLossStreak();
 
                 // Use strongly-typed properties instead of string parameters

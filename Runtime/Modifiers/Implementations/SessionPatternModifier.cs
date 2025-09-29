@@ -29,11 +29,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
             this.rageQuitProvider = rageQuitProvider;
         }
 
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        public override ModifierResult Calculate()
 {
     try
     {
-        if (sessionData == null || this.rageQuitProvider == null)
+        // Get data from providers - stateless approach
+        if (this.rageQuitProvider == null)
         {
             return ModifierResult.NoChange();
         }
@@ -61,74 +62,41 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
             this.LogDebug($"Avg session {avgSessionDuration:F0}s < {this.config.MinNormalSessionDuration:F0}s -> decrease {durationAdjustment:F2}");
         }
 
-        // 3. Check recent session patterns
-        if (sessionData.RecentSessions is { Count: >= 3 })
-        {
-            var recentSessions = sessionData.RecentSessions.Take(this.config.SessionHistorySize).ToList();
-
-            // Count short sessions
-            var shortSessions = recentSessions.Count(s => s.PlayDuration < this.config.MinNormalSessionDuration);
-            var shortRatio = (float)shortSessions / recentSessions.Count;
-
-            if (shortRatio > this.config.ShortSessionRatio)
-            {
-                value -= this.config.ConsistentShortSessionsDecrease;
-                reasons.Add($"Pattern of short sessions ({shortRatio:P0})");
-                this.LogDebug($"Short session pattern {shortRatio:P0} > {this.config.ShortSessionRatio:P0} -> decrease {this.config.ConsistentShortSessionsDecrease:F2}");
-            }
-
-            // Check for rage quit patterns based on session end type (using configurable parameters)
-            var rageQuits = recentSessions.Count(s => s.EndType == SessionEndType.QuitDuringPlay && s.PlayDuration < this.config.RageQuitTimeThreshold);
-            if (rageQuits >= this.config.RageQuitCountThreshold)
-            {
-                value -= this.config.RageQuitPatternDecrease;
-                reasons.Add($"Multiple rage quits ({rageQuits})");
-                this.LogDebug($"Rage quit pattern detected: {rageQuits} rage quits -> decrease {this.config.RageQuitPatternDecrease:F2}");
-            }
-        }
-
-        // 4. Check detailed session info if available
-        float midLevelRatio = 0f;
-        if (sessionData.DetailedSessions is { Count: >= 3 })
-        {
-            var recentDetailed = sessionData.DetailedSessions.Take(this.config.SessionHistorySize).ToList();
-
-            // Check for consistent short sessions in DetailedSessions
-            var shortDetailedSessions = recentDetailed.Count(s => s.Duration < this.config.MinNormalSessionDuration);
-            var shortDetailedRatio = (float)shortDetailedSessions / recentDetailed.Count;
-
-            if (shortDetailedRatio > this.config.ShortSessionRatio)
-            {
-                value -= this.config.ConsistentShortSessionsDecrease;
-                reasons.Add($"Consistent short sessions ({shortDetailedRatio:P0})");
-                this.LogDebug($"Detailed short session pattern {shortDetailedRatio:P0} > {this.config.ShortSessionRatio:P0} -> decrease {this.config.ConsistentShortSessionsDecrease:F2}");
-            }
-
-            // Count mid-level quits
-            var midLevelQuits = recentDetailed.Count(s => s.EndReason == SessionEndReason.QuitMidLevel);
-            midLevelRatio = (float)midLevelQuits / recentDetailed.Count;
-
-            if (midLevelRatio > this.config.MidLevelQuitRatio)
-            {
-                value -= this.config.MidLevelQuitDecrease;
-                reasons.Add($"Frequent mid-level quits ({midLevelRatio:P0})");
-                this.LogDebug($"Mid-level quit pattern {midLevelRatio:P0} > {this.config.MidLevelQuitRatio:P0} -> decrease {this.config.MidLevelQuitDecrease:F2}");
-            }
-
-            // Check if difficulty changes are having positive effect
-            var difficultyTrend = AnalyzeDifficultyTrend(recentDetailed);
-            if (difficultyTrend != null)
-            {
-                reasons.Add(difficultyTrend);
-            }
-        }
-
-        // 5. Use rage quit count from provider (using configurable penalty multiplier)
+        // 3. Use rage quit data from provider
+        var lastQuitType = this.rageQuitProvider.GetLastQuitType();
         var recentRageQuitCount = this.rageQuitProvider.GetRecentRageQuitCount();
+        
+        // Check for rage quit patterns
         if (recentRageQuitCount >= this.config.RageQuitCountThreshold)
         {
-            value -= this.config.RageQuitPatternDecrease * this.config.RageQuitPenaltyMultiplier;
+            var rageQuitPenalty = this.config.RageQuitPatternDecrease * this.config.RageQuitPenaltyMultiplier;
+            value -= rageQuitPenalty;
             reasons.Add($"Recent rage quits ({recentRageQuitCount})");
+            this.LogDebug($"Rage quit pattern detected: {recentRageQuitCount} rage quits -> decrease {rageQuitPenalty:F2}");
+        }
+
+        // 4. Check last quit type for mid-level quit pattern
+        if (lastQuitType == QuitType.MidPlay)
+        {
+            value -= this.config.MidLevelQuitDecrease;
+            reasons.Add("Mid-level quit detected");
+            this.LogDebug($"Mid-level quit detected -> decrease {this.config.MidLevelQuitDecrease:F2}");
+        }
+
+        // 5. Analyze session patterns based on average duration
+        // If average session is consistently short, it indicates frustration
+        if (avgSessionDuration > 0)
+        {
+            var sessionRatio = avgSessionDuration / this.config.MinNormalSessionDuration;
+            
+            // Check if sessions are consistently too short
+            if (sessionRatio < this.config.ShortSessionRatio)
+            {
+                var shortSessionPenalty = this.config.ConsistentShortSessionsDecrease * (1f - sessionRatio);
+                value -= shortSessionPenalty;
+                reasons.Add($"Pattern of short sessions ({sessionRatio:P0})");
+                this.LogDebug($"Short session pattern {sessionRatio:P0} < {this.config.ShortSessionRatio:P0} -> decrease {shortSessionPenalty:F2}");
+            }
         }
 
         var finalReason = reasons.Count > 0 ? string.Join(", ", reasons) : "Normal session patterns";
@@ -143,7 +111,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                 ["currentSessionDuration"] = currentSessionDuration,
                 ["avgSessionDuration"] = avgSessionDuration,
                 ["rageQuitCount"] = recentRageQuitCount,
-                ["midLevelQuitRatio"] = midLevelRatio,
+                ["lastQuitType"] = lastQuitType.ToString(),
                 ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE,
             },
         };
@@ -153,26 +121,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
         this.logger?.Error($"[SessionPatternModifier] Error calculating: {e.Message}");
         return ModifierResult.NoChange();
     }
-}
-
-        private string AnalyzeDifficultyTrend(System.Collections.Generic.List<DetailedSessionInfo> sessions)
-{
-    if (sessions.Count < 2) return null;
-
-    // Check if difficulty decreases are helping (sessions getting longer)
-    var difficultyDecreased = sessions.Any(s => s.EndDifficulty < s.StartDifficulty);
-    if (difficultyDecreased)
-    {
-        var beforeDecrease = sessions.Where(s => s.EndDifficulty >= s.StartDifficulty).Average(s => s.Duration);
-        var afterDecrease = sessions.Where(s => s.EndDifficulty < s.StartDifficulty).Average(s => s.Duration);
-
-        if (afterDecrease > beforeDecrease * this.config.DifficultyImprovementThreshold)
-        {
-            return "Difficulty adjustments helping";
-        }
-    }
-
-    return null;
 }
     }
 }

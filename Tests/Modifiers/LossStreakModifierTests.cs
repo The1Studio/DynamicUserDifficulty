@@ -55,7 +55,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.LossStreak = 1; // Below threshold of 2
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -69,7 +69,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.LossStreak = 2; // At threshold
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(-0.3f, result.Value); // Negative one step size
@@ -82,7 +82,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         this.mockProvider.LossStreak = 4; // 2 above threshold
 
         // Act
-        var result = this.modifier.Calculate(this.sessionData);
+        var result = this.modifier.Calculate();
 
         // Assert
         // (4 - 2 + 1) * 0.3 = 3 * 0.3 = -0.9
@@ -96,7 +96,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.LossStreak = 10; // Way above threshold
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(-1.5f, result.Value); // Capped at negative max reduction
@@ -109,7 +109,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.LossStreak = 0;
 
             // Act
-            var result = this.modifier.Calculate(this.sessionData);
+            var result = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(0f, result.Value);
@@ -119,7 +119,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     public void Calculate_WithNullSessionData_ReturnsNoChange()
     {
         // Act
-        var result = this.modifier.Calculate(null);
+        var result = this.modifier.Calculate();
 
         // Assert - Should return NoChange result, not throw exception
         Assert.AreEqual(0f, result.Value);
@@ -136,7 +136,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
                 this.mockProvider.LossStreak = lossStreak;
 
                 // Act
-                var result = this.modifier.Calculate(this.sessionData);
+                var result = this.modifier.Calculate();
 
                 // Assert
                 Assert.LessOrEqual(result.Value, 0f,
@@ -151,8 +151,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.LossStreak = 3;
 
             // Act
-            var result1 = this.modifier.Calculate(this.sessionData);
-            var result2 = this.modifier.Calculate(this.sessionData);
+            var result1 = this.modifier.Calculate();
+            var result2 = this.modifier.Calculate();
 
             // Assert - Same input should produce same output
             Assert.AreEqual(result1.Value, result2.Value);
@@ -165,8 +165,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.mockProvider.LossStreak = 3;
 
             // Act - Loss streak modifier shouldn't be affected by current difficulty
-            var resultLowDiff  = this.modifier.Calculate(this.sessionData);
-            var resultHighDiff = this.modifier.Calculate(this.sessionData);
+            var resultLowDiff  = this.modifier.Calculate();
+            var resultHighDiff = this.modifier.Calculate();
 
             // Assert
             Assert.AreEqual(resultLowDiff.Value, resultHighDiff.Value);

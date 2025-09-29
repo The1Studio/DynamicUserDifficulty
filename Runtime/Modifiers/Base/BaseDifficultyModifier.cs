@@ -28,7 +28,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             this.logger = loggerManager?.GetLogger(this);
         }
 
-        public abstract ModifierResult Calculate(PlayerSessionData sessionData);
+        public abstract ModifierResult Calculate();
 
         public virtual void OnApplied(DifficultyResult result)
         {
