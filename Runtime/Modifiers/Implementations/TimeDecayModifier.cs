@@ -9,6 +9,8 @@ using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
+    using ILogger = TheOne.Logging.ILogger;
+
     /// <summary>
     /// Reduces difficulty based on time since last play
     /// Requires ITimeDecayProvider to be implemented by the game
@@ -21,7 +23,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_TIME_DECAY;
 
         // Constructor for typed config
-        public TimeDecayModifier(TimeDecayConfig config, ITimeDecayProvider timeDecayProvider, ILoggerManager loggerManager = null) : base(config, loggerManager)
+        public TimeDecayModifier(TimeDecayConfig config, ITimeDecayProvider timeDecayProvider, ILogger logger) : base(config, logger)
         {
             this.timeDecayProvider = timeDecayProvider ?? throw new ArgumentNullException(nameof(timeDecayProvider));
         }
@@ -51,7 +53,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 // FIX: Use provider's daysAway directly if available (provider already considers business logic)
                 // Only calculate from hours if provider returns 0 days but we're past grace period
                 float effectiveDays;
-                
+
                 if (daysAway > 0)
                 {
                     // Provider has already determined we're away for full days

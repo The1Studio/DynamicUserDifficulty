@@ -33,13 +33,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
             IDifficultyDataProvider dataProvider,
             DifficultyConfig config,
             IEnumerable<IDifficultyModifier> modifiers,
-            ILoggerManager loggerManager)
+            ILogger logger)
         {
             this.calculator   = calculator ?? throw new ArgumentNullException(nameof(calculator));
             this.dataProvider = dataProvider ?? throw new ArgumentNullException(nameof(dataProvider));
             this.config       = config ?? throw new ArgumentNullException(nameof(config));
             this.modifiers    = modifiers?.ToList() ?? new List<IDifficultyModifier>();
-            this.logger       = loggerManager?.GetLogger(this);
+            this.logger       = logger;
 
             this.logger?.Info($"[DynamicDifficultyService] Initialized stateless service with {this.modifiers.Count} modifiers");
         }

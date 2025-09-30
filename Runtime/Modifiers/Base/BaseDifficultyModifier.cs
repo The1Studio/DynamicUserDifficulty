@@ -21,11 +21,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 
         public TConfig Config => this.config;
 
-        protected BaseDifficultyModifier(TConfig config, ILoggerManager loggerManager = null)
+        protected BaseDifficultyModifier(TConfig config, ILogger logger)
         {
             this.config = config;
             this.IsEnabled = config?.IsEnabled ?? true;
-            this.logger = loggerManager?.GetLogger(this);
+            this.logger = logger;
         }
 
         public abstract ModifierResult Calculate();

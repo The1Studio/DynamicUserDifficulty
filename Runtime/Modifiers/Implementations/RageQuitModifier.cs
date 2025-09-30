@@ -19,7 +19,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_RAGE_QUIT;
 
         // Constructor for typed config
-        public RageQuitModifier(RageQuitConfig config, IRageQuitProvider rageQuitProvider, ILoggerManager loggerManager = null) : base(config, loggerManager)
+        public RageQuitModifier(RageQuitConfig config, IRageQuitProvider rageQuitProvider, ILogger logger) : base(config, logger)
         {
             this.rageQuitProvider = rageQuitProvider ?? throw new System.ArgumentNullException(nameof(rageQuitProvider));
         }

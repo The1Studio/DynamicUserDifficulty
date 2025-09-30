@@ -11,6 +11,7 @@ using UnityEngine.Scripting;
 namespace TheOneStudio.DynamicUserDifficulty.Calculators
 {
     using UnityEngine;
+    using ILogger = TheOne.Logging.ILogger;
 
     /// <summary>
     /// Default implementation of difficulty calculator.
@@ -22,19 +23,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
         private readonly DifficultyConfig config;
         private readonly ModifierAggregator aggregator;
         private readonly IDifficultyDataProvider dataProvider;
-        private readonly TheOne.Logging.ILogger logger;
+        private readonly ILogger logger;
 
         [Preserve]
         public DifficultyCalculator(
             DifficultyConfig config,
             ModifierAggregator aggregator,
             IDifficultyDataProvider dataProvider,
-            ILoggerManager loggerManager)
+            ILogger logger)
         {
             this.config = config;
             this.aggregator = aggregator;
             this.dataProvider = dataProvider;
-            this.logger = loggerManager.GetLogger(this);
+            this.logger = logger;
         }
 
         public DifficultyResult Calculate(IEnumerable<IDifficultyModifier> modifiers)

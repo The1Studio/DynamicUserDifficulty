@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
@@ -19,14 +18,17 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_SESSION_PATTERN;
 
         private readonly IRageQuitProvider rageQuitProvider;
+        private readonly ISessionPatternProvider sessionPatternProvider;
 
         public SessionPatternModifier(
             SessionPatternConfig config,
             IRageQuitProvider rageQuitProvider,
-            ILoggerManager loggerManager = null)
-            : base(config, loggerManager)
+            ISessionPatternProvider sessionPatternProvider,
+            ILogger logger)
+            : base(config, logger)
         {
             this.rageQuitProvider = rageQuitProvider;
+            this.sessionPatternProvider = sessionPatternProvider;
         }
 
         public override ModifierResult Calculate()
@@ -96,6 +98,69 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                 value -= shortSessionPenalty;
                 reasons.Add($"Pattern of short sessions ({sessionRatio:P0})");
                 this.LogDebug($"Short session pattern {sessionRatio:P0} < {this.config.ShortSessionRatio:P0} -> decrease {shortSessionPenalty:F2}");
+            }
+        }
+
+        // 6. Advanced session history analysis (if provider available)
+        if (this.sessionPatternProvider != null)
+        {
+            // 6a. Analyze recent session history for patterns
+            var recentSessions = this.sessionPatternProvider.GetRecentSessionDurations(this.config.SessionHistorySize);
+            if (recentSessions != null && recentSessions.Count > 0)
+            {
+                // Count how many recent sessions were very short
+                var shortSessionCount = 0;
+                foreach (var duration in recentSessions)
+                {
+                    if (duration > 0 && duration < this.config.VeryShortSessionThreshold)
+                        shortSessionCount++;
+                }
+
+                // Check if too many recent sessions were short
+                if (recentSessions.Count >= this.config.SessionHistorySize)
+                {
+                    var shortRatio = (float)shortSessionCount / recentSessions.Count;
+                    if (shortRatio > this.config.ShortSessionRatio)
+                    {
+                        var historyPenalty = this.config.ConsistentShortSessionsDecrease * shortRatio;
+                        value -= historyPenalty;
+                        reasons.Add($"History shows {shortSessionCount}/{recentSessions.Count} short sessions");
+                        this.LogDebug($"Session history analysis: {shortSessionCount}/{recentSessions.Count} were short -> decrease {historyPenalty:F2}");
+                    }
+                }
+            }
+
+            // 6b. Check mid-level quit ratio
+            var totalQuits = this.sessionPatternProvider.GetTotalRecentQuits();
+            var midLevelQuits = this.sessionPatternProvider.GetRecentMidLevelQuits();
+            if (totalQuits > 0)
+            {
+                var midQuitRatio = (float)midLevelQuits / totalQuits;
+                if (midQuitRatio > this.config.MidLevelQuitRatio)
+                {
+                    var midQuitPenalty = this.config.MidLevelQuitDecrease * (midQuitRatio / this.config.MidLevelQuitRatio);
+                    value -= midQuitPenalty;
+                    reasons.Add($"High mid-level quit ratio ({midQuitRatio:P0})");
+                    this.LogDebug($"Mid-level quit ratio {midQuitRatio:P0} > {this.config.MidLevelQuitRatio:P0} -> decrease {midQuitPenalty:F2}");
+                }
+            }
+
+            // 6c. Check if difficulty adjustments are improving experience
+            var previousDifficulty = this.sessionPatternProvider.GetPreviousDifficulty();
+            var previousSessionDuration = this.sessionPatternProvider.GetSessionDurationBeforeLastAdjustment();
+            if (previousDifficulty > 0 && previousSessionDuration > 0 && currentSessionDuration > 0)
+            {
+                // Check if session duration improved after difficulty adjustment
+                var improvementRatio = currentSessionDuration / previousSessionDuration;
+
+                // If we decreased difficulty but sessions are still short, decrease more
+                if (previousDifficulty > 0 && improvementRatio < this.config.DifficultyImprovementThreshold)
+                {
+                    var additionalAdjustment = (this.config.DifficultyImprovementThreshold - improvementRatio) * 0.5f;
+                    value -= additionalAdjustment;
+                    reasons.Add($"Difficulty adjustment not effective (improvement: {improvementRatio:F2}x)");
+                    this.LogDebug($"Previous adjustment not effective enough ({improvementRatio:F2}x < {this.config.DifficultyImprovementThreshold:F2}x) -> additional decrease {additionalAdjustment:F2}");
+                }
             }
         }
 

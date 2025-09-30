@@ -22,8 +22,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
         public LevelProgressModifier(
             LevelProgressConfig config,
             ILevelProgressProvider levelProgressProvider,
-            ILoggerManager loggerManager = null)
-            : base(config, loggerManager)
+            ILogger logger)
+            : base(config, logger)
         {
             this.levelProgressProvider = levelProgressProvider;
         }

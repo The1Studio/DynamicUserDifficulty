@@ -1,4 +1,3 @@
-using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
@@ -8,6 +7,8 @@ using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
+    using ILogger = TheOne.Logging.ILogger;
+
     /// <summary>
     /// Increases difficulty based on consecutive wins
     /// Requires IWinStreakProvider to be implemented by the game
@@ -21,7 +22,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 
         // Constructor for typed config
         [Preserve]
-        public WinStreakModifier(WinStreakConfig config, IWinStreakProvider winStreakProvider, ILoggerManager loggerManager = null) : base(config, loggerManager)
+        public WinStreakModifier(WinStreakConfig config, IWinStreakProvider winStreakProvider, ILogger logger) : base(config, logger)
         {
             this.winStreakProvider = winStreakProvider ?? throw new System.ArgumentNullException(nameof(winStreakProvider));
         }

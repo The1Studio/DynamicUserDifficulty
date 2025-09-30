@@ -1,4 +1,3 @@
-using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
@@ -8,6 +7,8 @@ using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
+    using ILogger = TheOne.Logging.ILogger;
+
     /// <summary>
     /// Decreases difficulty based on consecutive losses
     /// Requires IWinStreakProvider to be implemented by the game
@@ -20,7 +21,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK;
 
         // Constructor for typed config
-        public LossStreakModifier(LossStreakConfig config, IWinStreakProvider winStreakProvider, ILoggerManager loggerManager = null) : base(config, loggerManager)
+        public LossStreakModifier(LossStreakConfig config, IWinStreakProvider winStreakProvider, ILogger logger) : base(config, logger)
         {
             this.winStreakProvider = winStreakProvider ?? throw new System.ArgumentNullException(nameof(winStreakProvider));
         }

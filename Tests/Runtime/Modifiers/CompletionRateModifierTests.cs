@@ -61,7 +61,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.modifier = new(
                 this.config,
                 this.mockWinStreakProvider,
-                this.mockLevelProgressProvider
+                this.mockLevelProgressProvider,
+                null
             );
 
             this.sessionData = new();

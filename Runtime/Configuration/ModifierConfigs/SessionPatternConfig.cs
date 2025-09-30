@@ -54,10 +54,6 @@ public class SessionPatternConfig : BaseModifierConfig
 
     [Header("Rage Quit Detection Settings")]
 
-    [SerializeField][Range(10f, 60f)]
-    [Tooltip("Time threshold for detecting rage quits in session analysis (seconds)")]
-    private float rageQuitTimeThreshold = 30f;
-
     [SerializeField][Range(1, 5)]
     [Tooltip("Minimum number of rage quits to trigger pattern detection")]
     private int rageQuitCountThreshold = 2;
@@ -85,7 +81,6 @@ public class SessionPatternConfig : BaseModifierConfig
     public float RageQuitPatternDecrease => this.rageQuitPatternDecrease;
     public float MidLevelQuitDecrease => this.midLevelQuitDecrease;
     public float MidLevelQuitRatio => this.midLevelQuitRatio;
-    public float RageQuitTimeThreshold => this.rageQuitTimeThreshold;
     public int RageQuitCountThreshold => this.rageQuitCountThreshold;
     public float RageQuitPenaltyMultiplier => this.rageQuitPenaltyMultiplier;
     public float DifficultyImprovementThreshold => this.difficultyImprovementThreshold;
@@ -103,7 +98,6 @@ public class SessionPatternConfig : BaseModifierConfig
             rageQuitPatternDecrease = 1f,
             midLevelQuitDecrease = 0.4f,
             midLevelQuitRatio = 0.3f,
-            rageQuitTimeThreshold = 30f,
             rageQuitCountThreshold = 2,
             rageQuitPenaltyMultiplier = 0.5f,
             difficultyImprovementThreshold = 1.2f,
