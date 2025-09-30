@@ -48,15 +48,21 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 
             if (hoursSincePlay > graceHours)
             {
-                // Use provider's daysAway value for more accurate calculation
-                // Provider might have custom logic for counting days
-                float effectiveDays = daysAway;
-
-                // If grace period hasn't passed for a full day, adjust
-                if (daysAway == 0 && hoursSincePlay > graceHours)
+                // FIX: Use provider's daysAway directly if available (provider already considers business logic)
+                // Only calculate from hours if provider returns 0 days but we're past grace period
+                float effectiveDays;
+                
+                if (daysAway > 0)
                 {
-                    var effectiveHours = hoursSincePlay - graceHours;
-                    effectiveDays = (float)(effectiveHours / DifficultyConstants.HOURS_IN_DAY);
+                    // Provider has already determined we're away for full days
+                    effectiveDays = daysAway;
+                }
+                else
+                {
+                    // Less than a full day away, but past grace period
+                    // Calculate fractional days from hours beyond grace period
+                    var hoursAfterGrace = hoursSincePlay - graceHours;
+                    effectiveDays = (float)(hoursAfterGrace / DifficultyConstants.HOURS_IN_DAY);
                 }
 
                 // Calculate decay

@@ -18,7 +18,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         private float maxDifficulty = 10f;
 
         [SerializeField][Range(1f, 10f)]
-        private float defaultDifficulty = 5f;
+        private float defaultDifficulty = 3f;
 
         [SerializeField][Range(0.5f, 5f)]
         private float maxChangePerSession = 2f;
@@ -60,10 +60,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         {
             var config = CreateInstance<DifficultyConfig>();
 
-            // Set default values
-            config.minDifficulty = 1f;
-            config.maxDifficulty = 10f;
-            config.defaultDifficulty = 5f;
+            // Set default values using constants
+            config.minDifficulty = DifficultyConstants.MIN_DIFFICULTY;
+            config.maxDifficulty = DifficultyConstants.MAX_DIFFICULTY;
+            config.defaultDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
             config.maxChangePerSession = 2f;
 
             // Other defaults

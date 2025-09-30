@@ -110,18 +110,23 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
         var levelDifficulty = this.levelProgressProvider.GetCurrentLevelDifficulty();
         var completionRate = this.levelProgressProvider.GetCompletionRate();
 
-        // If player is succeeding on hard levels, increase difficulty further
+        // FIX: Use mutually exclusive conditions to prevent both bonuses and penalties applying
+        // Priority order: Mastery on hard levels > Struggling on easy levels > Normal
         if (levelDifficulty >= this.config.HardLevelThreshold && completionRate > this.config.MasteryCompletionRate)
         {
+            // Player is succeeding on hard levels - increase difficulty
             value += this.config.MasteryBonus;
             reasons.Add("Mastering hard levels");
+            this.LogDebug($"Mastery detected: difficulty {levelDifficulty:F1} >= {this.config.HardLevelThreshold:F1}, completion {completionRate:P0} > {this.config.MasteryCompletionRate:P0}");
         }
-        // If player is struggling on easy levels, decrease difficulty more
         else if (levelDifficulty <= this.config.EasyLevelThreshold && completionRate < this.config.StruggleCompletionRate)
         {
+            // Player is struggling on easy levels - decrease difficulty
             value -= this.config.StrugglePenalty;
             reasons.Add("Struggling on easy levels");
+            this.LogDebug($"Struggle detected: difficulty {levelDifficulty:F1} <= {this.config.EasyLevelThreshold:F1}, completion {completionRate:P0} < {this.config.StruggleCompletionRate:P0}");
         }
+        // Note: No adjustment for medium difficulty levels or normal completion rates
 
         var finalReason = reasons.Count > 0 ? string.Join(", ", reasons) : "Normal level progression";
 

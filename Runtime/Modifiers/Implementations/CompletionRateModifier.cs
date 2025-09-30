@@ -68,9 +68,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                 // Also get level-specific completion rate for more accurate assessment
                 var levelCompletionRate = this.levelProgressProvider.GetCompletionRate();
 
-                // Weighted average of overall and level-specific rates
-                var weightedRate = completionRate * (1f - this.config.TotalStatsWeight) +
-                                  levelCompletionRate * this.config.TotalStatsWeight;
+                // FIX: Corrected weighted average formula
+                // TotalStatsWeight represents how much weight to give to total stats (vs level-specific)
+                // If TotalStatsWeight = 0.2, then total stats get 20% weight, level-specific gets 80%
+                var weightedRate = completionRate * this.config.TotalStatsWeight +
+                                  levelCompletionRate * (1f - this.config.TotalStatsWeight);
 
                 var value = 0f;
                 var reason = "Completion rate normal";
