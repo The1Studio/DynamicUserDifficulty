@@ -192,8 +192,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
     }
 
         [Test]
-
-        [Test]
         public void Calculate_ConsistentResults()
         {
             // Arrange

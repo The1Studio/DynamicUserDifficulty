@@ -71,3 +71,51 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.sessionData = new PlayerSessionData();
         }
 
+        [Test]
+        public void Calculate_WithInsufficientAttempts_ReturnsZero()
+        {
+            // Arrange
+            this.mockWinStreakProvider.TotalWins = 1;
+            this.mockWinStreakProvider.TotalLosses = 0; // Only 1 attempt total
+
+            // Act
+            var result = this.modifier.Calculate();
+
+            // Assert
+            Assert.AreEqual(0f, result.Value);
+            StringAssert.Contains("Not enough attempts", result.Reason);
+        }
+
+        [Test]
+        public void Calculate_WithLowCompletionRate_DecreasesDifficulty()
+        {
+            // Arrange
+            this.mockWinStreakProvider.TotalWins = 2;
+            this.mockWinStreakProvider.TotalLosses = 8; // 20% win rate
+            this.mockLevelProgressProvider.CompletionRate = 0.2f;
+
+            // Act
+            var result = this.modifier.Calculate();
+
+            // Assert
+            Assert.Less(result.Value, 0f);
+            StringAssert.Contains("Low completion rate", result.Reason);
+        }
+
+        [Test]
+        public void Calculate_WithHighCompletionRate_IncreasesDifficulty()
+        {
+            // Arrange
+            this.mockWinStreakProvider.TotalWins = 9;
+            this.mockWinStreakProvider.TotalLosses = 1; // 90% win rate
+            this.mockLevelProgressProvider.CompletionRate = 0.9f;
+
+            // Act
+            var result = this.modifier.Calculate();
+
+            // Assert
+            Assert.Greater(result.Value, 0f);
+            StringAssert.Contains("High completion rate", result.Reason);
+        }
+    }
+}

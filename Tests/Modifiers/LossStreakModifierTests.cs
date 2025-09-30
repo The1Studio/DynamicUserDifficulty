@@ -116,8 +116,6 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         }
 
         [Test]
-
-        [Test]
         public void Calculate_AlwaysReturnsNegativeOrZero()
         {
             // Test multiple loss streak values
