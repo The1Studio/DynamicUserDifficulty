@@ -247,6 +247,12 @@ The system automatically:
 | **[Documentation/TestStrategy.md](Documentation/TestStrategy.md)** | Testing approach & guidelines | Planning test coverage |
 | **[Documentation/TestImplementation.md](Documentation/TestImplementation.md)** ✅ | **Complete test suite (164 tests)** | Test implementation details |
 
+### 📱 Mobile Optimization
+
+| Document | Description | When to Use |
+|----------|-------------|-------------|
+| **[Documentation/MobilePuzzleGameOptimization.md](Documentation/MobilePuzzleGameOptimization.md)** 🎮 | **Optimized settings for mobile puzzle games** | Configuring for mobile |
+
 ### 🎯 Learning Path
 
 ```mermaid
