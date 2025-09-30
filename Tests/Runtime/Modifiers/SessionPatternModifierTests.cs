@@ -1,12 +1,8 @@
-using System.Collections.Generic;
 using NUnit.Framework;
-using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
-using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations;
 using TheOneStudio.DynamicUserDifficulty.Providers;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
@@ -42,19 +38,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.config.SetEnabled(true);
             this.config.SetPriority(5);
 
-            this.mockProvider = new MockRageQuitProvider();
+            this.mockProvider = new();
 
-            this.modifier = new SessionPatternModifier(
+            this.modifier = new(
                 this.config,
                 this.mockProvider,
                 null
             );
 
             // Initialize session data with correct collection types
-            this.sessionData = new PlayerSessionData
+            this.sessionData = new()
             {
-                DetailedSessions = new List<DetailedSessionInfo>(),
-                RecentSessions = new Queue<SessionInfo>()
+                DetailedSessions = new(),
+                RecentSessions   = new()
             };
         }
 

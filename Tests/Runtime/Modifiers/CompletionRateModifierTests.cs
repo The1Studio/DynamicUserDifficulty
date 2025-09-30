@@ -1,11 +1,8 @@
 using NUnit.Framework;
-using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
-using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations;
 using TheOneStudio.DynamicUserDifficulty.Providers;
-using UnityEngine;
 
 namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
 {
@@ -58,17 +55,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
             this.config.SetEnabled(true);
             this.config.SetPriority(3);
 
-            this.mockWinStreakProvider = new MockWinStreakProvider();
-            this.mockLevelProgressProvider = new MockLevelProgressProvider();
+            this.mockWinStreakProvider     = new();
+            this.mockLevelProgressProvider = new();
 
-            this.modifier = new CompletionRateModifier(
+            this.modifier = new(
                 this.config,
                 this.mockWinStreakProvider,
-                this.mockLevelProgressProvider,
-                null
+                this.mockLevelProgressProvider
             );
 
-            this.sessionData = new PlayerSessionData();
+            this.sessionData = new();
         }
 
         [Test]

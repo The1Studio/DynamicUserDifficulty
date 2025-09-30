@@ -57,10 +57,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         public void CalculateDifficulty_WithNoModifiers_ReturnsCurrentDifficulty()
         {
             // Arrange
-            float currentDifficulty = 5.0f;
+            var currentDifficulty = 5.0f;
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(currentDifficulty, new());
+            var result = this.difficultyManager.CalculateDifficulty(currentDifficulty, new());
 
             // Assert
             Assert.AreEqual(currentDifficulty, result);
@@ -70,7 +70,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         public void CalculateDifficulty_WithPositiveModifier_IncreasesDifficulty()
         {
             // Arrange
-            float currentDifficulty = 5.0f;
+            var currentDifficulty = 5.0f;
 
             var modifierResults = new List<ModifierResult>
             {
@@ -78,7 +78,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
             };
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(currentDifficulty, modifierResults);
+            var result = this.difficultyManager.CalculateDifficulty(currentDifficulty, modifierResults);
 
             // Assert
             Assert.Greater(result, currentDifficulty);
@@ -88,7 +88,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         public void CalculateDifficulty_WithNegativeModifier_DecreasesDifficulty()
         {
             // Arrange
-            float currentDifficulty = 5.0f;
+            var currentDifficulty = 5.0f;
 
             var modifierResults = new List<ModifierResult>
             {
@@ -96,7 +96,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
             };
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(currentDifficulty, modifierResults);
+            var result = this.difficultyManager.CalculateDifficulty(currentDifficulty, modifierResults);
 
             // Assert
             Assert.Less(result, currentDifficulty);
@@ -106,10 +106,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         public void ClampDifficulty_ClampsToMinimum()
         {
             // Arrange
-            float belowMin = DifficultyConstants.MIN_DIFFICULTY - 5f;
+            var belowMin = DifficultyConstants.MIN_DIFFICULTY - 5f;
 
             // Act
-            float result = this.difficultyManager.ClampDifficulty(belowMin);
+            var result = this.difficultyManager.ClampDifficulty(belowMin);
 
             // Assert
             Assert.AreEqual(DifficultyConstants.MIN_DIFFICULTY, result);
@@ -119,10 +119,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         public void ClampDifficulty_ClampsToMaximum()
         {
             // Arrange
-            float aboveMax = DifficultyConstants.MAX_DIFFICULTY + 5f;
+            var aboveMax = DifficultyConstants.MAX_DIFFICULTY + 5f;
 
             // Act
-            float result = this.difficultyManager.ClampDifficulty(aboveMax);
+            var result = this.difficultyManager.ClampDifficulty(aboveMax);
 
             // Assert
             Assert.AreEqual(DifficultyConstants.MAX_DIFFICULTY, result);
@@ -132,8 +132,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         public void CalculateDifficulty_RespectsMaxChangePerSession()
         {
             // Arrange
-            float startDifficulty = 5.0f;
-            float maxChange = this.config.MaxChangePerSession;
+            var startDifficulty = 5.0f;
+            var maxChange = this.config.MaxChangePerSession;
 
             var modifierResults = new List<ModifierResult>
             {
@@ -141,7 +141,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
             };
 
             // Act
-            float result = this.difficultyManager.CalculateDifficulty(startDifficulty, modifierResults);
+            var result = this.difficultyManager.CalculateDifficulty(startDifficulty, modifierResults);
 
             // Assert
             Assert.LessOrEqual(result - startDifficulty, maxChange);
@@ -151,7 +151,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Core
         public void GetDefaultDifficulty_ReturnsCorrectValue()
         {
             // Act
-            float defaultDiff = this.difficultyManager.GetDefaultDifficulty();
+            var defaultDiff = this.difficultyManager.GetDefaultDifficulty();
 
             // Assert
             Assert.AreEqual(DifficultyConstants.DEFAULT_DIFFICULTY, defaultDiff);

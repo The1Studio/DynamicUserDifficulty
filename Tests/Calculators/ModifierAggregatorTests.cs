@@ -21,7 +21,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
         public void Aggregate_NullResults_ReturnsZero()
         {
             // Act
-            float result = this.aggregator.Aggregate(null);
+            var result = this.aggregator.Aggregate(null);
 
             // Assert
             Assert.AreEqual(DifficultyConstants.ZERO_VALUE, result);
@@ -34,7 +34,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             var results = new List<ModifierResult>();
 
             // Act
-            float result = this.aggregator.Aggregate(results);
+            var result = this.aggregator.Aggregate(results);
 
             // Assert
             Assert.AreEqual(DifficultyConstants.ZERO_VALUE, result);
@@ -50,7 +50,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             };
 
             // Act
-            float result = this.aggregator.Aggregate(results);
+            var result = this.aggregator.Aggregate(results);
 
             // Assert
             Assert.AreEqual(2.5f, result);
@@ -68,7 +68,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             };
 
             // Act
-            float result = this.aggregator.Aggregate(results);
+            var result = this.aggregator.Aggregate(results);
 
             // Assert
             Assert.AreEqual(3.0f, result);
@@ -81,7 +81,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             var weights = new Dictionary<string, float>();
 
             // Act
-            float result = this.aggregator.AggregateWeighted(null, weights);
+            var result = this.aggregator.AggregateWeighted(null, weights);
 
             // Assert
             Assert.AreEqual(DifficultyConstants.ZERO_VALUE, result);
@@ -95,7 +95,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             var weights = new Dictionary<string, float>();
 
             // Act
-            float result = this.aggregator.AggregateWeighted(results, weights);
+            var result = this.aggregator.AggregateWeighted(results, weights);
 
             // Assert
             Assert.AreEqual(DifficultyConstants.ZERO_VALUE, result);
@@ -118,7 +118,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             };
 
             // Act
-            float result = this.aggregator.AggregateWeighted(results, weights);
+            var result = this.aggregator.AggregateWeighted(results, weights);
 
             // Assert
             // (2*1 + 4*2) / (1+2) = 10/3 = 3.333...
@@ -141,7 +141,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             };
 
             // Act
-            float result = this.aggregator.AggregateWeighted(results, weights);
+            var result = this.aggregator.AggregateWeighted(results, weights);
 
             // Assert
             // (2*2 + 4*1) / (2+1) = 8/3 = 2.666...
@@ -159,7 +159,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             };
 
             // Act
-            float result = this.aggregator.AggregateWeighted(results, null);
+            var result = this.aggregator.AggregateWeighted(results, null);
 
             // Assert
             // (2*1 + 4*1) / (1+1) = 6/2 = 3
@@ -170,7 +170,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
         public void AggregateMax_NullResults_ReturnsZero()
         {
             // Act
-            float result = this.aggregator.AggregateMax(null);
+            var result = this.aggregator.AggregateMax(null);
 
             // Assert
             Assert.AreEqual(DifficultyConstants.ZERO_VALUE, result);
@@ -183,7 +183,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             var results = new List<ModifierResult>();
 
             // Act
-            float result = this.aggregator.AggregateMax(results);
+            var result = this.aggregator.AggregateMax(results);
 
             // Assert
             Assert.AreEqual(DifficultyConstants.ZERO_VALUE, result);
@@ -201,7 +201,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             };
 
             // Act
-            float result = this.aggregator.AggregateMax(results);
+            var result = this.aggregator.AggregateMax(results);
 
             // Assert
             Assert.AreEqual(-3.0f, result); // Largest absolute value with sign preserved
@@ -211,7 +211,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
         public void AggregateDiminishing_NullResults_ReturnsZero()
         {
             // Act
-            float result = this.aggregator.AggregateDiminishing(null);
+            var result = this.aggregator.AggregateDiminishing(null);
 
             // Assert
             Assert.AreEqual(DifficultyConstants.ZERO_VALUE, result);
@@ -224,7 +224,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             var results = new List<ModifierResult>();
 
             // Act
-            float result = this.aggregator.AggregateDiminishing(results);
+            var result = this.aggregator.AggregateDiminishing(results);
 
             // Assert
             Assert.AreEqual(DifficultyConstants.ZERO_VALUE, result);
@@ -242,7 +242,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             };
 
             // Act
-            float result = this.aggregator.AggregateDiminishing(results, 0.5f);
+            var result = this.aggregator.AggregateDiminishing(results, 0.5f);
 
             // Assert
             // Sorted by absolute value: 4, 2, 1
@@ -261,7 +261,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Calculators
             };
 
             // Act
-            float result = this.aggregator.AggregateDiminishing(results, 0.7f);
+            var result = this.aggregator.AggregateDiminishing(results, 0.7f);
 
             // Assert
             // 3*1.0 + 2*0.7 = 3 + 1.4 = 4.4

@@ -276,7 +276,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Models
         public void RecentSessions_LimitedToMaxSize()
         {
             // Arrange & Act
-            for (int i = 0; i < DifficultyConstants.MAX_RECENT_SESSIONS + 5; i++)
+            for (var i = 0; i < DifficultyConstants.MAX_RECENT_SESSIONS + 5; i++)
             {
                 this.sessionData.RecordWin(i, 60f + i);
             }

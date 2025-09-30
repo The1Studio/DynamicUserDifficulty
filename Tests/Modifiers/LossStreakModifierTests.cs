@@ -119,7 +119,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_AlwaysReturnsNegativeOrZero()
         {
             // Test multiple loss streak values
-            for (int lossStreak = 0; lossStreak < 10; lossStreak++)
+            for (var lossStreak = 0; lossStreak < 10; lossStreak++)
             {
                 // Arrange
                 this.mockProvider.LossStreak = lossStreak;
