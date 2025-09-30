@@ -62,9 +62,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_WithHighAttempts_DecreasesDifficulty()
         {
             // Arrange
-            this.mockProvider.AttemptsOnCurrentLevel = 6; // High attempts
-            this.mockProvider.CurrentLevelDifficulty = 2f; // Set to easy level to avoid mastery bonus
-            this.mockProvider.CompletionRate = 0.4f; // Set to moderate to avoid other bonuses
+            this.mockProvider.AttemptsOnCurrentLevel = 6; // High attempts (threshold is 5)
+            this.mockProvider.CurrentLevelDifficulty = 2f; // Easy level
+            this.mockProvider.CompletionRate = 0.2f; // Low enough to trigger struggle penalty
+            this.mockProvider.CurrentLevelTimePercentage = 1.0f; // Normal time (not fast or slow)
+            this.mockProvider.CurrentLevel = 10; // Keep default
+            this.mockProvider.AverageCompletionTime = 0; // Set to 0 to avoid level progression calculations
 
             // Act
             var result = this.modifier.Calculate();
@@ -92,10 +95,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
         public void Calculate_WithSlowCompletion_DecreasesDifficulty()
         {
             // Arrange
-            this.mockProvider.CurrentLevelTimePercentage = 1.5f; // 150% of expected time
-            this.mockProvider.CurrentLevelDifficulty = 2f; // Set to easy level to avoid mastery bonus
-            this.mockProvider.CompletionRate = 0.4f; // Set to moderate to avoid other bonuses
+            this.mockProvider.CurrentLevelTimePercentage = 1.5f; // 150% of expected time (slow)
+            this.mockProvider.CurrentLevelDifficulty = 1f; // Very easy level
+            this.mockProvider.CompletionRate = 0.2f; // Low completion rate to avoid any bonuses
             this.mockProvider.AttemptsOnCurrentLevel = 1; // Low attempts to avoid that penalty
+            this.mockProvider.CurrentLevel = 10; // Keep default
+            this.mockProvider.AverageCompletionTime = 0; // Set to 0 to avoid level progression calculations
 
             // Act
             var result = this.modifier.Calculate();
