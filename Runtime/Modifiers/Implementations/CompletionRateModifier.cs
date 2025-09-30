@@ -23,9 +23,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
         public CompletionRateModifier(
             CompletionRateConfig config,
             IWinStreakProvider winStreakProvider,
-            ILevelProgressProvider levelProgressProvider,
-            ILoggerManager loggerManager = null)
-            : base(config, loggerManager)
+            ILevelProgressProvider levelProgressProvider)
+            : base(config)
         {
             this.winStreakProvider = winStreakProvider;
             this.levelProgressProvider = levelProgressProvider;
