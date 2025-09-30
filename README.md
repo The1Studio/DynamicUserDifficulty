@@ -1,6 +1,6 @@
 # 🎮 Dynamic User Difficulty Service
 
-An intelligent, stateless difficulty calculation engine for Unity games that adapts to player performance in real-time through a clean provider pattern.
+A **stateless difficulty calculation engine** for Unity games that adapts to player performance in real-time through a clean provider pattern.
 
 [![Unity](https://img.shields.io/badge/Unity-2021.3%2B-blue.svg)](https://unity.com)
 [![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](package.json)
@@ -33,6 +33,7 @@ The Dynamic User Difficulty (DUD) service is a **stateless calculation engine** 
 - **Level Progress Patterns** - Attempts, completion time, and progression analysis
 - **Session Behavior** - Detects rage quits and session duration patterns
 - **Time Since Last Play** - Reduces difficulty for returning players
+- **Real-Time Performance** - Uses PercentUsingTimeToComplete for accurate timing analysis
 - **Custom Modifiers** - Easily extend with your own difficulty factors
 
 ### Why Use This System?
@@ -93,7 +94,7 @@ QuitType lastQuit = gameAnalyticsService.GetLastQuitType();
 builder.RegisterDynamicDifficulty();
 
 // 2. Module calculates difficulty based on external data
-var result = difficultyService.CalculateDifficulty(currentDifficulty, sessionData);
+var result = difficultyService.CalculateDifficulty();
 
 // 3. Module returns calculation - YOU decide what to do with it
 var newDifficulty = result.NewDifficulty;
@@ -108,11 +109,13 @@ difficultyDataProvider.SetCurrentDifficulty(newDifficulty);
 - ✅ **Stateless difficulty calculation** based on external data
 - ✅ **Provider-based architecture** for clean data separation
 - ✅ **7 comprehensive modifiers** covering all player behavior patterns
+- ✅ **Calculate() methods take NO parameters** - pure stateless functions
 - ✅ Time-based decay for returning players
 - ✅ Rage quit detection and compensation
 - ✅ Completion rate analysis and adjustment
 - ✅ Level progress pattern recognition
 - ✅ Session duration and pattern analysis
+- ✅ **Enhanced time-based analysis** with PercentUsingTimeToComplete integration
 - ✅ Configurable difficulty ranges and thresholds
 - ✅ Built-in analytics integration
 - ✅ Debug tools and visualization
@@ -121,7 +124,7 @@ difficultyDataProvider.SetCurrentDifficulty(newDifficulty);
 - ✅ **Pure calculation engine** with SOLID principles
 - ✅ VContainer dependency injection
 - ✅ Unity assembly definitions
-- ✅ **Complete test suite (153 tests, ~95% coverage)**
+- ✅ **Complete test suite (164 tests, ~95% coverage)**
 - ✅ Performance optimized (<10ms calculations)
 - ✅ Full API documentation
 - ✅ **Production-ready with complete implementation**
@@ -132,13 +135,13 @@ difficultyDataProvider.SetCurrentDifficulty(newDifficulty);
 |-----------|--------|-------|----------|
 | **Stateless Core Service** | ✅ Complete | 10 tests | ~95% |
 | **Provider System** | ✅ Complete | 15 tests | ~95% |
-| **7 Typed Modifiers** | ✅ Complete | 79 tests | ~95% |
+| **7 Stateless Modifiers** | ✅ Complete | 79 tests | ~95% |
 | **Models & Data** | ✅ Complete | 20 tests | ~90% |
 | **Calculators** | ✅ Complete | 18 tests | ~90% |
 | **Type-Safe Configuration** | ✅ Complete | 25 tests | ~88% |
 | **Integration** | ✅ Complete | 14 tests | ~85% |
 | **Total Implementation** | ✅ Complete | 11 tests | ~90% |
-| **TOTAL** | **✅ PRODUCTION-READY** | **153 tests** | **~95%** |
+| **TOTAL** | **✅ PRODUCTION-READY** | **164 tests** | **~95%** |
 
 ## Quick Start
 
@@ -186,7 +189,7 @@ public class GameController
 
     public void StartLevel()
     {
-        // Get current difficulty (calculated from external data)
+        // Get current difficulty (calculated from external data via providers)
         var difficulty = difficultyAdapter.CurrentDifficulty; // 1-10 scale
 
         // Get game parameters adjusted for difficulty
@@ -202,7 +205,7 @@ public class GameController
 
 The system automatically:
 - ✅ Calculates difficulty from game signals and provider data
-- ✅ Uses 7 modifiers for comprehensive behavior analysis
+- ✅ Uses 7 modifiers for comprehensive behavior analysis (all stateless)
 - ✅ Provides real-time difficulty values based on current game state
 - ✅ Stores only the current difficulty value (minimal footprint)
 - ✅ Persists data through your existing game systems
@@ -233,7 +236,7 @@ The system automatically:
 |----------|---------|-----------|
 | **[Documentation/ImplementationGuide.md](Documentation/ImplementationGuide.md)** | Step-by-step stateless implementation | Building from scratch |
 | **[Documentation/APIReference.md](Documentation/APIReference.md)** | Complete API documentation | During development |
-| **[Documentation/ModifierGuide.md](Documentation/ModifierGuide.md)** | Creating custom modifiers | Extending the system |
+| **[Documentation/ModifierGuide.md](Documentation/ModifierGuide.md)** | Creating custom modifiers (stateless) | Extending the system |
 | **[Documentation/IntegrationGuide.md](Documentation/IntegrationGuide.md)** | Integration with game systems | Connecting to your game |
 
 ### Testing Documentation ✅ COMPLETE
@@ -242,7 +245,7 @@ The system automatically:
 |----------|---------|-----------|
 | **[Documentation/TestFrameworkDesign.md](Documentation/TestFrameworkDesign.md)** | Test infrastructure design | Setting up tests |
 | **[Documentation/TestStrategy.md](Documentation/TestStrategy.md)** | Testing approach & guidelines | Planning test coverage |
-| **[Documentation/TestImplementation.md](Documentation/TestImplementation.md)** ✅ | **Complete test suite (153 tests)** | Test implementation details |
+| **[Documentation/TestImplementation.md](Documentation/TestImplementation.md)** ✅ | **Complete test suite (164 tests)** | Test implementation details |
 
 ### 🎯 Learning Path
 
@@ -268,7 +271,7 @@ DynamicUserDifficulty/
 │   ├── 📄 IntegrationGuide.md
 │   ├── 📄 TestFrameworkDesign.md
 │   ├── 📄 TestStrategy.md
-│   └── 📄 TestImplementation.md ✅ 153 tests
+│   └── 📄 TestImplementation.md ✅ 164 tests
 │
 ├── 📁 Runtime/                # Source code ✅ COMPLETE
 │   ├── 📁 Core/              # Stateless calculation engine
@@ -282,17 +285,17 @@ DynamicUserDifficulty/
 │   │   ├── IRageQuitProvider.cs          # Quit tracking (optional)
 │   │   └── ILevelProgressProvider.cs     # Level tracking (optional)
 │   │
-│   ├── 📁 Modifiers/         # Difficulty modifiers ✅ 7/7 COMPLETE
+│   ├── 📁 Modifiers/         # Difficulty modifiers ✅ 7/7 COMPLETE (STATELESS)
 │   │   ├── 📁 Base/
 │   │   │   └── BaseDifficultyModifier.cs
 │   │   └── 📁 Implementations/
-│   │       ├── WinStreakModifier.cs ✅
-│   │       ├── LossStreakModifier.cs ✅
-│   │       ├── TimeDecayModifier.cs ✅
-│   │       ├── RageQuitModifier.cs ✅
-│   │       ├── CompletionRateModifier.cs ✅
-│   │       ├── LevelProgressModifier.cs ✅
-│   │       └── SessionPatternModifier.cs ✅
+│   │       ├── WinStreakModifier.cs ✅ Calculate() takes NO parameters
+│   │       ├── LossStreakModifier.cs ✅ Calculate() takes NO parameters
+│   │       ├── TimeDecayModifier.cs ✅ Calculate() takes NO parameters
+│   │       ├── RageQuitModifier.cs ✅ Calculate() takes NO parameters
+│   │       ├── CompletionRateModifier.cs ✅ Calculate() takes NO parameters
+│   │       ├── LevelProgressModifier.cs ✅ Calculate() takes NO parameters
+│   │       └── SessionPatternModifier.cs ✅ Calculate() takes NO parameters
 │   │
 │   ├── 📁 Models/            # Data structures
 │   │   ├── PlayerSessionData.cs
@@ -307,7 +310,7 @@ DynamicUserDifficulty/
 │   └── 📁 DI/               # Dependency injection
 │
 ├── 📁 Editor/                # Editor tools
-├── 📁 Tests/                 # ✅ 153 tests across 12 files
+├── 📁 Tests/                 # ✅ 164 tests across 12 files
 ├── 📄 README.md              # This file
 ├── 📄 CLAUDE.md              # AI guidance
 ├── 📄 package.json           # Package manifest
@@ -347,7 +350,7 @@ git submodule add git@github.com:The1Studio/DynamicUserDifficulty.git Packages/c
 
 ## Basic Usage
 
-### **🆕 Provider-Based Usage (Recommended)**
+### **🆕 Provider-Based Usage (Recommended - Stateless)**
 
 ```csharp
 // 1. Register in DI (one line!)
@@ -356,7 +359,7 @@ builder.RegisterDynamicDifficulty();
 // 2. Inject adapter anywhere
 [Inject] private MinimalDifficultyAdapter difficultyAdapter;
 
-// 3. Access current difficulty (calculated from external data)
+// 3. Access current difficulty (calculated from external data via providers)
 float difficulty = difficultyAdapter.CurrentDifficulty; // 1-10 scale
 
 // 4. Get adjusted game parameters
@@ -371,10 +374,9 @@ var difficultyService = container.Resolve<IDynamicDifficultyService>();
 
 // Provide current state from your game systems
 float currentDifficulty = myGameData.GetCurrentDifficulty();
-var sessionData = myGameData.BuildSessionData();
 
-// Calculate new difficulty (pure function)
-var result = difficultyService.CalculateDifficulty(currentDifficulty, sessionData);
+// Calculate new difficulty (stateless - uses providers internally)
+var result = difficultyService.CalculateDifficulty();
 
 // Apply the result through your data systems
 myGameData.SetCurrentDifficulty(result.NewDifficulty);
@@ -384,13 +386,13 @@ myGameData.SetCurrentDifficulty(result.NewDifficulty);
 
 ```csharp
 // The system automatically handles these through signals:
-// ✅ WonSignal → Records win via provider, calculates difficulty
-// ✅ LostSignal → Records loss via provider, calculates difficulty
-// ✅ Session tracking → Time-based adjustments via provider
-// ✅ Rage quit detection → Automatic compensation via provider
-// ✅ Completion rate tracking → Overall performance analysis
-// ✅ Level progress analysis → Attempts and progression patterns
-// ✅ Session pattern detection → Duration and behavior analysis
+// ✅ WonSignal → Records win via provider, calculates difficulty (stateless)
+// ✅ LostSignal → Records loss via provider, calculates difficulty (stateless)
+// ✅ Session tracking → Time-based adjustments via provider (stateless)
+// ✅ Rage quit detection → Automatic compensation via provider (stateless)
+// ✅ Completion rate tracking → Overall performance analysis (stateless)
+// ✅ Level progress analysis → Attempts and progression patterns (stateless)
+// ✅ Session pattern detection → Duration and behavior analysis (stateless)
 
 // Manual events (optional):
 difficultyAdapter.RecordSessionEnd(QuitType.RageQuit);
@@ -490,6 +492,7 @@ Type-Safe Modifiers (7 Total - ALL in one config):
       Attempts Threshold: 5
       Time Factor: 1.5
       Progress Scaling: 0.8
+      Enhanced Time Analysis: ✅ PercentUsingTimeToComplete
 
   - Session Pattern:
       Duration Threshold: 180s
@@ -527,7 +530,7 @@ public class CustomDifficultyProvider : IWinStreakProvider, ITimeDecayProvider
 builder.RegisterInstance<IWinStreakProvider>(new CustomDifficultyProvider());
 ```
 
-### Creating a Custom Modifier (Type-Safe)
+### Creating a Custom Modifier (Type-Safe, Stateless)
 
 ```csharp
 // Define typed configuration ([Serializable], NOT [CreateAssetMenu])
@@ -551,22 +554,33 @@ public class SpeedBonusConfig : BaseModifierConfig
     }
 }
 
-// Implement modifier with typed config
+// Implement modifier with typed config (STATELESS)
 public class SpeedBonusModifier : BaseDifficultyModifier<SpeedBonusConfig>
 {
+    private readonly ILevelProgressProvider levelProvider;
+
     public override string ModifierName => "SpeedBonus";
 
     public SpeedBonusModifier(SpeedBonusConfig config, ILevelProgressProvider provider)
         : base(config)
     {
-        this.provider = provider;
+        this.levelProvider = provider;
     }
 
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    public override ModifierResult Calculate() // NO PARAMETERS - STATELESS!
     {
+        // Get data from providers - stateless approach
+        var avgTime = levelProvider.GetAverageCompletionTime();
+        var timePercentage = levelProvider.GetCurrentLevelTimePercentage(); // Enhanced timing
+
         // Fast completion = Higher difficulty
-        var avgTime = provider.GetAverageCompletionTime();
         var speedBonus = avgTime < this.config.TimeThreshold ? this.config.BonusAmount : 0f;
+
+        // Enhanced calculation using time percentage
+        if (timePercentage > 0 && timePercentage < 0.8f)
+        {
+            speedBonus *= (1.0f - timePercentage); // Scale based on speed
+        }
 
         return new ModifierResult
         {
@@ -593,8 +607,7 @@ builder.Register<SpeedBonusModifier>(Lifetime.Singleton)
 #### IDynamicDifficultyService (Stateless)
 ```csharp
 // Pure calculation methods - no state stored
-DifficultyResult CalculateDifficulty(float currentDifficulty, PlayerSessionData sessionData);
-float CalculateAdjustment(float currentDifficulty, int winStreak, int lossStreak, float hoursSinceLastPlay, QuitType? lastQuitType);
+DifficultyResult CalculateDifficulty(); // NO PARAMETERS - gets data from providers
 float GetDefaultDifficulty();
 bool IsValidDifficulty(float difficulty);
 float ClampDifficulty(float difficulty);
@@ -631,24 +644,25 @@ int GetRecentRageQuitCount();       // ✅ Used by RageQuitModifier, SessionPatt
 float GetAverageSessionDuration();  // ✅ Used by SessionPatternModifier
 ```
 
-#### ILevelProgressProvider (Optional) - Using 5/5 methods ✅
+#### ILevelProgressProvider (Optional) - Using 6/6 methods ✅
 ```csharp
 int GetCurrentLevel();              // ✅ Used by LevelProgressModifier
 float GetAverageCompletionTime();   // ✅ Used by LevelProgressModifier
 int GetAttemptsOnCurrentLevel();    // ✅ Used by LevelProgressModifier
 float GetCompletionRate();          // ✅ Used by CompletionRateModifier
 float GetCurrentLevelDifficulty();  // ✅ Used by LevelProgressModifier
+float GetCurrentLevelTimePercentage(); // ✅ NEW - Enhanced timing analysis
 ```
 
 ### **🎯 Provider Usage Summary**
 
-**Total Provider Methods: 21**
-**Methods Used: 21/21 (100% utilization)** ✅
+**Total Provider Methods: 22**
+**Methods Used: 22/22 (100% utilization)** ✅
 
 - **IWinStreakProvider**: 4/4 methods used (100%)
 - **ITimeDecayProvider**: 3/3 methods used (100%)
 - **IRageQuitProvider**: 4/4 methods used (100%)
-- **ILevelProgressProvider**: 5/5 methods used (100%)
+- **ILevelProgressProvider**: 6/6 methods used (100%)
 - **IDifficultyDataProvider**: 2/2 methods used (100%)
 
 ### Data Models
@@ -661,26 +675,12 @@ List<ModifierResult> AppliedModifiers;
 string PrimaryReason;
 ```
 
-#### PlayerSessionData
+#### ModifierResult
 ```csharp
-float CurrentDifficulty;
-int WinStreak;
-int LossStreak;
-DateTime LastPlayTime;
-SessionInfo LastSession;
-List<DetailedSessionInfo> DetailedSessions;
-```
-
-#### DetailedSessionInfo
-```csharp
-DateTime StartTime;
-DateTime EndTime;
-TimeSpan Duration;
-SessionEndReason EndReason;
-int LevelsCompleted;
-int LevelsFailed;
-float StartDifficulty;
-float EndDifficulty;
+string ModifierName;
+float Value;
+string Reason;
+Dictionary<string, object> Metadata;
 ```
 
 📖 [Full API Documentation](Documentation/APIReference.md)
@@ -695,23 +695,23 @@ Window → General → Test Runner → Run All
 
 ### Test Implementation Status ✅ COMPLETE
 
-**Complete test suite with 153 tests and ~95% code coverage!**
+**Complete test suite with 164 tests and ~95% code coverage!**
 
 | Component | Tests | Coverage | Status |
 |-----------|-------|----------|--------|
 | **Stateless Core** | 10 tests | ~95% | ✅ Complete |
 | **Providers** | 15 tests | ~95% | ✅ Complete |
-| **7 Modifiers** | 79 tests | ~95% | ✅ Complete |
+| **7 Stateless Modifiers** | 79 tests | ~95% | ✅ Complete |
 | **Models** | 20 tests | ~90% | ✅ Complete |
 | **Calculators** | 18 tests | ~90% | ✅ Complete |
 | **Services** | 14 tests | ~85% | ✅ Complete |
 | **Configuration** | 25 tests | ~88% | ✅ Complete |
 | **Integration** | 11 tests | ~90% | ✅ Complete |
-| **Total** | **153 tests** | **~95%** | ✅ **PRODUCTION-READY** |
+| **Total** | **164 tests** | **~95%** | ✅ **PRODUCTION-READY** |
 
 ### Test Categories
 
-- ✅ **Unit Tests** - All modifiers, calculators, and models
+- ✅ **Unit Tests** - All modifiers, calculators, and models (stateless)
 - ✅ **Provider Tests** - All provider implementations
 - ✅ **Integration Tests** - Service integration and player journeys
 - ✅ **Test Framework** - Mocks, builders, and utilities
@@ -722,6 +722,7 @@ Window → General → Test Runner → Run All
 - **Unity Test Runner Setup**: Requires proper assembly definitions
 - **Cache Clearing**: Sometimes needed (`Assets → Reimport All`)
 - **TestResults Location**: `/home/tuha/.config/unity3d/TheOneStudio/Unscrew Factory/TestResults.xml`
+- **Stateless Testing**: All tests verify Calculate() methods take NO parameters
 - **Constructor Injection Pattern**: All tests use constructor injection (not Initialize methods)
 
 See [Documentation/TestImplementation.md](Documentation/TestImplementation.md) for complete test details.
@@ -731,27 +732,28 @@ See [Documentation/TestImplementation.md](Documentation/TestImplementation.md) f
 1. Enable debug mode in DifficultyConfig
 2. Use debug window: `TheOne → Debug → Difficulty Monitor`
 3. Test scenarios:
-   - Win 3+ times → Difficulty increases
-   - Lose 2+ times → Difficulty decreases
-   - Quit after loss → Difficulty decreases more
-   - Return after days → Difficulty decreases
-   - Play consistently → Completion rate analysis
-   - Fast/slow completion → Progress analysis
-   - Session patterns → Duration-based adjustments
+   - Win 3+ times → Difficulty increases (calculated via providers)
+   - Lose 2+ times → Difficulty decreases (calculated via providers)
+   - Quit after loss → Difficulty decreases more (detected via providers)
+   - Return after days → Difficulty decreases (time decay via providers)
+   - Play consistently → Completion rate analysis (via providers)
+   - Fast/slow completion → Progress analysis (enhanced with PercentUsingTimeToComplete)
+   - Session patterns → Duration-based adjustments (via providers)
 
 ## Performance
 
 - **Calculation Time**: < 10ms
 - **Memory Usage**: < 1KB per session
-- **Cache Duration**: 5 minutes
+- **Cache Duration**: No caching needed (stateless)
 - **Update Frequency**: Once per level
+- **Stateless Benefits**: No memory leaks, no state synchronization issues
 
 ### Optimization Tips
 
-1. Cache calculations for level duration
-2. Limit session history to 20 entries
-3. Use object pooling for results
-4. Disable debug logs in production
+1. Provider methods should be optimized for frequent calls
+2. Disable debug logs in production
+3. Use efficient data structures in provider implementations
+4. Consider caching expensive provider calculations
 
 ## Troubleshooting
 
@@ -762,7 +764,8 @@ See [Documentation/TestImplementation.md](Documentation/TestImplementation.md) f
 | Service not initialized | Ensure `builder.RegisterDynamicDifficulty()` is called |
 | Config not loading | Check Resources/GameConfigs/ path |
 | Providers not working | Verify provider interfaces are implemented |
-| Difficulty not changing | Check modifier thresholds |
+| Difficulty not changing | Check modifier thresholds and provider data |
+| Calculate() has parameters | Update to stateless Calculate() - NO parameters |
 | Tests not running | Try `Assets → Reimport All` to clear cache |
 
 ### Debug Commands
@@ -774,8 +777,8 @@ difficultyDataProvider.SetCurrentDifficulty(5.0f);
 // Clear data through provider
 difficultyProvider.ClearData();
 
-// Calculate with specific values
-var result = difficultyService.CalculateDifficulty(currentDifficulty, sessionData);
+// Calculate with current provider data (stateless)
+var result = difficultyService.CalculateDifficulty();
 ```
 
 ## Contributing
@@ -797,14 +800,16 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 - Add XML documentation
 - Keep methods under 20 lines
 - Write unit tests
+- Ensure Calculate() methods are stateless (NO parameters)
 
 ## Roadmap
 
 - [x] Version 2.0: Stateless provider-based architecture ✅ **COMPLETE**
-- [x] Version 2.1: 7 comprehensive modifiers ✅ **COMPLETE**
-- [ ] Version 2.2: Machine learning predictions
-- [ ] Version 2.3: Multi-factor analysis
-- [ ] Version 2.4: A/B testing framework
+- [x] Version 2.1: 7 comprehensive modifiers with stateless Calculate() ✅ **COMPLETE**
+- [x] Version 2.2: Enhanced LevelProgressModifier with PercentUsingTimeToComplete ✅ **COMPLETE**
+- [ ] Version 2.3: Machine learning predictions
+- [ ] Version 2.4: Multi-factor analysis
+- [ ] Version 2.5: A/B testing framework
 - [ ] Version 3.0: Cloud synchronization
 
 ## Support
@@ -824,7 +829,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 **[Quick Start](#quick-start)** • **[Documentation](#documentation)** • **[API Reference](#api-reference)** • **[Support](#support)**
 
-✅ **PRODUCTION-READY** • 164 Tests • ~95% Coverage • **🆕 7 Comprehensive Modifiers • 100% Provider Utilization**
+✅ **PRODUCTION-READY** • 164 Tests • ~95% Coverage • **🆕 7 Stateless Modifiers • 100% Provider Utilization • Enhanced Time Analysis**
 
 Made with ❤️ by TheOne Studio
 

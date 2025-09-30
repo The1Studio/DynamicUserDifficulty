@@ -33,7 +33,7 @@ void Initialize()
 ```
 
 ##### CalculateDifficulty()
-Calculates new difficulty based on current session data.
+Calculates new difficulty based on current session data using stateless modifiers.
 ```csharp
 DifficultyResult CalculateDifficulty()
 ```
@@ -47,12 +47,6 @@ void ApplyDifficulty(DifficultyResult result)
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | result | DifficultyResult | The calculation result to apply |
-
-##### RegisterModifier(IDifficultyModifier)
-Registers a new difficulty modifier.
-```csharp
-void RegisterModifier(IDifficultyModifier modifier)
-```
 
 ##### OnLevelComplete(bool, float)
 Called when a level is completed.
@@ -68,99 +62,6 @@ void OnLevelComplete(bool won, float completionTime)
 
 ## Data Models
 
-### PlayerSessionData
-
-**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
-
-Stores player session information for difficulty calculation.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| CurrentDifficulty | float | 3.0f | Current difficulty level |
-| WinStreak | int | 0 | Consecutive wins |
-| LossStreak | int | 0 | Consecutive losses |
-| LastPlayTime | DateTime | Now | Last time player played |
-| LastSession | SessionInfo | null | Information about last session |
-| RecentSessions | Queue<SessionInfo> | Empty(10) | Queue of last 10 sessions |
-| DetailedSessions | List<DetailedSessionInfo> | Empty(20) | Detailed session tracking |
-
-### SessionInfo
-
-**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
-
-Information about a single game session.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| StartTime | DateTime | When session started |
-| EndTime | DateTime | When session ended |
-| EndType | SessionEndType | How session ended |
-| LevelId | int | Level played |
-| PlayDuration | float | Duration in seconds |
-| Won | bool | Whether level was won |
-
-### DetailedSessionInfo
-
-**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
-
-Enhanced session tracking with comprehensive metrics.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| StartTime | DateTime | When session started |
-| EndTime | DateTime | When session ended |
-| Duration | TimeSpan | Total session duration |
-| EndReason | SessionEndReason | How session ended (enum) |
-| LevelsCompleted | int | Number of levels completed successfully |
-| LevelsFailed | int | Number of levels failed |
-| StartDifficulty | float | Difficulty at session start |
-| EndDifficulty | float | Difficulty at session end |
-
-### SessionEndReason
-
-**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
-
-Detailed enum for session end tracking.
-
-| Value | Description |
-|-------|-------------|
-| Normal | Normal session completion |
-| CompletedLevel | Session ended after completing a level |
-| FailedLevel | Session ended after failing a level |
-| QuitMidLevel | Player quit during level play |
-| RageQuit | Detected rage quit behavior |
-| Timeout | Session timed out |
-| Crash | Application crashed |
-| Unknown | Unknown end reason |
-
-### SessionEndType
-
-**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
-
-Enum describing how a session ended.
-
-| Value | Description |
-|-------|-------------|
-| CompletedWin | Level completed successfully |
-| CompletedLoss | Level failed |
-| QuitDuringPlay | Player quit mid-level |
-| QuitAfterWin | Player quit after winning |
-| QuitAfterLoss | Player quit after losing (potential rage quit) |
-| Timeout | Session timed out |
-
-### ModifierResult
-
-**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
-
-Result from a single modifier calculation.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| ModifierName | string | Name of the modifier |
-| Value | float | Difficulty adjustment value |
-| Reason | string | Human-readable reason |
-| Metadata | Dictionary<string, object> | Additional data |
-
 ### DifficultyResult
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
@@ -175,6 +76,32 @@ Complete result of difficulty calculation.
 | CalculatedAt | DateTime | When calculation occurred |
 | PrimaryReason | string | Main reason for change |
 
+### ModifierResult
+
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
+
+Result from a single modifier calculation.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| ModifierName | string | Name of the modifier |
+| Value | float | Difficulty adjustment value |
+| Reason | string | Human-readable reason |
+| Metadata | Dictionary<string, object> | Additional data |
+
+### QuitType
+
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Models`
+
+Enum describing how a session ended.
+
+| Value | Description |
+|-------|-------------|
+| Normal | Normal session completion |
+| RageQuit | Detected rage quit behavior |
+| Timeout | Session timed out |
+| Crash | Application crashed |
+
 ---
 
 ## Modifiers
@@ -183,7 +110,7 @@ Complete result of difficulty calculation.
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
-Interface for all difficulty modifiers.
+Interface for all stateless difficulty modifiers.
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -193,27 +120,21 @@ Interface for all difficulty modifiers.
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| Calculate(PlayerSessionData) | ModifierResult | Calculates modifier value |
+| **Calculate()** | **ModifierResult** | **🆕 STATELESS calculation - NO parameters! Gets all data from injected providers** |
 | OnApplied(DifficultyResult) | void | Called after difficulty applied |
 
 ### BaseDifficultyModifier
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
-Abstract base class for modifiers.
+Abstract base class for stateless modifiers with provider injection.
 
 #### Protected Methods
 
-##### GetParameter(string, float)
-Gets a configuration parameter value.
+##### NoChange(string)
+Creates a "no change" modifier result.
 ```csharp
-protected float GetParameter(string key, float defaultValue = 0f)
-```
-
-##### ApplyCurve(float)
-Applies response curve to a value.
-```csharp
-protected float ApplyCurve(float input)
+protected ModifierResult NoChange(string reason = "No adjustment needed")
 ```
 
 ### Built-in Modifiers (7 Total) ✅ COMPLETE
@@ -222,7 +143,10 @@ protected float ApplyCurve(float input)
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
-Increases difficulty based on consecutive wins.
+Increases difficulty based on consecutive wins using **stateless provider data**.
+
+**Provider Dependencies:**
+- `IWinStreakProvider.GetWinStreak()` - Current consecutive wins
 
 **Parameters:**
 | Parameter | Default | Description |
@@ -231,11 +155,23 @@ Increases difficulty based on consecutive wins.
 | StepSize | 0.5 | Difficulty increase per win |
 | MaxBonus | 2.0 | Maximum difficulty increase |
 
+**Method Signature:**
+```csharp
+public override ModifierResult Calculate() // NO PARAMETERS - stateless!
+{
+    var winStreak = this.winStreakProvider.GetWinStreak();
+    // Calculate bonus using provider data...
+}
+```
+
 #### LossStreakModifier
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
-Decreases difficulty based on consecutive losses.
+Decreases difficulty based on consecutive losses using **stateless provider data**.
+
+**Provider Dependencies:**
+- `IWinStreakProvider.GetLossStreak()` - Current consecutive losses
 
 **Parameters:**
 | Parameter | Default | Description |
@@ -244,11 +180,24 @@ Decreases difficulty based on consecutive losses.
 | StepSize | 0.3 | Difficulty decrease per loss |
 | MaxReduction | 1.5 | Maximum difficulty decrease |
 
+**Method Signature:**
+```csharp
+public override ModifierResult Calculate() // NO PARAMETERS - stateless!
+{
+    var lossStreak = this.winStreakProvider.GetLossStreak();
+    // Calculate reduction using provider data...
+}
+```
+
 #### TimeDecayModifier
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
-Reduces difficulty based on time since last play.
+Reduces difficulty based on time since last play using **stateless provider data**.
+
+**Provider Dependencies:**
+- `ITimeDecayProvider.GetTimeSinceLastPlay()` - Time since last session
+- `ITimeDecayProvider.GetDaysAwayFromGame()` - Days away from game
 
 **Parameters:**
 | Parameter | Default | Description |
@@ -257,11 +206,25 @@ Reduces difficulty based on time since last play.
 | MaxDecay | 2.0 | Maximum total reduction |
 | GraceHours | 6 | Hours before decay starts |
 
+**Method Signature:**
+```csharp
+public override ModifierResult Calculate() // NO PARAMETERS - stateless!
+{
+    var timeSinceLastPlay = this.timeDecayProvider.GetTimeSinceLastPlay();
+    var daysAway = this.timeDecayProvider.GetDaysAwayFromGame();
+    // Calculate decay using provider data...
+}
+```
+
 #### RageQuitModifier
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
-Reduces difficulty when rage quit is detected.
+Reduces difficulty when rage quit is detected using **stateless provider data**.
+
+**Provider Dependencies:**
+- `IRageQuitProvider.GetLastQuitType()` - How last session ended
+- `IRageQuitProvider.GetRecentRageQuitCount()` - Recent rage quit count
 
 **Parameters:**
 | Parameter | Default | Description |
@@ -270,16 +233,26 @@ Reduces difficulty when rage quit is detected.
 | RageQuitReduction | 1.0 | Reduction for rage quit |
 | QuitReduction | 0.5 | Reduction for normal quit |
 
+**Method Signature:**
+```csharp
+public override ModifierResult Calculate() // NO PARAMETERS - stateless!
+{
+    var lastQuitType = this.rageQuitProvider.GetLastQuitType();
+    var recentRageQuits = this.rageQuitProvider.GetRecentRageQuitCount();
+    // Calculate adjustment using provider data...
+}
+```
+
 #### CompletionRateModifier ✅
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
-Adjusts difficulty based on overall player success rate.
+Adjusts difficulty based on overall player success rate using **multiple stateless providers**.
 
-**Data Sources:**
-- `IWinStreakProvider.GetTotalWins()`
-- `IWinStreakProvider.GetTotalLosses()`
-- `ILevelProgressProvider.GetCompletionRate()`
+**Provider Dependencies:**
+- `IWinStreakProvider.GetTotalWins()` - Total career wins
+- `IWinStreakProvider.GetTotalLosses()` - Total career losses
+- `ILevelProgressProvider.GetCompletionRate()` - Overall completion rate
 
 **Parameters:**
 | Parameter | Default | Description |
@@ -289,18 +262,29 @@ Adjusts difficulty based on overall player success rate.
 | LowCompletionAdjustment | -0.5f | Reduction for low completion rate |
 | HighCompletionAdjustment | 0.5f | Increase for high completion rate |
 
+**Method Signature:**
+```csharp
+public override ModifierResult Calculate() // NO PARAMETERS - stateless!
+{
+    var totalWins = this.winStreakProvider.GetTotalWins();
+    var totalLosses = this.winStreakProvider.GetTotalLosses();
+    var completionRate = this.levelProgressProvider.GetCompletionRate();
+    // Calculate adjustment using multiple providers...
+}
+```
+
 #### LevelProgressModifier ✅ **ENHANCED WITH NEW FEATURES**
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
-Analyzes level progression patterns with enhanced time-based calculations and configurable performance thresholds.
+Analyzes level progression patterns with enhanced time-based calculations using **stateless provider data**.
 
-**Data Sources:**
-- `ILevelProgressProvider.GetCurrentLevel()`
-- `ILevelProgressProvider.GetAverageCompletionTime()`
-- `ILevelProgressProvider.GetAttemptsOnCurrentLevel()`
-- `ILevelProgressProvider.GetCurrentLevelDifficulty()`
-- `ILevelProgressProvider.GetCurrentLevelTimePercentage()` **🆕 NEW**
+**Provider Dependencies:**
+- `ILevelProgressProvider.GetCurrentLevel()` - Current level number
+- `ILevelProgressProvider.GetAverageCompletionTime()` - Average completion time
+- `ILevelProgressProvider.GetAttemptsOnCurrentLevel()` - Attempts on current level
+- `ILevelProgressProvider.GetCurrentLevelDifficulty()` - Current level's difficulty
+- `ILevelProgressProvider.GetCurrentLevelTimePercentage()` **🆕 NEW** - Performance percentage
 
 **Enhanced Parameters (11 total):**
 | Parameter | Default | Range | Description |
@@ -311,41 +295,31 @@ Analyzes level progression patterns with enhanced time-based calculations and co
 | SlowCompletionRatio | 1.5f | 1.1f-2.0f | Slow completion threshold ratio |
 | FastCompletionBonus | 0.3f | 0.1f-1f | Bonus for fast completion |
 | SlowCompletionPenalty | 0.3f | 0.1f-1f | Reduction for slow completion |
-| **MaxPenaltyMultiplier** | **1.0f** | **0.5f-1.5f** | **🆕 Maximum penalty multiplier for slow completion** |
+| **MaxPenaltyMultiplier** | **1.0f** | **0.5f-1.5f** | **🆕 Maximum penalty multiplier** |
 | **FastCompletionMultiplier** | **1.0f** | **0.1f-0.9f** | **🆕 Multiplier for fast completion bonus** |
 | **HardLevelThreshold** | **3f** | **2f-5f** | **🆕 Minimum level difficulty for mastery bonus** |
 | **MasteryCompletionRate** | **0.7f** | **0.5f-1f** | **🆕 Completion rate threshold for mastery** |
 | **MasteryBonus** | **0.3f** | **0.1f-0.5f** | **🆕 Difficulty increase for mastering hard levels** |
-| **EasyLevelThreshold** | **2f** | **1f-3f** | **🆕 Maximum level difficulty for struggle detection** |
-| **StruggleCompletionRate** | **0.3f** | **0.1f-0.5f** | **🆕 Completion rate threshold for struggle** |
-| **StrugglePenalty** | **0.3f** | **0.1f-0.5f** | **🆕 Difficulty decrease for struggling on easy levels** |
-| **EstimatedHoursPerSession** | **0.33f** | **0.1f-1f** | **🆕 Estimated hours per session for progression calculation** |
 
-**Enhanced Time-Based Calculation:**
-The modifier now uses `GetCurrentLevelTimePercentage()` as the primary time metric, with fallback to session-based completion time:
-
+**Method Signature:**
 ```csharp
-// Primary: Use PercentUsingTimeToComplete from UITemplate
-var timePercentage = levelProgressProvider.GetCurrentLevelTimePercentage();
-if (timePercentage > 0)
+public override ModifierResult Calculate() // NO PARAMETERS - stateless!
 {
-    // Values < 1.0 = faster than expected, values > 1.0 = slower than expected
-    if (timePercentage < config.FastCompletionRatio)
+    var currentLevel = this.levelProgressProvider.GetCurrentLevel();
+    var attempts = this.levelProgressProvider.GetAttemptsOnCurrentLevel();
+    var timePercentage = this.levelProgressProvider.GetCurrentLevelTimePercentage(); // 🆕 NEW
+    var levelDifficulty = this.levelProgressProvider.GetCurrentLevelDifficulty();
+
+    // Enhanced time-based calculation using provider data...
+    if (timePercentage > 0)
     {
-        var bonus = config.FastCompletionBonus * (1.0f - timePercentage) * config.FastCompletionMultiplier;
-        // Apply bonus with configurable multiplier
+        if (timePercentage < this.config.FastCompletionRatio)
+        {
+            var bonus = this.config.FastCompletionBonus * (1.0f - timePercentage) * this.config.FastCompletionMultiplier;
+            // Apply configurable multiplier...
+        }
+        // Additional logic...
     }
-    else if (timePercentage > config.SlowCompletionRatio)
-    {
-        var penalty = config.SlowCompletionPenalty * Math.Min(timePercentage - 1.0f, config.MaxPenaltyMultiplier);
-        // Apply penalty with configurable cap
-    }
-}
-else
-{
-    // Fallback: Use session-based completion time
-    var avgCompletionTime = levelProgressProvider.GetAverageCompletionTime();
-    // Calculate time ratio and apply adjustments
 }
 ```
 
@@ -353,11 +327,12 @@ else
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Modifiers`
 
-Detects session patterns and player frustration.
+Detects session patterns and player frustration using **stateless provider data**.
 
-**Data Sources:**
-- `IRageQuitProvider.GetAverageSessionDuration()`
-- `IRageQuitProvider.GetRecentRageQuitCount()`
+**Provider Dependencies:**
+- `IRageQuitProvider.GetAverageSessionDuration()` - Average session duration
+- `IRageQuitProvider.GetRecentRageQuitCount()` - Recent rage quit count
+- `IRageQuitProvider.GetCurrentSessionDuration()` - Current session duration
 
 **Parameters:**
 | Parameter | Default | Description |
@@ -369,6 +344,17 @@ Detects session patterns and player frustration.
 | RageQuitReduction | -0.5f | Reduction for rage quit pattern |
 | LongSessionBonus | 0.1f | Bonus for long engagement |
 
+**Method Signature:**
+```csharp
+public override ModifierResult Calculate() // NO PARAMETERS - stateless!
+{
+    var avgSessionDuration = this.rageQuitProvider.GetAverageSessionDuration();
+    var recentRageQuits = this.rageQuitProvider.GetRecentRageQuitCount();
+    var currentSessionDuration = this.rageQuitProvider.GetCurrentSessionDuration();
+    // Calculate adjustment using provider data...
+}
+```
+
 ---
 
 ## Calculators
@@ -377,20 +363,20 @@ Detects session patterns and player frustration.
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Calculators`
 
-Interface for difficulty calculation logic.
+Interface for stateless difficulty calculation logic.
 
 ```csharp
-DifficultyResult Calculate(
-    PlayerSessionData sessionData,
-    IEnumerable<IDifficultyModifier> modifiers)
+DifficultyResult Calculate(IEnumerable<IDifficultyModifier> modifiers)
 ```
+
+**🆕 STATELESS:** Takes only modifiers (no session data parameter). Modifiers get data from providers.
 
 ### DifficultyCalculator
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Calculators`
 
 Default implementation that:
-1. Runs all enabled modifiers
+1. Runs all enabled modifiers using their stateless Calculate() methods
 2. Aggregates results
 3. Clamps to valid range
 4. Applies max change limit
@@ -431,36 +417,22 @@ Applies diminishing returns to prevent extreme values
 
 ## Providers
 
-### ISessionDataProvider
-
-**Namespace:** `TheOneStudio.DynamicUserDifficulty.Providers`
-
-Interface for session data persistence.
-
-| Method | Returns | Description |
-|--------|---------|-------------|
-| GetCurrentSession() | PlayerSessionData | Gets current session data |
-| SaveSession(PlayerSessionData) | void | Saves session data |
-| UpdateWinStreak(int) | void | Updates win streak |
-| UpdateLossStreak(int) | void | Updates loss streak |
-| RecordSessionEnd(SessionEndType) | void | Records how session ended |
-
 ### IDifficultyDataProvider (Required)
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Providers`
 
-Base interface for difficulty storage.
+Base interface for difficulty storage. **This is the ONLY data the module stores.**
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| GetCurrentDifficulty() | float | Gets current difficulty |
-| SetCurrentDifficulty(float) | void | Sets current difficulty |
+| GetCurrentDifficulty() | float | Gets current difficulty (only stored value) |
+| SetCurrentDifficulty(float) | void | Sets current difficulty (only stored value) |
 
 ### IWinStreakProvider (Optional) - Using 4/4 methods ✅
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Providers`
 
-Win/loss streak tracking interface.
+Win/loss streak tracking interface for external game data.
 
 | Method | Returns | Used By | Description |
 |--------|---------|---------|-------------|
@@ -473,7 +445,7 @@ Win/loss streak tracking interface.
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Providers`
 
-Time-based tracking interface.
+Time-based tracking interface for external game data.
 
 | Method | Returns | Used By | Description |
 |--------|---------|---------|-------------|
@@ -485,7 +457,7 @@ Time-based tracking interface.
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Providers`
 
-Rage quit detection interface.
+Rage quit detection interface for external game data.
 
 | Method | Returns | Used By | Description |
 |--------|---------|---------|-------------|
@@ -498,7 +470,7 @@ Rage quit detection interface.
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Providers`
 
-Level progress tracking interface with new time-based method.
+Level progress tracking interface for external game data with enhanced time-based method.
 
 | Method | Returns | Used By | Description |
 |--------|---------|---------|-------------|
@@ -516,25 +488,11 @@ Level progress tracking interface with new time-based method.
 
 | Provider Interface | Methods | Used | Utilization | Modifiers Using |
 |-------------------|---------|------|-------------|-----------------|
-| **IDifficultyDataProvider** | 2 | 2 | 100% | Core system |
+| **IDifficultyDataProvider** | 2 | 2 | 100% | Core system (ONLY stored data) |
 | **IWinStreakProvider** | 4 | 4 | 100% | WinStreakModifier, LossStreakModifier, CompletionRateModifier |
 | **ITimeDecayProvider** | 3 | 3 | 100% | TimeDecayModifier |
 | **IRageQuitProvider** | 4 | 4 | 100% | RageQuitModifier, SessionPatternModifier |
 | **ILevelProgressProvider** | **6** | **6** | **100%** | **CompletionRateModifier, LevelProgressModifier** |
-
-### PlayerPrefsDataProvider
-
-**Namespace:** `TheOneStudio.DynamicUserDifficulty.Providers`
-
-Default implementation using Unity PlayerPrefs.
-
-**PlayerPrefs Keys:**
-- `DUD_CurrentDifficulty`
-- `DUD_WinStreak`
-- `DUD_LossStreak`
-- `DUD_LastPlayTime`
-- `DUD_SessionData`
-- `DUD_DetailedSessions`
 
 ---
 
@@ -544,7 +502,7 @@ Default implementation using Unity PlayerPrefs.
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Configuration`
 
-ScriptableObject for difficulty settings.
+**SINGLE ScriptableObject** for all difficulty settings. Contains ALL 7 modifier configurations.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -552,7 +510,7 @@ ScriptableObject for difficulty settings.
 | MaxDifficulty | float | 10.0 | Maximum difficulty |
 | DefaultDifficulty | float | 3.0 | Starting difficulty |
 | MaxChangePerSession | float | 2.0 | Max change in one session |
-| ModifierConfigs | List<ModifierConfig> | Empty | Modifier configurations |
+| ModifierConfigs | ModifierConfigContainer | Container | ALL 7 modifier configurations |
 | EnableDebugLogs | bool | false | Enable debug logging |
 
 #### Methods
@@ -561,53 +519,59 @@ ScriptableObject for difficulty settings.
 ```csharp
 public static DifficultyConfig CreateDefault()
 ```
-Creates a new configuration with default settings.
+Creates a new configuration with default settings for all 7 modifiers.
 
-##### GetModifierConfig(string)
+##### GetModifierConfig<T>(string)
 ```csharp
-public ModifierConfig GetModifierConfig(string modifierType)
+public T GetModifierConfig<T>(string modifierType) where T : class, IModifierConfig
 ```
-Gets configuration for a specific modifier type.
+Gets strongly-typed configuration for a specific modifier type.
 
-##### SetParameter(string, float)
-```csharp
-public void SetParameter(string key, float value)
-```
-Sets a global parameter value.
-
-### ModifierConfig
+### ModifierConfigContainer
 
 **Namespace:** `TheOneStudio.DynamicUserDifficulty.Configuration`
 
-Configuration for individual modifiers.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| ModifierType | string | Type identifier |
-| Enabled | bool | Whether enabled |
-| Priority | int | Execution order |
-| ResponseCurve | AnimationCurve | Value transformation |
-| Parameters | List<ModifierParameter> | Custom parameters |
+Container for all modifier configurations with polymorphic serialization using `[SerializeReference]`.
 
 #### Methods
 
-##### SetModifierType(string)
+##### GetConfig<T>(string)
 ```csharp
-public void SetModifierType(string type)
+public T GetConfig<T>(string modifierType) where T : class, IModifierConfig
 ```
-Sets the modifier type using DifficultyConstants.
+Gets a strongly-typed configuration for a specific modifier type.
 
-##### SetParameter(string, float)
+##### SetConfig(IModifierConfig)
 ```csharp
-public void SetParameter(string key, float value)
+public void SetConfig(IModifierConfig config)
 ```
-Sets a parameter for this modifier.
+Adds or updates a modifier configuration.
 
-##### GetParameter(string, float)
+##### InitializeDefaults()
 ```csharp
-public float GetParameter(string key, float defaultValue = 0f)
+public void InitializeDefaults()
 ```
-Gets a parameter value with fallback.
+Initializes with default configurations for all 7 modifiers.
+
+### BaseModifierConfig
+
+**Namespace:** `TheOneStudio.DynamicUserDifficulty.Configuration`
+
+Abstract base class for modifier configurations. Uses `[Serializable]` not `[CreateAssetMenu]`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| enabled | bool | Whether enabled |
+| priority | int | Execution order |
+| ModifierType | string | Type identifier (abstract) |
+
+#### Methods
+
+##### CreateDefault()
+```csharp
+public abstract BaseModifierConfig CreateDefault()
+```
+Creates a default configuration instance for the specific modifier type.
 
 ---
 
@@ -628,15 +592,6 @@ public const string MODIFIER_TYPE_RAGE_QUIT = "RageQuit";
 public const string MODIFIER_TYPE_COMPLETION_RATE = "CompletionRate"; // ✅
 public const string MODIFIER_TYPE_LEVEL_PROGRESS = "LevelProgress"; // ✅
 public const string MODIFIER_TYPE_SESSION_PATTERN = "SessionPattern"; // ✅
-```
-
-#### Parameter Keys
-```csharp
-public const string PARAM_WIN_THRESHOLD = "WinThreshold";
-public const string PARAM_STEP_SIZE = "StepSize";
-public const string PARAM_MAX_BONUS = "MaxBonus";
-public const string PARAM_DECAY_PER_DAY = "DecayPerDay";
-// ... and more
 ```
 
 #### Default Values
@@ -672,13 +627,12 @@ The service fires these events:
 |-------|------|------|
 | OnDifficultyChanged | DifficultyResult | After difficulty changes |
 | OnModifierApplied | ModifierResult | After each modifier |
-| OnSessionRecorded | SessionInfo | When session ends |
 
 ---
 
 ## Usage Examples
 
-### Basic Integration
+### Basic Integration with Stateless Architecture
 ```csharp
 public class GameController
 {
@@ -686,6 +640,7 @@ public class GameController
 
     public void StartLevel()
     {
+        // STATELESS calculation - modifiers get data from providers automatically
         var result = difficultyService.CalculateDifficulty();
         difficultyService.ApplyDifficulty(result);
 
@@ -695,12 +650,13 @@ public class GameController
 
     public void OnLevelComplete(bool won, float time)
     {
+        // Service handles everything via stateless providers
         difficultyService.OnLevelComplete(won, time);
     }
 }
 ```
 
-### Enhanced LevelProgressModifier Usage ✅
+### Enhanced LevelProgressModifier Provider Implementation ✅
 ```csharp
 public class EnhancedLevelProgressProvider : ILevelProgressProvider
 {
@@ -721,16 +677,16 @@ public class EnhancedLevelProgressProvider : ILevelProgressProvider
 }
 ```
 
-### Custom Modifier with Provider Methods ✅
+### Custom Stateless Modifier with Provider Methods ✅
 ```csharp
-public class AdvancedPlayerModifier : BaseDifficultyModifier
+public class AdvancedPlayerModifier : BaseDifficultyModifier<AdvancedPlayerConfig>
 {
     private readonly ILevelProgressProvider levelProvider;
     private readonly IRageQuitProvider rageProvider;
 
     public override string ModifierName => "AdvancedPlayer";
 
-    public AdvancedPlayerModifier(ModifierConfig config,
+    public AdvancedPlayerModifier(AdvancedPlayerConfig config,
         ILevelProgressProvider levelProvider,
         IRageQuitProvider rageProvider) : base(config)
     {
@@ -738,7 +694,11 @@ public class AdvancedPlayerModifier : BaseDifficultyModifier
         this.rageProvider = rageProvider;
     }
 
-    public override ModifierResult Calculate(PlayerSessionData data)
+    /// <summary>
+    /// STATELESS calculation - NO parameters!
+    /// Gets ALL data from injected provider interfaces.
+    /// </summary>
+    public override ModifierResult Calculate()
     {
         // Use all provider methods for comprehensive analysis
         var completionRate = levelProvider.GetCompletionRate();
@@ -751,7 +711,7 @@ public class AdvancedPlayerModifier : BaseDifficultyModifier
         var avgSessionDuration = rageProvider.GetAverageSessionDuration();
         var recentRageQuits = rageProvider.GetRecentRageQuitCount();
 
-        // Complex analysis using all available data
+        // Complex analysis using all available provider data
         var skillScore = CalculateSkillScore(completionRate, avgTime, attempts);
         var engagementScore = CalculateEngagementScore(avgSessionDuration, recentRageQuits);
         var timeEfficiencyScore = CalculateTimeEfficiencyScore(timePercentage); // 🆕 NEW
@@ -779,6 +739,44 @@ public class AdvancedPlayerModifier : BaseDifficultyModifier
 }
 ```
 
+### Provider Implementation Example
+```csharp
+public class GameDataProvider :
+    IWinStreakProvider,
+    ITimeDecayProvider,
+    IRageQuitProvider,
+    ILevelProgressProvider
+{
+    private readonly UITemplateLevelDataController levelController;
+    private readonly UITemplateGameSessionDataController sessionController;
+
+    // IWinStreakProvider implementation
+    public int GetWinStreak() => levelController.GetWinStreak();
+    public int GetLossStreak() => levelController.GetLossStreak();
+    public int GetTotalWins() => levelController.GetTotalWins();
+    public int GetTotalLosses() => levelController.GetTotalLosses();
+
+    // ITimeDecayProvider implementation
+    public TimeSpan GetTimeSinceLastPlay() => sessionController.GetTimeSinceLastPlay();
+    public DateTime GetLastPlayTime() => sessionController.GetLastPlayTime();
+    public int GetDaysAwayFromGame() => sessionController.GetDaysAwayFromGame();
+
+    // IRageQuitProvider implementation
+    public QuitType GetLastQuitType() => sessionController.GetLastQuitType();
+    public float GetCurrentSessionDuration() => sessionController.GetCurrentSessionDuration();
+    public int GetRecentRageQuitCount() => sessionController.GetRecentRageQuitCount();
+    public float GetAverageSessionDuration() => sessionController.GetAverageSessionDuration();
+
+    // ILevelProgressProvider implementation
+    public int GetCurrentLevel() => levelController.CurrentLevel;
+    public float GetAverageCompletionTime() => levelController.GetAverageCompletionTime();
+    public int GetAttemptsOnCurrentLevel() => levelController.GetAttemptsOnCurrentLevel();
+    public float GetCompletionRate() => levelController.GetCompletionRate();
+    public float GetCurrentLevelDifficulty() => levelController.GetCurrentLevelDifficulty();
+    public float GetCurrentLevelTimePercentage() => levelController.GetCurrentLevelTimePercentage(); // 🆕 NEW
+}
+```
+
 ### Accessing Current Difficulty
 ```csharp
 float currentDifficulty = difficultyService.CurrentDifficulty;
@@ -796,7 +794,7 @@ float pieceComplexity = currentDifficulty / 10f;
 
 | Exception | Cause | Solution |
 |-----------|-------|----------|
-| NullReferenceException | Config not loaded | Ensure DifficultyConfig in Resources |
+| NullReferenceException | Config not loaded or Provider not injected | Ensure DifficultyConfig in Resources and providers registered |
 | ArgumentOutOfRangeException | Invalid difficulty | Check min/max bounds |
 | InvalidOperationException | Service not initialized | Call Initialize() first |
 | ArgumentNullException | Null modifier or data | Validate inputs before calls |
@@ -804,16 +802,53 @@ float pieceComplexity = currentDifficulty / 10f;
 ### Debug Mode
 
 Enable debug logs in DifficultyConfig to see:
-- Modifier calculations
+- Modifier calculations (stateless)
 - Difficulty changes
-- Session tracking
-- Performance metrics
 - Provider method calls ✅
 - Time-based calculations ✅
+- Configuration loading
+- Performance metrics
 
 ---
 
-*API Version: 2.2.0*
+## Key Architectural Changes
+
+### 🆕 **Stateless Architecture Benefits**
+
+1. **Pure Calculation Engine**
+   - Module only stores current difficulty (single float)
+   - All other data comes from external providers
+   - No data synchronization issues
+
+2. **Provider Pattern**
+   - Clean separation of concerns
+   - Game data stays in game systems
+   - Easy to test with mock providers
+
+3. **Method Signature Change**
+   ```csharp
+   // OLD (with session data parameter)
+   ModifierResult Calculate(PlayerSessionData sessionData)
+
+   // NEW (stateless - no parameters)
+   ModifierResult Calculate() // Gets data from injected providers
+   ```
+
+4. **Enhanced Provider Utilization**
+   - 22/22 provider methods used (100% utilization)
+   - Comprehensive player behavior analysis
+   - All 7 modifiers fully implemented
+
+5. **Single Configuration Asset**
+   - Only ONE DifficultyConfig ScriptableObject needed
+   - All 7 modifier configs embedded as [Serializable] classes
+   - Simplified asset management
+
+---
+
+*API Version: 3.0.0*
 *Last Updated: 2025-01-26*
-*Namespace: TheOneStudio.DynamicUserDifficulty.*
-*7 Modifiers • 22/22 Provider Methods Used (100% Utilization) • Enhanced LevelProgressModifier • Production Ready*
+*Architecture: STATELESS with Provider Pattern*
+*Method Signature: Calculate() - NO PARAMETERS*
+*Provider Utilization: 22/22 methods (100%)*
+*Configuration: Single ScriptableObject with Embedded [Serializable] Configs*

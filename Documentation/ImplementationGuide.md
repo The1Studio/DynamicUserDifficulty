@@ -2,15 +2,44 @@
 
 ## Table of Contents
 1. [Overview](#overview)
-2. [Implementation Order](#implementation-order)
-3. [Step-by-Step Implementation](#step-by-step-implementation)
-4. [File Creation Guide](#file-creation-guide)
-5. [Testing Guide](#testing-guide)
-6. [Integration Guide](#integration-guide)
+2. [Stateless Architecture](#stateless-architecture)
+3. [Implementation Order](#implementation-order)
+4. [Step-by-Step Implementation](#step-by-step-implementation)
+5. [File Creation Guide](#file-creation-guide)
+6. [Testing Guide](#testing-guide)
+7. [Integration Guide](#integration-guide)
 
 ## Overview
 
-This guide provides step-by-step instructions for implementing the Dynamic User Difficulty system. Follow the implementation order to ensure all dependencies are satisfied.
+This guide provides step-by-step instructions for implementing the Dynamic User Difficulty system. The module uses a **STATELESS ARCHITECTURE** where all data comes from external provider interfaces, and modifiers use a parameterless `Calculate()` method.
+
+## Stateless Architecture
+
+### Core Principle
+**The module is a PURE CALCULATION ENGINE that ONLY stores the current difficulty value.**
+
+- **What the module stores**: Only `float currentDifficulty` (single value)
+- **Where other data comes from**: External game services via provider interfaces
+- **How modifiers work**: `Calculate()` method takes NO parameters, gets data from injected providers
+
+### Provider Pattern
+```csharp
+// Modifiers get data from providers, NOT from method parameters
+public override ModifierResult Calculate() // NO PARAMETERS - stateless!
+{
+    var winStreak = this.winStreakProvider.GetWinStreak();
+    var lossStreak = this.winStreakProvider.GetLossStreak();
+
+    // Pure calculation logic using provider data
+    if (winStreak >= this.config.WinThreshold)
+    {
+        var bonus = (winStreak - this.config.WinThreshold) * this.config.StepSize;
+        return new ModifierResult { Value = bonus, Reason = "Win streak bonus" };
+    }
+
+    return new ModifierResult { Value = 0f, Reason = "No win streak" };
+}
+```
 
 ## Implementation Order
 
@@ -20,23 +49,29 @@ This guide provides step-by-step instructions for implementing the Dynamic User 
 3. Create core interfaces
 4. Set up assembly definition
 
-### Phase 2: Core Components
-1. Implement base modifier class
-2. Create modifier implementations
-3. Implement calculators
-4. Create data providers
+### Phase 2: Provider System (Stateless Data Access)
+1. Implement provider interfaces
+2. Create base modifier class with provider injection
+3. Set up provider implementations
+4. Create data persistence layer
 
-### Phase 3: Service Layer
-1. Implement main service
-2. Create configuration system
+### Phase 3: Core Components
+1. Implement base modifier class
+2. Create modifier implementations (with stateless Calculate())
+3. Implement calculators
+4. Create main service
+
+### Phase 4: Configuration System
+1. Create single ScriptableObject configuration
+2. Implement modifier config classes (Serializable)
 3. Set up dependency injection
 
-### Phase 4: Integration
+### Phase 5: Integration
 1. Integrate with UITemplate
 2. Connect to game signals
 3. Add analytics tracking
 
-### Phase 5: Polish
+### Phase 6: Polish
 1. Create editor tools
 2. Add debug utilities
 3. Write tests
@@ -54,12 +89,12 @@ DynamicUserDifficulty/
 │   └── IntegrationGuide.md
 ├── Runtime/
 │   ├── Core/
+│   ├── Providers/              # NEW: Provider interfaces for stateless design
 │   ├── Modifiers/
 │   │   ├── Base/
 │   │   └── Implementations/
 │   ├── Models/
 │   ├── Calculators/
-│   ├── Providers/
 │   ├── Configuration/
 │   │   └── ModifierConfigs/
 │   └── DI/
@@ -69,72 +104,127 @@ DynamicUserDifficulty/
     └── Editor/
 ```
 
-### Step 2: Data Models Implementation
+### Step 2: Provider Interfaces Implementation (Stateless Foundation)
 
-#### 2.1 Create SessionEndType.cs
+#### 2.1 Create IDifficultyDataProvider.cs
 ```csharp
-// Path: Runtime/Models/SessionEndType.cs
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models
+// Path: Runtime/Providers/IDifficultyDataProvider.cs
+namespace TheOneStudio.DynamicUserDifficulty.Providers
 {
-    public enum SessionEndType
+    /// <summary>
+    /// Base interface for difficulty data storage.
+    /// This is the ONLY data the module stores - just the current difficulty value.
+    /// </summary>
+    public interface IDifficultyDataProvider
     {
-        CompletedWin,
-        CompletedLoss,
-        QuitDuringPlay,
-        QuitAfterWin,
-        QuitAfterLoss,
-        Timeout
+        float GetCurrentDifficulty();
+        void SetCurrentDifficulty(float newDifficulty);
     }
 }
 ```
 
-#### 2.2 Create SessionInfo.cs
+#### 2.2 Create IWinStreakProvider.cs
 ```csharp
-// Path: Runtime/Models/SessionInfo.cs
+// Path: Runtime/Providers/IWinStreakProvider.cs
+namespace TheOneStudio.DynamicUserDifficulty.Providers
+{
+    /// <summary>
+    /// Provides win/loss streak data from external game systems.
+    /// Used by WinStreakModifier, LossStreakModifier, CompletionRateModifier.
+    /// </summary>
+    public interface IWinStreakProvider
+    {
+        int GetWinStreak();
+        int GetLossStreak();
+        int GetTotalWins();
+        int GetTotalLosses();
+    }
+}
+```
+
+#### 2.3 Create ITimeDecayProvider.cs
+```csharp
+// Path: Runtime/Providers/ITimeDecayProvider.cs
 using System;
 
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models
+namespace TheOneStudio.DynamicUserDifficulty.Providers
 {
-    [Serializable]
-    public class SessionInfo
+    /// <summary>
+    /// Provides time-based data from external game systems.
+    /// Used by TimeDecayModifier.
+    /// </summary>
+    public interface ITimeDecayProvider
     {
-        public DateTime StartTime;
-        public DateTime EndTime;
-        public SessionEndType EndType;
-        public int LevelId;
-        public float PlayDuration;
-        public bool Won;
+        TimeSpan GetTimeSinceLastPlay();
+        DateTime GetLastPlayTime();
+        int GetDaysAwayFromGame();
     }
 }
 ```
 
-#### 2.3 Create PlayerSessionData.cs
+#### 2.4 Create IRageQuitProvider.cs
 ```csharp
-// Path: Runtime/Models/PlayerSessionData.cs
-using System;
-using System.Collections.Generic;
-
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models
+// Path: Runtime/Providers/IRageQuitProvider.cs
+namespace TheOneStudio.DynamicUserDifficulty.Providers
 {
-    [Serializable]
-    public class PlayerSessionData
+    /// <summary>
+    /// Provides rage quit and session data from external game systems.
+    /// Used by RageQuitModifier, SessionPatternModifier.
+    /// </summary>
+    public interface IRageQuitProvider
     {
-        public float CurrentDifficulty = 3f;
-        public int WinStreak;
-        public int LossStreak;
-        public DateTime LastPlayTime = DateTime.Now;
-        public SessionInfo LastSession;
-        public Queue<SessionInfo> RecentSessions = new Queue<SessionInfo>(10);
+        QuitType GetLastQuitType();
+        float GetCurrentSessionDuration();
+        int GetRecentRageQuitCount();
+        float GetAverageSessionDuration();
     }
 }
 ```
 
-#### 2.4 Create ModifierResult.cs
+#### 2.5 Create ILevelProgressProvider.cs
+```csharp
+// Path: Runtime/Providers/ILevelProgressProvider.cs
+namespace TheOneStudio.DynamicUserDifficulty.Providers
+{
+    /// <summary>
+    /// Provides level progress data from external game systems.
+    /// Used by CompletionRateModifier, LevelProgressModifier.
+    /// </summary>
+    public interface ILevelProgressProvider
+    {
+        int GetCurrentLevel();
+        float GetAverageCompletionTime();
+        int GetAttemptsOnCurrentLevel();
+        float GetCompletionRate();
+        float GetCurrentLevelDifficulty();
+        float GetCurrentLevelTimePercentage();
+    }
+}
+```
+
+### Step 3: Data Models Implementation
+
+#### 3.1 Create QuitType.cs
+```csharp
+// Path: Runtime/Models/QuitType.cs
+namespace TheOneStudio.DynamicUserDifficulty.Models
+{
+    public enum QuitType
+    {
+        Normal,
+        RageQuit,
+        Timeout,
+        Crash
+    }
+}
+```
+
+#### 3.2 Create ModifierResult.cs
 ```csharp
 // Path: Runtime/Models/ModifierResult.cs
 using System.Collections.Generic;
 
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models
+namespace TheOneStudio.DynamicUserDifficulty.Models
 {
     public class ModifierResult
     {
@@ -146,13 +236,13 @@ namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models
 }
 ```
 
-#### 2.5 Create DifficultyResult.cs
+#### 3.3 Create DifficultyResult.cs
 ```csharp
 // Path: Runtime/Models/DifficultyResult.cs
 using System;
 using System.Collections.Generic;
 
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models
+namespace TheOneStudio.DynamicUserDifficulty.Models
 {
     public class DifficultyResult
     {
@@ -165,15 +255,14 @@ namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models
 }
 ```
 
-### Step 3: Core Interfaces Implementation
+### Step 4: Core Interfaces Implementation
 
-#### 3.1 Create IDynamicDifficultyService.cs
+#### 4.1 Create IDynamicDifficultyService.cs
 ```csharp
 // Path: Runtime/Core/IDynamicDifficultyService.cs
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers;
+using TheOneStudio.DynamicUserDifficulty.Models;
 
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Core
+namespace TheOneStudio.DynamicUserDifficulty.Core
 {
     public interface IDynamicDifficultyService
     {
@@ -181,75 +270,77 @@ namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Core
         void Initialize();
         DifficultyResult CalculateDifficulty();
         void ApplyDifficulty(DifficultyResult result);
-        void RegisterModifier(IDifficultyModifier modifier);
-        void UnregisterModifier(IDifficultyModifier modifier);
-        void OnSessionStart();
-        void OnLevelStart(int levelId);
         void OnLevelComplete(bool won, float completionTime);
-        void OnSessionEnd(SessionEndType endType);
     }
 }
 ```
 
-#### 3.2 Create IDifficultyModifier.cs
+#### 4.2 Create IDifficultyModifier.cs (STATELESS)
 ```csharp
 // Path: Runtime/Modifiers/Base/IDifficultyModifier.cs
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Models;
 
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers
+namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
+    /// <summary>
+    /// Interface for stateless difficulty modifiers.
+    /// Calculate() method takes NO parameters - gets data from injected providers.
+    /// </summary>
     public interface IDifficultyModifier
     {
         string ModifierName { get; }
         int Priority { get; }
         bool IsEnabled { get; set; }
-        ModifierResult Calculate(PlayerSessionData sessionData);
+
+        /// <summary>
+        /// STATELESS calculation method - NO parameters!
+        /// Gets all data from injected provider interfaces.
+        /// </summary>
+        ModifierResult Calculate();
+
         void OnApplied(DifficultyResult result);
     }
 }
 ```
 
-#### 3.3 Create ISessionDataProvider.cs
-```csharp
-// Path: Runtime/Providers/ISessionDataProvider.cs
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
-
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Providers
-{
-    public interface ISessionDataProvider
-    {
-        PlayerSessionData GetCurrentSession();
-        void SaveSession(PlayerSessionData data);
-        void UpdateWinStreak(int streak);
-        void UpdateLossStreak(int streak);
-        void RecordSessionEnd(SessionEndType endType);
-    }
-}
-```
-
-#### 3.4 Create IDifficultyCalculator.cs
+#### 4.3 Create IDifficultyCalculator.cs (STATELESS)
 ```csharp
 // Path: Runtime/Calculators/IDifficultyCalculator.cs
 using System.Collections.Generic;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Models;
-using TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Modifiers;
+using TheOneStudio.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Modifiers;
 
-namespace TheOneStudio.UITemplate.Services.DynamicUserDifficulty.Calculators
+namespace TheOneStudio.DynamicUserDifficulty.Calculators
 {
+    /// <summary>
+    /// Calculator interface for stateless difficulty calculation.
+    /// </summary>
     public interface IDifficultyCalculator
     {
-        DifficultyResult Calculate(
-            PlayerSessionData sessionData,
-            IEnumerable<IDifficultyModifier> modifiers);
+        DifficultyResult Calculate(IEnumerable<IDifficultyModifier> modifiers);
     }
 }
 ```
 
-### Step 4: ⚠️ **CORRECTED Configuration Implementation**
+### Step 5: ⚠️ **CORRECTED Configuration Implementation**
 
 **IMPORTANT: The configuration system uses a SINGLE ScriptableObject approach:**
 
-#### 4.1 Create BaseModifierConfig.cs (Base class for all modifier configs)
+#### 5.1 Create IModifierConfig.cs
+```csharp
+// Path: Runtime/Configuration/IModifierConfig.cs
+namespace TheOneStudio.DynamicUserDifficulty.Configuration
+{
+    public interface IModifierConfig
+    {
+        bool IsEnabled { get; }
+        int Priority { get; }
+        string ModifierType { get; }
+    }
+}
+```
+
+#### 5.2 Create BaseModifierConfig.cs (Base class for all modifier configs)
 ```csharp
 // Path: Runtime/Configuration/BaseModifierConfig.cs
 using System;
@@ -283,73 +374,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
 }
 ```
 
-#### 4.2 Create ModifierConfigContainer.cs
-```csharp
-// Path: Runtime/Configuration/ModifierConfigContainer.cs
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-
-namespace TheOneStudio.DynamicUserDifficulty.Configuration
-{
-    /// <summary>
-    /// Container for modifier configurations with polymorphic serialization support.
-    /// Uses SerializeReference to support different config types within a single ScriptableObject.
-    /// </summary>
-    [Serializable]
-    public class ModifierConfigContainer : IEnumerable<IModifierConfig>
-    {
-        [SerializeReference]
-        [Tooltip("List of modifier configurations. Use + to add new configs.")]
-        private List<BaseModifierConfig> configs = new();
-
-        /// <summary>
-        /// Gets a strongly-typed configuration for a specific modifier type
-        /// </summary>
-        public T GetConfig<T>(string modifierType) where T : class, IModifierConfig
-        {
-            var config = this.configs?.FirstOrDefault(c => c?.ModifierType == modifierType);
-            return config as T;
-        }
-
-        /// <summary>
-        /// Adds or updates a modifier configuration
-        /// </summary>
-        public void SetConfig(IModifierConfig config)
-        {
-            if (config == null || !(config is BaseModifierConfig baseConfig)) return;
-
-            // Remove existing config of the same type
-            this.configs?.RemoveAll(c => c?.ModifierType == config.ModifierType);
-
-            // Add new config
-            if (this.configs == null) this.configs = new();
-            this.configs.Add(baseConfig);
-        }
-
-        /// <summary>
-        /// Initializes with default configurations for all 7 modifiers
-        /// </summary>
-        public void InitializeDefaults()
-        {
-            this.configs = new()
-            {
-                (WinStreakConfig)new WinStreakConfig().CreateDefault(),
-                (LossStreakConfig)new LossStreakConfig().CreateDefault(),
-                (TimeDecayConfig)new TimeDecayConfig().CreateDefault(),
-                (RageQuitConfig)new RageQuitConfig().CreateDefault(),
-                (CompletionRateConfig)new CompletionRateConfig().CreateDefault(),
-                (LevelProgressConfig)new LevelProgressConfig().CreateDefault(),
-                (SessionPatternConfig)new SessionPatternConfig().CreateDefault()
-            };
-        }
-    }
-}
-```
-
-#### 4.3 Create DifficultyConfig.cs (ONLY ScriptableObject)
+#### 5.3 Create DifficultyConfig.cs (ONLY ScriptableObject)
 ```csharp
 // Path: Runtime/Configuration/DifficultyConfig.cs
 using UnityEngine;
@@ -410,69 +435,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
 
             return config;
         }
-
-        private void OnValidate()
-        {
-            // Ensure min <= default <= max
-            if (this.defaultDifficulty < this.minDifficulty) this.defaultDifficulty = this.minDifficulty;
-            if (this.defaultDifficulty > this.maxDifficulty) this.defaultDifficulty = this.maxDifficulty;
-            if (this.minDifficulty > this.maxDifficulty) this.minDifficulty = this.maxDifficulty;
-        }
     }
 }
 ```
 
-#### 4.4 Create Individual Modifier Config Classes ([Serializable], NOT [CreateAssetMenu])
+### Step 6: Base Modifier Implementation (STATELESS)
 
-**Example: WinStreakConfig.cs**
-```csharp
-// Path: Runtime/Configuration/ModifierConfigs/WinStreakConfig.cs
-using System;
-using UnityEngine;
-
-namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
-{
-    /// <summary>
-    /// Configuration for Win Streak modifier.
-    /// [Serializable] class embedded in DifficultyConfig, NOT a separate ScriptableObject.
-    /// </summary>
-    [Serializable]
-    public class WinStreakConfig : BaseModifierConfig
-    {
-        [SerializeField] private float winThreshold = 3f;
-        [SerializeField] private float stepSize = 0.5f;
-        [SerializeField] private float maxBonus = 2f;
-
-        public float WinThreshold => this.winThreshold;
-        public float StepSize => this.stepSize;
-        public float MaxBonus => this.maxBonus;
-
-        public override string ModifierType => "WinStreak";
-
-        public override BaseModifierConfig CreateDefault()
-        {
-            var config = new WinStreakConfig();
-            config.winThreshold = 3f;
-            config.stepSize = 0.5f;
-            config.maxBonus = 2f;
-            return config;
-        }
-    }
-}
-```
-
-**Repeat this pattern for all 7 modifier configs:**
-- `WinStreakConfig.cs` ✅
-- `LossStreakConfig.cs`
-- `TimeDecayConfig.cs`
-- `RageQuitConfig.cs`
-- `CompletionRateConfig.cs`
-- `LevelProgressConfig.cs`
-- `SessionPatternConfig.cs`
-
-### Step 5: Base Modifier Implementation
-
-#### 5.1 Create BaseDifficultyModifier.cs
+#### 6.1 Create BaseDifficultyModifier.cs
 ```csharp
 // Path: Runtime/Modifiers/Base/BaseDifficultyModifier.cs
 using TheOneStudio.DynamicUserDifficulty.Configuration;
@@ -481,7 +450,8 @@ using TheOneStudio.DynamicUserDifficulty.Models;
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
     /// <summary>
-    /// Type-safe base class for difficulty modifiers with strongly-typed configuration
+    /// Type-safe base class for STATELESS difficulty modifiers with strongly-typed configuration.
+    /// Modifiers get data from injected providers, NOT from method parameters.
     /// </summary>
     public abstract class BaseDifficultyModifier<TConfig> : IDifficultyModifier
         where TConfig : class, IModifierConfig
@@ -498,7 +468,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             this.IsEnabled = config?.IsEnabled ?? true;
         }
 
-        public abstract ModifierResult Calculate(PlayerSessionData sessionData);
+        /// <summary>
+        /// STATELESS calculation method - NO parameters!
+        /// Gets all data from injected provider interfaces.
+        /// </summary>
+        public abstract ModifierResult Calculate();
 
         public virtual void OnApplied(DifficultyResult result)
         {
@@ -521,17 +495,22 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 }
 ```
 
-### Step 6: Modifier Implementations (Using Type-Safe Config)
+### Step 7: Modifier Implementations (STATELESS Examples)
 
-#### 6.1 Create WinStreakModifier.cs
+#### 7.1 Create WinStreakModifier.cs (STATELESS)
 ```csharp
 // Path: Runtime/Modifiers/Implementations/WinStreakModifier.cs
+using System;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 
 namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
+    /// <summary>
+    /// STATELESS Win Streak modifier.
+    /// Gets data from IWinStreakProvider, calculates adjustment using provider data.
+    /// </summary>
     public class WinStreakModifier : BaseDifficultyModifier<WinStreakConfig>
     {
         private readonly IWinStreakProvider winStreakProvider;
@@ -544,7 +523,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             this.winStreakProvider = provider;
         }
 
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        /// <summary>
+        /// STATELESS calculation - NO parameters!
+        /// Gets win streak data from provider interface.
+        /// </summary>
+        public override ModifierResult Calculate()
         {
             var winStreak = this.winStreakProvider.GetWinStreak();
 
@@ -566,112 +549,327 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 }
 ```
 
-### Step 7: Required Unity Assemblies
-
-Add references to these Unity assemblies in your .asmdef:
-- Unity.TextMeshPro
-- Unity.Addressables
-- UnityEngine.UI
-
-### Step 8: ⚠️ **CORRECTED Editor Validation System**
-
-#### 8.1 DifficultyConfigValidator (Updated for Single ScriptableObject)
+#### 7.2 Create LossStreakModifier.cs (STATELESS)
 ```csharp
-// Path: Editor/DifficultyConfigValidator.cs
-[InitializeOnLoad]
-public static class DifficultyConfigValidator
+// Path: Runtime/Modifiers/Implementations/LossStreakModifier.cs
+using System;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
+using TheOneStudio.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Providers;
+
+namespace TheOneStudio.DynamicUserDifficulty.Modifiers
 {
-    static DifficultyConfigValidator()
+    /// <summary>
+    /// STATELESS Loss Streak modifier.
+    /// Gets data from IWinStreakProvider, calculates adjustment using provider data.
+    /// </summary>
+    public class LossStreakModifier : BaseDifficultyModifier<LossStreakConfig>
     {
-        // Check for single DifficultyConfig asset on load
-        ValidateConfiguration();
-    }
+        private readonly IWinStreakProvider winStreakProvider;
 
-    private static void ValidateConfiguration()
-    {
-        var configs = Resources.LoadAll<DifficultyConfig>("");
+        public override string ModifierName => "LossStreak";
 
-        if (configs.Length == 0)
+        public LossStreakModifier(LossStreakConfig config, IWinStreakProvider provider)
+            : base(config)
         {
-            ShowConfigurationSetupDialog();
+            this.winStreakProvider = provider;
         }
-        else if (configs.Length > 1)
+
+        /// <summary>
+        /// STATELESS calculation - NO parameters!
+        /// Gets loss streak data from provider interface.
+        /// </summary>
+        public override ModifierResult Calculate()
         {
-            Debug.LogWarning($"Multiple DifficultyConfig assets found ({configs.Length}). " +
-                           "Only ONE is needed. Consider removing duplicates.");
+            var lossStreak = this.winStreakProvider.GetLossStreak();
+
+            if (lossStreak < this.config.LossThreshold)
+                return NoChange($"Loss streak {lossStreak} below threshold {this.config.LossThreshold}");
+
+            var reduction = (lossStreak - this.config.LossThreshold) * this.config.StepSize;
+            reduction = Math.Min(reduction, this.config.MaxReduction);
+
+            return new ModifierResult
+            {
+                ModifierName = ModifierName,
+                Value = -reduction, // Negative for difficulty reduction
+                Reason = $"Loss streak reduction ({lossStreak} consecutive losses)",
+                Metadata = { ["streak"] = lossStreak, ["threshold"] = this.config.LossThreshold }
+            };
         }
-    }
-
-    private static void ShowConfigurationSetupDialog()
-    {
-        var create = EditorUtility.DisplayDialog(
-            "Dynamic Difficulty Configuration",
-            "No DifficultyConfig found. This single asset contains ALL 7 modifier configurations.\n\n" +
-            "Would you like to create a default configuration?",
-            "Create Config",
-            "Skip");
-
-        if (create)
-        {
-            CreateDefaultConfiguration();
-        }
-    }
-
-    [MenuItem("Tools/Dynamic Difficulty/Create Single Config")]
-    private static void CreateDefaultConfiguration()
-    {
-        // Create the single DifficultyConfig asset with all 7 modifiers
-        var config = DifficultyConfig.CreateDefault();
-
-        var path = "Assets/Resources/GameConfigs/DifficultyConfig.asset";
-        AssetDatabase.CreateAsset(config, path);
-        AssetDatabase.SaveAssets();
-
-        Debug.Log($"Created DifficultyConfig at {path} with all 7 modifier configurations embedded.");
-        Selection.activeObject = config;
     }
 }
 ```
 
-### Step 9: Integration Points
-
-#### Signal Subscriptions Required
+#### 7.3 Create CompletionRateModifier.cs (STATELESS with Multiple Providers)
 ```csharp
-// Subscribe to these signals from Screw3D
-- WonSignal
-- LostSignal
-- GamePausedSignal
-- GameResumedSignal
-- LevelStartSignal
+// Path: Runtime/Modifiers/Implementations/CompletionRateModifier.cs
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
+using TheOneStudio.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Providers;
+
+namespace TheOneStudio.DynamicUserDifficulty.Modifiers
+{
+    /// <summary>
+    /// STATELESS Completion Rate modifier.
+    /// Uses MULTIPLE providers: IWinStreakProvider and ILevelProgressProvider.
+    /// </summary>
+    public class CompletionRateModifier : BaseDifficultyModifier<CompletionRateConfig>
+    {
+        private readonly IWinStreakProvider winStreakProvider;
+        private readonly ILevelProgressProvider levelProgressProvider;
+
+        public override string ModifierName => "CompletionRate";
+
+        public CompletionRateModifier(
+            CompletionRateConfig config,
+            IWinStreakProvider winStreakProvider,
+            ILevelProgressProvider levelProgressProvider)
+            : base(config)
+        {
+            this.winStreakProvider = winStreakProvider;
+            this.levelProgressProvider = levelProgressProvider;
+        }
+
+        /// <summary>
+        /// STATELESS calculation - NO parameters!
+        /// Gets completion rate from multiple providers.
+        /// </summary>
+        public override ModifierResult Calculate()
+        {
+            // Get data from multiple providers
+            var totalWins = this.winStreakProvider.GetTotalWins();
+            var totalLosses = this.winStreakProvider.GetTotalLosses();
+            var completionRate = this.levelProgressProvider.GetCompletionRate();
+
+            var totalGames = totalWins + totalLosses;
+            if (totalGames == 0)
+                return NoChange("No games played yet");
+
+            var actualRate = totalGames > 0 ? (float)totalWins / totalGames : completionRate;
+
+            if (actualRate < this.config.LowCompletionThreshold)
+            {
+                return new ModifierResult
+                {
+                    ModifierName = ModifierName,
+                    Value = this.config.LowCompletionAdjustment,
+                    Reason = $"Low completion rate ({actualRate:P0})",
+                    Metadata = { ["completion_rate"] = actualRate, ["total_games"] = totalGames }
+                };
+            }
+
+            if (actualRate > this.config.HighCompletionThreshold)
+            {
+                return new ModifierResult
+                {
+                    ModifierName = ModifierName,
+                    Value = this.config.HighCompletionAdjustment,
+                    Reason = $"High completion rate ({actualRate:P0})",
+                    Metadata = { ["completion_rate"] = actualRate, ["total_games"] = totalGames }
+                };
+            }
+
+            return NoChange($"Completion rate in normal range ({actualRate:P0})");
+        }
+    }
+}
 ```
 
-#### Controller Dependencies
+### Step 8: Main Service Implementation (STATELESS)
+
+#### 8.1 Create DynamicDifficultyService.cs (STATELESS)
 ```csharp
-// Inject these controllers
-- UITemplateLevelDataController
-- UITemplateGameSessionDataController
-- UITemplateInventoryDataController
-- UITemplateAnalyticService
+// Path: Runtime/Core/DynamicDifficultyService.cs
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using TheOneStudio.DynamicUserDifficulty.Calculators;
+using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Models;
+using TheOneStudio.DynamicUserDifficulty.Modifiers;
+using TheOneStudio.DynamicUserDifficulty.Providers;
+
+namespace TheOneStudio.DynamicUserDifficulty.Core
+{
+    /// <summary>
+    /// STATELESS Dynamic Difficulty Service.
+    /// Only stores current difficulty - all other data comes from providers.
+    /// </summary>
+    public class DynamicDifficultyService : IDynamicDifficultyService
+    {
+        private readonly IDifficultyCalculator calculator;
+        private readonly IDifficultyDataProvider dataProvider;
+        private readonly DifficultyConfig config;
+        private readonly List<IDifficultyModifier> modifiers;
+
+        public float CurrentDifficulty => this.dataProvider.GetCurrentDifficulty();
+
+        public DynamicDifficultyService(
+            IDifficultyCalculator calculator,
+            IDifficultyDataProvider dataProvider,
+            DifficultyConfig config,
+            IEnumerable<IDifficultyModifier> modifiers)
+        {
+            this.calculator = calculator;
+            this.dataProvider = dataProvider;
+            this.config = config;
+            this.modifiers = modifiers?.ToList() ?? new List<IDifficultyModifier>();
+        }
+
+        public void Initialize()
+        {
+            // Initialize with default difficulty if not set
+            var currentDifficulty = this.dataProvider.GetCurrentDifficulty();
+            if (currentDifficulty <= 0)
+            {
+                this.dataProvider.SetCurrentDifficulty(this.config.DefaultDifficulty);
+            }
+        }
+
+        /// <summary>
+        /// STATELESS calculation - gets all data from providers via modifiers.
+        /// </summary>
+        public DifficultyResult CalculateDifficulty()
+        {
+            var enabledModifiers = this.modifiers.Where(m => m.IsEnabled).ToList();
+            return this.calculator.Calculate(enabledModifiers);
+        }
+
+        public void ApplyDifficulty(DifficultyResult result)
+        {
+            if (result == null) return;
+
+            // Clamp to valid range
+            var clampedDifficulty = Math.Max(this.config.MinDifficulty,
+                Math.Min(this.config.MaxDifficulty, result.NewDifficulty));
+
+            // Store ONLY the current difficulty value
+            this.dataProvider.SetCurrentDifficulty(clampedDifficulty);
+
+            // Notify modifiers
+            foreach (var modifier in this.modifiers.Where(m => m.IsEnabled))
+            {
+                modifier.OnApplied(result);
+            }
+        }
+
+        public void OnLevelComplete(bool won, float completionTime)
+        {
+            // Calculate and apply new difficulty automatically
+            var result = CalculateDifficulty();
+            ApplyDifficulty(result);
+        }
+    }
+}
+```
+
+### Step 9: DI Registration (STATELESS)
+
+#### 9.1 Create DynamicDifficultyModule.cs
+```csharp
+// Path: Runtime/DI/DynamicDifficultyModule.cs
+using VContainer;
+using VContainer.Unity;
+using TheOneStudio.DynamicUserDifficulty.Core;
+using TheOneStudio.DynamicUserDifficulty.Calculators;
+using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Modifiers;
+using TheOneStudio.DynamicUserDifficulty.Providers;
+
+namespace TheOneStudio.DynamicUserDifficulty.DI
+{
+    /// <summary>
+    /// VContainer module for STATELESS Dynamic User Difficulty system.
+    /// Registers all services with provider-based dependencies.
+    /// </summary>
+    public class DynamicDifficultyModule : IInstaller
+    {
+        private readonly DifficultyConfig config;
+
+        public DynamicDifficultyModule(DifficultyConfig config)
+        {
+            this.config = config;
+        }
+
+        public void Install(IContainerBuilder builder)
+        {
+            // Register configuration
+            builder.RegisterInstance(this.config);
+
+            // Register providers (must be implemented by game)
+            // These are interfaces - game must provide implementations
+            builder.Register<IDifficultyDataProvider, PlayerPrefsDifficultyDataProvider>(Lifetime.Singleton);
+
+            // Register calculators
+            builder.Register<IDifficultyCalculator, DifficultyCalculator>(Lifetime.Singleton);
+
+            // Register main service
+            builder.Register<IDynamicDifficultyService, DynamicDifficultyService>(Lifetime.Singleton);
+
+            // Register all 7 modifiers with their configurations
+            RegisterModifiers(builder);
+        }
+
+        private void RegisterModifiers(IContainerBuilder builder)
+        {
+            var configContainer = this.config.ModifierConfigs;
+
+            // WinStreakModifier
+            var winStreakConfig = configContainer.GetConfig<WinStreakConfig>("WinStreak");
+            if (winStreakConfig != null)
+            {
+                builder.Register<WinStreakModifier>(Lifetime.Singleton)
+                       .WithParameter(winStreakConfig)
+                       .As<IDifficultyModifier>();
+            }
+
+            // LossStreakModifier
+            var lossStreakConfig = configContainer.GetConfig<LossStreakConfig>("LossStreak");
+            if (lossStreakConfig != null)
+            {
+                builder.Register<LossStreakModifier>(Lifetime.Singleton)
+                       .WithParameter(lossStreakConfig)
+                       .As<IDifficultyModifier>();
+            }
+
+            // CompletionRateModifier (uses multiple providers)
+            var completionRateConfig = configContainer.GetConfig<CompletionRateConfig>("CompletionRate");
+            if (completionRateConfig != null)
+            {
+                builder.Register<CompletionRateModifier>(Lifetime.Singleton)
+                       .WithParameter(completionRateConfig)
+                       .As<IDifficultyModifier>();
+            }
+
+            // Register other modifiers (TimeDecay, RageQuit, LevelProgress, SessionPattern)...
+        }
+    }
+}
 ```
 
 ## File Creation Guide
 
 ### Complete File List (in order of creation)
 
-1. **Models (5 files)**
-   - SessionEndType.cs
-   - SessionInfo.cs
-   - PlayerSessionData.cs
+1. **Provider Interfaces (5 files) - STATELESS FOUNDATION**
+   - IDifficultyDataProvider.cs
+   - IWinStreakProvider.cs
+   - ITimeDecayProvider.cs
+   - IRageQuitProvider.cs
+   - ILevelProgressProvider.cs
+
+2. **Models (3 files)**
+   - QuitType.cs
    - ModifierResult.cs
    - DifficultyResult.cs
 
-2. **Interfaces (4 files)**
+3. **Interfaces (3 files) - STATELESS**
    - IDynamicDifficultyService.cs
-   - IDifficultyModifier.cs
-   - ISessionDataProvider.cs
-   - IDifficultyCalculator.cs
+   - IDifficultyModifier.cs (with parameterless Calculate())
+   - IDifficultyCalculator.cs (takes modifiers only)
 
-3. **Configuration (9 files) - ⚠️ CORRECTED**
+4. **Configuration (10 files) - ⚠️ CORRECTED**
    - IModifierConfig.cs (interface)
    - BaseModifierConfig.cs (base class for all configs)
    - ModifierConfigContainer.cs (container with SerializeReference)
@@ -684,51 +882,44 @@ public static class DifficultyConfigValidator
    - ModifierConfigs/LevelProgressConfig.cs ([Serializable])
    - ModifierConfigs/SessionPatternConfig.cs ([Serializable])
 
-4. **Base Classes (1 file)**
-   - BaseDifficultyModifier.cs
+5. **Base Classes (1 file) - STATELESS**
+   - BaseDifficultyModifier.cs (with parameterless Calculate())
 
-5. **Modifiers (7 files)**
-   - WinStreakModifier.cs
-   - LossStreakModifier.cs
-   - TimeDecayModifier.cs
-   - RageQuitModifier.cs
-   - CompletionRateModifier.cs
-   - LevelProgressModifier.cs
-   - SessionPatternModifier.cs
+6. **Modifiers (7 files) - ALL STATELESS**
+   - WinStreakModifier.cs (uses IWinStreakProvider)
+   - LossStreakModifier.cs (uses IWinStreakProvider)
+   - TimeDecayModifier.cs (uses ITimeDecayProvider)
+   - RageQuitModifier.cs (uses IRageQuitProvider)
+   - CompletionRateModifier.cs (uses IWinStreakProvider + ILevelProgressProvider)
+   - LevelProgressModifier.cs (uses ILevelProgressProvider)
+   - SessionPatternModifier.cs (uses IRageQuitProvider)
 
-6. **Calculators (2 files)**
-   - DifficultyCalculator.cs
+7. **Calculators (2 files) - STATELESS**
+   - DifficultyCalculator.cs (takes modifiers only)
    - ModifierAggregator.cs
 
-7. **Providers (5 files)**
-   - IDifficultyDataProvider.cs
-   - IWinStreakProvider.cs
-   - ITimeDecayProvider.cs
-   - IRageQuitProvider.cs
-   - ILevelProgressProvider.cs
-
-8. **Service (2 files)**
-   - DynamicDifficultyService.cs
+8. **Service (2 files) - STATELESS**
+   - DynamicDifficultyService.cs (stores only current difficulty)
    - DifficultyConstants.cs
 
 9. **DI (1 file)**
    - DynamicDifficultyModule.cs
 
-10. **Editor (3 files)**
-    - DifficultyConfigValidator.cs
-    - DifficultyDebugWindow.cs
-    - ModifierConfigEditor.cs
+10. **Provider Implementations (1 file)**
+    - PlayerPrefsDifficultyDataProvider.cs (simple storage implementation)
 
 ## Testing Guide
 
-### Unit Test Template
+### Unit Test Template (STATELESS)
 ```csharp
 using NUnit.Framework;
+using Moq;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
+using TheOneStudio.DynamicUserDifficulty.Providers;
 
 [TestFixture]
-public class ModifierTests
+public class StatelessModifierTests
 {
     [Test]
     public void WinStreak_AboveThreshold_IncreasesDifficulty()
@@ -737,56 +928,110 @@ public class ModifierTests
         var config = CreateTestConfig();
         var mockProvider = new Mock<IWinStreakProvider>();
         mockProvider.Setup(p => p.GetWinStreak()).Returns(5);
-        var modifier = new WinStreakModifier(config, mockProvider.Object);
-        var sessionData = new PlayerSessionData();
 
-        // Act
-        var result = modifier.Calculate(sessionData);
+        var modifier = new WinStreakModifier(config, mockProvider.Object);
+
+        // Act - NO PARAMETERS in Calculate()!
+        var result = modifier.Calculate();
 
         // Assert
         Assert.Greater(result.Value, 0);
         Assert.Contains("Win streak", result.Reason);
         mockProvider.Verify(p => p.GetWinStreak(), Times.Once);
     }
+
+    [Test]
+    public void CompletionRate_MultipleProviders_WorksCorrectly()
+    {
+        // Arrange
+        var config = CreateCompletionRateConfig();
+        var mockWinStreakProvider = new Mock<IWinStreakProvider>();
+        var mockLevelProgressProvider = new Mock<ILevelProgressProvider>();
+
+        mockWinStreakProvider.Setup(p => p.GetTotalWins()).Returns(7);
+        mockWinStreakProvider.Setup(p => p.GetTotalLosses()).Returns(3);
+        mockLevelProgressProvider.Setup(p => p.GetCompletionRate()).Returns(0.7f);
+
+        var modifier = new CompletionRateModifier(config,
+            mockWinStreakProvider.Object,
+            mockLevelProgressProvider.Object);
+
+        // Act - STATELESS calculation
+        var result = modifier.Calculate();
+
+        // Assert
+        Assert.NotNull(result);
+        mockWinStreakProvider.Verify(p => p.GetTotalWins(), Times.Once);
+        mockWinStreakProvider.Verify(p => p.GetTotalLosses(), Times.Once);
+        // Level progress provider might or might not be called depending on implementation
+    }
 }
 ```
 
 ## Integration Guide
 
-### Step 1: Add to UITemplateVContainer
+### Step 1: Provider Implementation
+```csharp
+// Implement providers for your game's data sources
+public class GameWinStreakProvider : IWinStreakProvider
+{
+    private readonly UITemplateLevelDataController levelController;
+
+    public GameWinStreakProvider(UITemplateLevelDataController levelController)
+    {
+        this.levelController = levelController;
+    }
+
+    public int GetWinStreak() => this.levelController.GetWinStreak();
+    public int GetLossStreak() => this.levelController.GetLossStreak();
+    public int GetTotalWins() => this.levelController.GetTotalWins();
+    public int GetTotalLosses() => this.levelController.GetTotalLosses();
+}
+```
+
+### Step 2: Add to UITemplateVContainer
 ```csharp
 #if THEONE_DYNAMIC_DIFFICULTY
+// Load the single configuration asset
 var difficultyConfig = Resources.Load<DifficultyConfig>("GameConfigs/DifficultyConfig");
+
+// Register your provider implementations
+builder.Register<IWinStreakProvider, GameWinStreakProvider>(Lifetime.Singleton);
+builder.Register<ITimeDecayProvider, GameTimeDecayProvider>(Lifetime.Singleton);
+builder.Register<IRageQuitProvider, GameRageQuitProvider>(Lifetime.Singleton);
+builder.Register<ILevelProgressProvider, GameLevelProgressProvider>(Lifetime.Singleton);
+
+// Register the module (will use your providers automatically)
 builder.RegisterModule(new DynamicDifficultyModule(difficultyConfig));
 #endif
 ```
 
-### Step 2: Create ScriptableObject (ONE asset only)
+### Step 3: Create ScriptableObject (ONE asset only)
 1. Right-click in Project window
 2. Create → DynamicDifficulty → Config
 3. Configure parameters (ALL 7 modifiers in one place)
 4. Save in Resources/GameConfigs/
 
-### Step 3: Add Compiler Flag
-1. Edit → Project Settings → Player
-2. Add to Scripting Define Symbols: `THEONE_DYNAMIC_DIFFICULTY`
-
-### Step 4: Subscribe to Signals
+### Step 4: Usage in Game Code
 ```csharp
-public class DifficultyGameplayBridge : IInitializable, IDisposable
+public class GameController
 {
-    private readonly SignalBus signalBus;
     private readonly IDynamicDifficultyService difficultyService;
 
-    public void Initialize()
+    public void StartLevel()
     {
-        signalBus.Subscribe<WonSignal>(OnWon);
-        signalBus.Subscribe<LostSignal>(OnLost);
+        // STATELESS calculation - modifiers get data from providers automatically
+        var result = difficultyService.CalculateDifficulty();
+        difficultyService.ApplyDifficulty(result);
+
+        // Use result.NewDifficulty to configure level
+        ConfigureLevel(result.NewDifficulty);
     }
 
-    private void OnWon(WonSignal signal)
+    public void OnLevelComplete(bool won, float time)
     {
-        difficultyService.OnLevelComplete(true, signal.CompletionTime);
+        // Service handles everything automatically via providers
+        difficultyService.OnLevelComplete(won, time);
     }
 }
 ```
@@ -799,21 +1044,35 @@ public class DifficultyGameplayBridge : IInitializable, IDisposable
    - Ensure all assemblies are referenced in .asmdef
    - Check GUID references are correct
 
-2. **DI Registration Errors**
-   - Verify all interfaces are registered
-   - Check singleton vs transient lifetimes
+2. **Provider Not Found Errors**
+   - Verify all provider interfaces are implemented
+   - Check DI registration order
+   - Ensure providers are registered before module
 
 3. **Configuration Issues** ⚠️ **UPDATED**
    - Only create ONE DifficultyConfig asset
    - All 7 modifiers are configured within this single asset
    - Config classes use [Serializable], not [CreateAssetMenu]
 
-4. **Difficulty Not Changing**
-   - Verify modifiers are enabled in the single config
+4. **Stateless Calculation Errors**
+   - Verify modifiers use Calculate() with NO parameters
+   - Check provider injection in modifier constructors
+   - Ensure providers return valid data
+
+5. **Difficulty Not Changing**
+   - Verify providers return correct data
    - Check threshold values in modifier configurations
    - Enable debug logs in DifficultyConfig
+   - Verify Calculate() methods are being called
+
+6. **Provider Interface Errors**
+   - Implement ALL required provider methods
+   - Use dependency injection to inject providers into modifiers
+   - Check provider registration in DI container
 
 ---
 
-*Last Updated: 2025-01-22*
-*Configuration Structure Corrected - Single ScriptableObject Approach*
+*Last Updated: 2025-01-26*
+*Architecture: STATELESS with Provider Pattern*
+*Configuration Structure: Single ScriptableObject with Embedded [Serializable] Configs*
+*Modifier Method Signature: Calculate() - NO PARAMETERS*

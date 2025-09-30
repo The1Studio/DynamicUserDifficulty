@@ -12,21 +12,22 @@
 
 ## Overview
 
-Modifiers are the core extensibility mechanism of the Dynamic User Difficulty system. Each modifier calculates a difficulty adjustment based on specific player behavior or game state. The system now includes **7 comprehensive modifiers** covering all aspects of player behavior analysis.
+Modifiers are the core extensibility mechanism of the Dynamic User Difficulty system. Each modifier calculates a difficulty adjustment based on specific player behavior or game state using a **stateless architecture**. The system includes **7 comprehensive modifiers** covering all aspects of player behavior analysis.
 
 ### Key Concepts
-- **Modular**: Each modifier is independent
+- **Stateless**: Modifiers are pure calculation engines with no internal state
+- **Provider-Based**: Uses external data through clean provider interfaces
 - **Type-Safe Configurable**: Parameters via strongly-typed [Serializable] classes embedded in ONE ScriptableObject
 - **Prioritized**: Execution order controlled by priority
 - **Toggleable**: Can be enabled/disabled at runtime
-- **Provider-Based**: Uses external data through clean interfaces
+- **Pure Functions**: Calculate() method takes NO parameters and gets all data from providers
 
-### ⚠️ **CRITICAL: Configuration Architecture**
-**All 7 modifier configurations are embedded within a SINGLE DifficultyConfig ScriptableObject using polymorphic serialization.**
+### ⚠️ **CRITICAL: Stateless Architecture**
+**All 7 modifier implementations use a completely stateless approach where the Calculate() method takes NO parameters and all data comes from external providers.**
 
 ## Built-in Modifiers (7 Total)
 
-### 1. WinStreakModifier ✅ ORIGINAL
+### 1. WinStreakModifier ✅ STATELESS
 **Purpose**: Increases difficulty based on consecutive wins
 **Data Source**: `IWinStreakProvider.GetWinStreak()`
 **Config**: `WinStreakConfig` ([Serializable] class, NOT ScriptableObject)
@@ -34,27 +35,43 @@ Modifiers are the core extensibility mechanism of the Dynamic User Difficulty sy
 ```csharp
 public class WinStreakModifier : BaseDifficultyModifier<WinStreakConfig>
 {
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    private readonly IWinStreakProvider winStreakProvider;
+
+    public override ModifierResult Calculate()
     {
+        // Get data from provider - stateless approach
         var winStreak = this.winStreakProvider.GetWinStreak();
-        if (winStreak < this.config.WinThreshold) return ModifierResult.NoChange();
+
+        // Use strongly-typed properties instead of string parameters
+        var winThreshold = this.config.WinThreshold;
+        var stepSize = this.config.StepSize;
+        var maxBonus = this.config.MaxBonus;
+
+        if (winStreak < winThreshold)
+            return ModifierResult.NoChange();
 
         var bonus = Math.Min(
-            (winStreak - this.config.WinThreshold) * this.config.StepSize,
-            this.config.MaxBonus
+            (winStreak - winThreshold + 1) * stepSize,
+            maxBonus
         );
 
         return new ModifierResult
         {
             ModifierName = ModifierName,
             Value = bonus,
-            Reason = $"Win streak bonus ({winStreak} consecutive wins)"
+            Reason = $"Win streak bonus ({winStreak} consecutive wins)",
+            Metadata =
+            {
+                ["streak"] = winStreak,
+                ["threshold"] = winThreshold,
+                ["applied"] = bonus > 0f
+            }
         };
     }
 }
 ```
 
-### 2. LossStreakModifier ✅ ORIGINAL
+### 2. LossStreakModifier ✅ STATELESS
 **Purpose**: Decreases difficulty based on consecutive losses
 **Data Source**: `IWinStreakProvider.GetLossStreak()`
 **Config**: `LossStreakConfig` ([Serializable] class)
@@ -62,136 +79,250 @@ public class WinStreakModifier : BaseDifficultyModifier<WinStreakConfig>
 ```csharp
 public class LossStreakModifier : BaseDifficultyModifier<LossStreakConfig>
 {
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    private readonly IWinStreakProvider winStreakProvider;
+
+    public override ModifierResult Calculate()
     {
-        var lossStreak = this.lossStreakProvider.GetLossStreak();
-        if (lossStreak < this.config.LossThreshold) return ModifierResult.NoChange();
+        // Get data from provider - stateless approach
+        var lossStreak = this.winStreakProvider.GetLossStreak();
+
+        // Use strongly-typed properties
+        var lossThreshold = this.config.LossThreshold;
+        var stepSize = this.config.StepSize;
+        var maxReduction = this.config.MaxReduction;
+
+        if (lossStreak < lossThreshold)
+            return ModifierResult.NoChange();
 
         var reduction = -Math.Min(
-            (lossStreak - this.config.LossThreshold) * this.config.StepSize,
-            this.config.MaxReduction
+            (lossStreak - lossThreshold + 1) * stepSize,
+            maxReduction
         );
 
         return new ModifierResult
         {
             ModifierName = ModifierName,
             Value = reduction,
-            Reason = $"Loss streak compensation ({lossStreak} consecutive losses)"
-        };
-    }
-}
-```
-
-### 3. TimeDecayModifier ✅ ORIGINAL
-**Purpose**: Reduces difficulty for returning players
-**Data Source**: `ITimeDecayProvider.GetTimeSinceLastPlay()`
-**Config**: `TimeDecayConfig` ([Serializable] class)
-
-```csharp
-public class TimeDecayModifier : BaseDifficultyModifier<TimeDecayConfig>
-{
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
-    {
-        var timeSinceLastPlay = this.timeDecayProvider.GetTimeSinceLastPlay();
-        var hoursSince = (float)timeSinceLastPlay.TotalHours;
-
-        if (hoursSince < this.config.GraceHours) return ModifierResult.NoChange();
-
-        var daysSince = hoursSince / 24f;
-        var decay = -Math.Min(daysSince * this.config.DecayPerDay, this.config.MaxDecay);
-
-        return new ModifierResult
-        {
-            ModifierName = ModifierName,
-            Value = decay,
-            Reason = $"Time decay ({daysSince:F1} days since last play)"
-        };
-    }
-}
-```
-
-### 4. RageQuitModifier ✅ ORIGINAL
-**Purpose**: Detects and compensates for rage quits
-**Data Sources**: `IRageQuitProvider.GetLastQuitType()`, `GetCurrentSessionDuration()`, `GetRecentRageQuitCount()`
-**Config**: `RageQuitConfig` ([Serializable] class)
-
-```csharp
-public class RageQuitModifier : BaseDifficultyModifier<RageQuitConfig>
-{
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
-    {
-        var quitType = this.rageQuitProvider.GetLastQuitType();
-        var sessionDuration = this.rageQuitProvider.GetCurrentSessionDuration();
-        var recentRageQuits = this.rageQuitProvider.GetRecentRageQuitCount();
-
-        // Detect rage quit patterns
-        bool isRageQuit = quitType == QuitType.RageQuit ||
-                         (sessionDuration < this.config.RageQuitThreshold && quitType == QuitType.QuitAfterLoss);
-
-        if (!isRageQuit && recentRageQuits == 0) return ModifierResult.NoChange();
-
-        var reduction = isRageQuit ? -this.config.RageQuitReduction : -this.config.QuitReduction;
-
-        // Additional reduction for multiple recent rage quits
-        if (recentRageQuits > 1) reduction *= (1 + recentRageQuits * 0.2f);
-
-        return new ModifierResult
-        {
-            ModifierName = ModifierName,
-            Value = reduction,
-            Reason = $"Rage quit compensation (recent quits: {recentRageQuits})"
-        };
-    }
-}
-```
-
-### 5. CompletionRateModifier ✅ NEW
-**Purpose**: Adjusts difficulty based on overall player success rate
-**Data Sources**: `IWinStreakProvider.GetTotalWins()`, `GetTotalLosses()`, `ILevelProgressProvider.GetCompletionRate()`
-**Config**: `CompletionRateConfig` ([Serializable] class)
-
-```csharp
-public class CompletionRateModifier : BaseDifficultyModifier<CompletionRateConfig>
-{
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
-    {
-        var totalWins = this.winStreakProvider.GetTotalWins();
-        var totalLosses = this.winStreakProvider.GetTotalLosses();
-        var completionRate = this.levelProgressProvider.GetCompletionRate();
-
-        if (totalWins + totalLosses < 10) return ModifierResult.NoChange(); // Need sufficient data
-
-        float adjustment = 0f;
-        string reason = "No completion rate adjustment";
-
-        if (completionRate < this.config.LowCompletionThreshold)
-        {
-            adjustment = this.config.LowCompletionAdjustment;
-            reason = $"Low completion rate ({completionRate:P0}) - reducing difficulty";
-        }
-        else if (completionRate > this.config.HighCompletionThreshold)
-        {
-            adjustment = this.config.HighCompletionAdjustment;
-            reason = $"High completion rate ({completionRate:P0}) - increasing difficulty";
-        }
-
-        return new ModifierResult
-        {
-            ModifierName = ModifierName,
-            Value = adjustment,
-            Reason = reason,
-            Metadata = new Dictionary<string, object>
+            Reason = $"Loss streak compensation ({lossStreak} consecutive losses)",
+            Metadata =
             {
-                ["completion_rate"] = completionRate,
-                ["total_wins"] = totalWins,
-                ["total_losses"] = totalLosses
+                ["streak"] = lossStreak,
+                ["threshold"] = lossThreshold,
+                ["applied"] = reduction < 0f
             }
         };
     }
 }
 ```
 
-### 6. LevelProgressModifier ✅ **ENHANCED WITH NEW FEATURES** 🚀
+### 3. TimeDecayModifier ✅ STATELESS
+**Purpose**: Reduces difficulty for returning players
+**Data Sources**:
+- `ITimeDecayProvider.GetTimeSinceLastPlay()`
+- `ITimeDecayProvider.GetLastPlayTime()`
+- `ITimeDecayProvider.GetDaysAwayFromGame()`
+**Config**: `TimeDecayConfig` ([Serializable] class)
+
+```csharp
+public class TimeDecayModifier : BaseDifficultyModifier<TimeDecayConfig>
+{
+    private readonly ITimeDecayProvider timeDecayProvider;
+
+    public override ModifierResult Calculate()
+    {
+        // Get data from providers - stateless approach
+        // Use all three provider methods for comprehensive tracking
+        var lastPlayTime = this.timeDecayProvider.GetLastPlayTime();
+        var timeSincePlay = this.timeDecayProvider.GetTimeSinceLastPlay();
+        var daysAway = this.timeDecayProvider.GetDaysAwayFromGame();
+
+        var hoursSincePlay = timeSincePlay.TotalHours;
+
+        // Use strongly-typed properties
+        var decayPerDay = this.config.DecayPerDay;
+        var maxDecay = this.config.MaxDecay;
+        var graceHours = this.config.GraceHours;
+
+        if (hoursSincePlay <= graceHours)
+            return ModifierResult.NoChange("Recently played");
+
+        // Use provider's daysAway value for more accurate calculation
+        float effectiveDays = daysAway;
+
+        // If grace period hasn't passed for a full day, adjust
+        if (daysAway == 0 && hoursSincePlay > graceHours)
+        {
+            var effectiveHours = hoursSincePlay - graceHours;
+            effectiveDays = effectiveHours / 24f;
+        }
+
+        var decay = -Math.Min(effectiveDays * decayPerDay, maxDecay);
+
+        return new ModifierResult
+        {
+            ModifierName = ModifierName,
+            Value = decay,
+            Reason = $"Time decay ({daysAway} days since last play)",
+            Metadata =
+            {
+                ["last_play_time"] = lastPlayTime.ToString("O"),
+                ["time_since_play"] = timeSincePlay.ToString(),
+                ["days_away_provider"] = daysAway,
+                ["hours_away"] = hoursSincePlay,
+                ["grace_hours"] = graceHours,
+                ["applied"] = decay < 0f
+            }
+        };
+    }
+}
+```
+
+### 4. RageQuitModifier ✅ STATELESS
+**Purpose**: Detects and compensates for rage quits
+**Data Sources**:
+- `IRageQuitProvider.GetLastQuitType()`
+- `IRageQuitProvider.GetCurrentSessionDuration()`
+- `IRageQuitProvider.GetRecentRageQuitCount()`
+**Config**: `RageQuitConfig` ([Serializable] class)
+
+```csharp
+public class RageQuitModifier : BaseDifficultyModifier<RageQuitConfig>
+{
+    private readonly IRageQuitProvider rageQuitProvider;
+
+    public override ModifierResult Calculate()
+    {
+        // Get data from providers - stateless approach
+        var lastQuitType = this.rageQuitProvider.GetLastQuitType();
+        var sessionDuration = this.rageQuitProvider.GetCurrentSessionDuration();
+        var recentRageQuits = this.rageQuitProvider.GetRecentRageQuitCount();
+
+        // Use strongly-typed properties
+        var rageQuitThreshold = this.config.RageQuitThreshold;
+        var rageQuitReduction = this.config.RageQuitReduction;
+        var quitReduction = this.config.QuitReduction;
+        var midPlayReduction = this.config.MidPlayReduction;
+
+        var value = 0f;
+        var reason = "No quit penalty";
+
+        // Apply different penalties based on quit type
+        switch (lastQuitType)
+        {
+            case QuitType.RageQuit:
+                value = -rageQuitReduction;
+                reason = $"Rage quit detected (duration: {sessionDuration:F0}s, recent quits: {recentRageQuits})";
+                break;
+
+            case QuitType.Normal:
+                value = -quitReduction;
+                reason = $"Normal quit detected (duration: {sessionDuration:F0}s)";
+                break;
+
+            case QuitType.MidPlay:
+                value = -midPlayReduction;
+                reason = $"Mid-play quit detected (duration: {sessionDuration:F0}s)";
+                break;
+        }
+
+        return new ModifierResult
+        {
+            ModifierName = ModifierName,
+            Value = value,
+            Reason = reason,
+            Metadata =
+            {
+                ["last_quit_type"] = lastQuitType.ToString(),
+                ["session_duration"] = sessionDuration,
+                ["recent_rage_quits"] = recentRageQuits,
+                ["rage_quit_detected"] = lastQuitType == QuitType.RageQuit
+            }
+        };
+    }
+}
+```
+
+### 5. CompletionRateModifier ✅ STATELESS
+**Purpose**: Adjusts difficulty based on overall player success rate
+**Data Sources**:
+- `IWinStreakProvider.GetTotalWins()`
+- `IWinStreakProvider.GetTotalLosses()`
+- `ILevelProgressProvider.GetCompletionRate()`
+**Config**: `CompletionRateConfig` ([Serializable] class)
+
+```csharp
+public class CompletionRateModifier : BaseDifficultyModifier<CompletionRateConfig>
+{
+    private readonly IWinStreakProvider winStreakProvider;
+    private readonly ILevelProgressProvider levelProgressProvider;
+
+    public override ModifierResult Calculate()
+    {
+        // Get data from providers - stateless approach
+        var totalWins = this.winStreakProvider.GetTotalWins();
+        var totalLosses = this.winStreakProvider.GetTotalLosses();
+        var totalAttempts = totalWins + totalLosses;
+
+        // Check minimum attempts requirement
+        if (totalAttempts < this.config.MinAttemptsRequired)
+        {
+            return new ModifierResult
+            {
+                ModifierName = ModifierName,
+                Value = 0f,
+                Reason = $"Not enough attempts ({totalAttempts}/{this.config.MinAttemptsRequired})",
+                Metadata =
+                {
+                    ["totalAttempts"] = totalAttempts,
+                    ["required"] = this.config.MinAttemptsRequired
+                }
+            };
+        }
+
+        // Calculate completion rate
+        var completionRate = totalAttempts > 0 ? (float)totalWins / totalAttempts : 0.5f;
+
+        // Also get level-specific completion rate for more accurate assessment
+        var levelCompletionRate = this.levelProgressProvider.GetCompletionRate();
+
+        // Weighted average of overall and level-specific rates
+        var weightedRate = completionRate * (1f - this.config.TotalStatsWeight) +
+                          levelCompletionRate * this.config.TotalStatsWeight;
+
+        var value = 0f;
+        var reason = "Completion rate normal";
+
+        if (weightedRate < this.config.LowCompletionThreshold)
+        {
+            value = -this.config.LowCompletionDecrease;
+            reason = $"Low completion rate ({weightedRate:P0}) - decreasing difficulty";
+        }
+        else if (weightedRate > this.config.HighCompletionThreshold)
+        {
+            value = this.config.HighCompletionIncrease;
+            reason = $"High completion rate ({weightedRate:P0}) - increasing difficulty";
+        }
+
+        return new ModifierResult
+        {
+            ModifierName = ModifierName,
+            Value = value,
+            Reason = reason,
+            Metadata =
+            {
+                ["completionRate"] = completionRate,
+                ["levelCompletionRate"] = levelCompletionRate,
+                ["weightedRate"] = weightedRate,
+                ["totalWins"] = totalWins,
+                ["totalLosses"] = totalLosses,
+                ["applied"] = Math.Abs(value) > 0f
+            }
+        };
+    }
+}
+```
+
+### 6. LevelProgressModifier ✅ STATELESS **ENHANCED WITH TIME-BASED ANALYSIS**
 
 **Purpose**: Analyzes level progression patterns with enhanced time-based calculations and configurable performance thresholds
 **Data Sources**:
@@ -199,34 +330,41 @@ public class CompletionRateModifier : BaseDifficultyModifier<CompletionRateConfi
 - `ILevelProgressProvider.GetAverageCompletionTime()`
 - `ILevelProgressProvider.GetAttemptsOnCurrentLevel()`
 - `ILevelProgressProvider.GetCurrentLevelDifficulty()`
+- `ILevelProgressProvider.GetCompletionRate()`
 - **`ILevelProgressProvider.GetCurrentLevelTimePercentage()` 🆕 NEW**
 
-**Config**: `LevelProgressConfig` ([Serializable] class) **with 15 configurable parameters**
+**Config**: `LevelProgressConfig` ([Serializable] class) **with enhanced parameters**
 
 #### **Enhanced Configuration Parameters**
 
-**Time Performance Settings** 🆕:
-- `maxPenaltyMultiplier` (Range 0.5f-1.5f, default 1.0f) - Maximum penalty multiplier for slow completion
-- `fastCompletionMultiplier` (Range 0.1f-0.9f, default 1.0f) - Multiplier for fast completion bonus
+**Standard Parameters**:
+- `HighAttemptsThreshold` (default: 5) - Maximum attempts before reduction
+- `DifficultyDecreasePerAttempt` (default: 0.2f) - Reduction per excess attempt
+- `FastCompletionRatio` (default: 0.7f) - Fast completion threshold ratio
+- `SlowCompletionRatio` (default: 1.5f) - Slow completion threshold ratio
+- `FastCompletionBonus` (default: 0.3f) - Bonus for fast completion
+- `SlowCompletionPenalty` (default: 0.3f) - Reduction for slow completion
 
-**Difficulty Performance Settings** 🆕:
-- `hardLevelThreshold` (Range 2f-5f, default 3f) - Minimum level difficulty for mastery bonus
-- `masteryCompletionRate` (Range 0.5f-1f, default 0.7f) - Completion rate threshold for mastery
-- `masteryBonus` (Range 0.1f-0.5f, default 0.3f) - Difficulty increase for mastering hard levels
-- `easyLevelThreshold` (Range 1f-3f, default 2f) - Maximum level difficulty for struggle detection
-- `struggleCompletionRate` (Range 0.1f-0.5f, default 0.3f) - Completion rate threshold for struggle
-- `strugglePenalty` (Range 0.1f-0.5f, default 0.3f) - Difficulty decrease for struggling on easy levels
-
-**Session Time Estimation** 🆕:
-- `estimatedHoursPerSession` (Range 0.1f-1f, default 0.33f) - Estimated hours per session for progression calculation
+**🆕 Enhanced Parameters**:
+- `MaxPenaltyMultiplier` (default: 1.0f) - Maximum penalty multiplier for slow completion
+- `FastCompletionMultiplier` (default: 1.0f) - Multiplier for fast completion bonus
+- `HardLevelThreshold` (default: 3f) - Minimum level difficulty for mastery bonus
+- `MasteryCompletionRate` (default: 0.7f) - Completion rate threshold for mastery
+- `MasteryBonus` (default: 0.3f) - Difficulty increase for mastering hard levels
+- `EasyLevelThreshold` (default: 2f) - Maximum level difficulty for struggle detection
+- `StruggleCompletionRate` (default: 0.3f) - Completion rate threshold for struggle
+- `StrugglePenalty` (default: 0.3f) - Difficulty decrease for struggling on easy levels
 
 #### **Enhanced Implementation with PercentUsingTimeToComplete Integration**
 
 ```csharp
 public class LevelProgressModifier : BaseDifficultyModifier<LevelProgressConfig>
 {
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    private readonly ILevelProgressProvider levelProgressProvider;
+
+    public override ModifierResult Calculate()
     {
+        // Get data from providers - stateless approach
         var value = 0f;
         var reasons = new List<string>();
 
@@ -261,37 +399,15 @@ public class LevelProgressModifier : BaseDifficultyModifier<LevelProgressConfig>
                 reasons.Add($"Slow completion ({timePercentage:P0} of expected time)");
             }
         }
-        // 3. FALLBACK: Use session-based completion time if PercentUsingTimeToComplete is not available
-        else
-        {
-            var avgCompletionTime = this.levelProgressProvider.GetAverageCompletionTime();
-            if (avgCompletionTime > 0 && sessionData.RecentSessions.Count > 0)
-            {
-                var lastSession = sessionData.RecentSessions.Peek();
-                if (lastSession is { PlayDuration: > 0 })
-                {
-                    var timeRatio = lastSession.PlayDuration / avgCompletionTime;
 
-                    if (timeRatio < this.config.FastCompletionRatio)
-                    {
-                        value += this.config.FastCompletionBonus;
-                        reasons.Add($"Fast completion ({timeRatio:P0} of avg)");
-                    }
-                    else if (timeRatio > this.config.SlowCompletionRatio)
-                    {
-                        value -= this.config.SlowCompletionPenalty;
-                        reasons.Add($"Slow completion ({timeRatio:P0} of avg)");
-                    }
-                }
-            }
-        }
-
-        // 4. Check overall level progression speed
+        // 3. Check overall level progression speed
         var currentLevel = this.levelProgressProvider.GetCurrentLevel();
-        if (sessionData.SessionCount > 0)
+        var avgCompletionTime = this.levelProgressProvider.GetAverageCompletionTime();
+
+        if (avgCompletionTime > 0 && currentLevel > 0)
         {
-            // 🆕 Use configurable session time estimation
-            var estimatedHoursPlayed = sessionData.SessionCount * this.config.EstimatedHoursPerSession;
+            // Use average completion time to estimate progression rate
+            var estimatedHoursPlayed = (currentLevel * avgCompletionTime) / 3600f;
             var expectedLevel = (int)(estimatedHoursPlayed * this.config.ExpectedLevelsPerHour);
 
             if (expectedLevel > 0)
@@ -310,7 +426,7 @@ public class LevelProgressModifier : BaseDifficultyModifier<LevelProgressConfig>
             }
         }
 
-        // 5. 🆕 NEW: Check level difficulty vs player performance using configurable thresholds
+        // 4. 🆕 NEW: Check level difficulty vs player performance using configurable thresholds
         var levelDifficulty = this.levelProgressProvider.GetCurrentLevelDifficulty();
         var completionRate = this.levelProgressProvider.GetCompletionRate();
 
@@ -333,7 +449,7 @@ public class LevelProgressModifier : BaseDifficultyModifier<LevelProgressConfig>
 
         return new ModifierResult
         {
-            ModifierName = this.ModifierName,
+            ModifierName = ModifierName,
             Value = value,
             Reason = finalReason,
             Metadata = {
@@ -342,62 +458,85 @@ public class LevelProgressModifier : BaseDifficultyModifier<LevelProgressConfig>
                 ["levelDifficulty"] = levelDifficulty,
                 ["completionRate"] = completionRate,
                 ["timePercentage"] = timePercentage, // 🆕 NEW
-                ["avgCompletionTime"] = this.levelProgressProvider.GetAverageCompletionTime(),
-                ["applied"] = Math.Abs(value) > DifficultyConstants.ZERO_VALUE,
+                ["avgCompletionTime"] = avgCompletionTime,
+                ["applied"] = Math.Abs(value) > 0f,
             }
         };
     }
 }
 ```
 
-### 7. SessionPatternModifier ✅ NEW
+### 7. SessionPatternModifier ✅ STATELESS
 **Purpose**: Detects session patterns and player frustration through duration and behavior analysis
-**Data Sources**: `IRageQuitProvider.GetAverageSessionDuration()`, `GetRecentRageQuitCount()`
+**Data Sources**:
+- `IRageQuitProvider.GetAverageSessionDuration()`
+- `IRageQuitProvider.GetRecentRageQuitCount()`
+- `IRageQuitProvider.GetCurrentSessionDuration()`
+- `IRageQuitProvider.GetLastQuitType()`
 **Config**: `SessionPatternConfig` ([Serializable] class)
 
 ```csharp
 public class SessionPatternModifier : BaseDifficultyModifier<SessionPatternConfig>
 {
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
-    {
-        var avgSessionDuration = this.rageQuitProvider.GetAverageSessionDuration();
-        var recentRageQuits = this.rageQuitProvider.GetRecentRageQuitCount();
+    private readonly IRageQuitProvider rageQuitProvider;
 
-        float adjustment = 0f;
+    public override ModifierResult Calculate()
+    {
+        // Get data from providers - stateless approach
+        var value = 0f;
         var reasons = new List<string>();
 
-        // Analyze session duration patterns
-        if (avgSessionDuration < this.config.ShortSessionThreshold)
+        // 1. Check current session duration
+        var currentSessionDuration = this.rageQuitProvider.GetCurrentSessionDuration();
+        if (currentSessionDuration < this.config.VeryShortSessionThreshold && currentSessionDuration > 0)
         {
-            adjustment += this.config.ShortSessionReduction;
-            reasons.Add($"Short sessions ({avgSessionDuration:F0}s avg)");
-        }
-        else if (avgSessionDuration > this.config.LongSessionThreshold)
-        {
-            adjustment += this.config.LongSessionBonus;
-            reasons.Add($"Long engagement ({avgSessionDuration:F0}s avg)");
+            value -= this.config.VeryShortSessionDecrease;
+            reasons.Add($"Very short session ({currentSessionDuration:F0}s)");
         }
 
-        // Analyze rage quit patterns
-        if (recentRageQuits >= this.config.RageQuitCountThreshold)
+        // 2. Check average session duration pattern
+        var avgSessionDuration = this.rageQuitProvider.GetAverageSessionDuration();
+        if (avgSessionDuration > 0 && avgSessionDuration < this.config.MinNormalSessionDuration)
         {
-            adjustment += this.config.RageQuitReduction;
-            reasons.Add($"Rage quit pattern ({recentRageQuits} recent quits)");
+            var durationRatio = avgSessionDuration / this.config.MinNormalSessionDuration;
+            var durationAdjustment = -(1f - durationRatio) * this.config.ConsistentShortSessionsDecrease;
+            value += durationAdjustment;
+            reasons.Add($"Short avg sessions ({avgSessionDuration:F0}s)");
         }
 
-        var reason = reasons.Any() ? string.Join(", ", reasons) : "No session pattern adjustment";
+        // 3. Use rage quit data from provider
+        var lastQuitType = this.rageQuitProvider.GetLastQuitType();
+        var recentRageQuitCount = this.rageQuitProvider.GetRecentRageQuitCount();
+
+        // Check for rage quit patterns
+        if (recentRageQuitCount >= this.config.RageQuitCountThreshold)
+        {
+            var rageQuitPenalty = this.config.RageQuitPatternDecrease * this.config.RageQuitPenaltyMultiplier;
+            value -= rageQuitPenalty;
+            reasons.Add($"Recent rage quits ({recentRageQuitCount})");
+        }
+
+        // 4. Check last quit type for mid-level quit pattern
+        if (lastQuitType == QuitType.MidPlay)
+        {
+            value -= this.config.MidLevelQuitDecrease;
+            reasons.Add("Mid-level quit detected");
+        }
+
+        var finalReason = reasons.Count > 0 ? string.Join(", ", reasons) : "Normal session patterns";
 
         return new ModifierResult
         {
             ModifierName = ModifierName,
-            Value = adjustment,
-            Reason = reason,
-            Metadata = new Dictionary<string, object>
+            Value = value,
+            Reason = finalReason,
+            Metadata =
             {
-                ["avg_session_duration"] = avgSessionDuration,
-                ["recent_rage_quits"] = recentRageQuits,
-                ["short_threshold"] = this.config.ShortSessionThreshold,
-                ["long_threshold"] = this.config.LongSessionThreshold
+                ["currentSessionDuration"] = currentSessionDuration,
+                ["avgSessionDuration"] = avgSessionDuration,
+                ["rageQuitCount"] = recentRageQuitCount,
+                ["lastQuitType"] = lastQuitType.ToString(),
+                ["applied"] = Math.Abs(value) > 0f
             }
         };
     }
@@ -406,7 +545,7 @@ public class SessionPatternModifier : BaseDifficultyModifier<SessionPatternConfi
 
 ## Creating Custom Modifiers
 
-### ⚠️ **CRITICAL: Corrected Configuration Pattern**
+### ⚠️ **CRITICAL: Stateless Configuration Pattern**
 
 **The configuration system uses a single ScriptableObject with embedded [Serializable] config classes.**
 
@@ -449,12 +588,13 @@ namespace YourNamespace
 }
 ```
 
-### Step 2: Create the Modifier Class
+### Step 2: Create the Modifier Class (Stateless)
 
 ```csharp
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
+using TheOneStudio.DynamicUserDifficulty.Providers;
 
 namespace YourNamespace
 {
@@ -470,15 +610,15 @@ namespace YourNamespace
             this.levelProvider = provider;
         }
 
-        public override ModifierResult Calculate(PlayerSessionData sessionData)
+        public override ModifierResult Calculate()
         {
-            // Get data from provider
+            // Get data from provider - stateless approach
             var avgTime = this.levelProvider.GetAverageCompletionTime();
             var timePercentage = this.levelProvider.GetCurrentLevelTimePercentage(); // 🆕 NEW
 
             // Check condition using type-safe config properties
             if (avgTime <= 0 || avgTime >= this.config.TimeThreshold)
-                return NoChange("No speed bonus applicable");
+                return ModifierResult.NoChange("No speed bonus applicable");
 
             var adjustment = this.config.BonusAmount;
 
@@ -497,7 +637,7 @@ namespace YourNamespace
                 ModifierName = ModifierName,
                 Value = adjustment,
                 Reason = $"Fast completion bonus (avg: {avgTime:F0}s, {timePercentage:P0} of expected)",
-                Metadata = new Dictionary<string, object>
+                Metadata =
                 {
                     ["average_time"] = avgTime,
                     ["time_percentage"] = timePercentage, // 🆕 NEW
@@ -570,12 +710,12 @@ public SpeedBonusModifier(SpeedBonusConfig config, IYourProvider provider) : bas
 }
 ```
 
-### 2. Calculation Phase
+### 2. Calculation Phase (Stateless)
 ```csharp
-public override ModifierResult Calculate(PlayerSessionData sessionData)
+public override ModifierResult Calculate()
 {
     // Called each time difficulty is calculated
-    // Should be stateless and pure
+    // Should be stateless and pure - NO parameters taken
     // Use provider to get external data
     // Use this.config.PropertyName for type-safe access
     // Return adjustment value
@@ -641,20 +781,20 @@ var settings = new
 ### Dynamic Configuration
 
 ```csharp
-public override ModifierResult Calculate(PlayerSessionData sessionData)
+public override ModifierResult Calculate()
 {
     // Check if should run
-    if (!ShouldRun(sessionData))
-        return NoChange("Conditions not met");
+    if (!ShouldRun())
+        return ModifierResult.NoChange("Conditions not met");
 
-    // Get dynamic threshold based on player level
-    var dynamicThreshold = GetDynamicThreshold(sessionData);
+    // Get dynamic threshold based on provider data
+    var dynamicThreshold = GetDynamicThreshold();
 
     // Calculate with dynamic values
-    return CalculateWithThreshold(sessionData, dynamicThreshold);
+    return CalculateWithThreshold(dynamicThreshold);
 }
 
-private float GetDynamicThreshold(PlayerSessionData data)
+private float GetDynamicThreshold()
 {
     // Example: Scale threshold with provider data
     var baseThreshold = this.config.BaseThreshold;
@@ -669,11 +809,11 @@ private float GetDynamicThreshold(PlayerSessionData data)
 
 ## Best Practices
 
-### 1. Keep Calculations Pure
+### 1. Keep Calculations Pure and Stateless
 
 ✅ **Good: Pure function with provider data**
 ```csharp
-public override ModifierResult Calculate(PlayerSessionData sessionData)
+public override ModifierResult Calculate()
 {
     // Read from providers (external data)
     var winRate = this.levelProvider.GetCompletionRate();
@@ -690,12 +830,12 @@ public override ModifierResult Calculate(PlayerSessionData sessionData)
 
 ❌ **Bad: Side effects and non-deterministic behavior**
 ```csharp
-public override ModifierResult Calculate(PlayerSessionData sessionData)
+public override ModifierResult Calculate()
 {
     // Don't do this!
     SaveToDatabase(sessionData);  // Side effect
     var random = Random.Range(0, 1);  // Non-deterministic
-    sessionData.WinStreak++;      // Modifying input
+    sessionData.WinStreak++;      // Modifying external state
 }
 ```
 
@@ -726,13 +866,13 @@ reason = "Adjustment applied";
 ### 4. Handle Edge Cases
 
 ```csharp
-public override ModifierResult Calculate(PlayerSessionData sessionData)
+public override ModifierResult Calculate()
 {
     // Check for sufficient data
     var totalGames = this.winStreakProvider.GetTotalWins() + this.winStreakProvider.GetTotalLosses();
     if (totalGames < 5)
     {
-        return NoChange("Insufficient data for analysis");
+        return ModifierResult.NoChange("Insufficient data for analysis");
     }
 
     // Validate provider data
@@ -740,7 +880,7 @@ public override ModifierResult Calculate(PlayerSessionData sessionData)
     if (completionRate < 0 || completionRate > 1)
     {
         Debug.LogWarning($"Invalid completion rate: {completionRate}");
-        return NoChange("Invalid completion rate data");
+        return ModifierResult.NoChange("Invalid completion rate data");
     }
 
     // 🆕 Validate new time percentage data
@@ -748,7 +888,7 @@ public override ModifierResult Calculate(PlayerSessionData sessionData)
     if (timePercentage < 0)
     {
         Debug.LogWarning($"Invalid time percentage: {timePercentage}");
-        return NoChange("Invalid time percentage data");
+        return ModifierResult.NoChange("Invalid time percentage data");
     }
 
     // Normal calculation...
@@ -763,7 +903,7 @@ return new ModifierResult
     ModifierName = ModifierName,
     Value = adjustment,
     Reason = reason,
-    Metadata = new Dictionary<string, object>
+    Metadata =
     {
         ["completion_rate"] = completionRate,
         ["total_games"] = totalGames,
@@ -849,16 +989,16 @@ public class EnhancedSkillProgressionModifier : BaseDifficultyModifier<EnhancedS
         this.winProvider = winProvider;
     }
 
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    public override ModifierResult Calculate()
     {
-        // Comprehensive skill analysis using multiple providers
+        // Comprehensive skill analysis using multiple providers (stateless)
         var completionRate = this.levelProvider.GetCompletionRate();
         var avgTime = this.levelProvider.GetAverageCompletionTime();
         var timePercentage = this.levelProvider.GetCurrentLevelTimePercentage(); // 🆕 NEW
         var currentLevel = this.levelProvider.GetCurrentLevel();
         var totalWins = this.winProvider.GetTotalWins();
 
-        if (totalWins < 10) return NoChange("Insufficient game history");
+        if (totalWins < 10) return ModifierResult.NoChange("Insufficient game history");
 
         // 🆕 Enhanced time efficiency calculation using PercentUsingTimeToComplete
         var timeEfficiencyScore = CalculateTimeEfficiencyScore(timePercentage, avgTime);
@@ -878,7 +1018,7 @@ public class EnhancedSkillProgressionModifier : BaseDifficultyModifier<EnhancedS
             ModifierName = ModifierName,
             Value = adjustment,
             Reason = GetSkillBasedReason(overallSkill),
-            Metadata = new Dictionary<string, object>
+            Metadata =
             {
                 ["skill_score"] = overallSkill,
                 ["time_efficiency_score"] = timeEfficiencyScore,
@@ -1003,9 +1143,9 @@ public class TimeBasedEngagementModifier : BaseDifficultyModifier<TimeBasedEngag
         this.rageProvider = rageProvider;
     }
 
-    public override ModifierResult Calculate(PlayerSessionData sessionData)
+    public override ModifierResult Calculate()
     {
-        // 🆕 Use PercentUsingTimeToComplete for more accurate engagement analysis
+        // 🆕 Use PercentUsingTimeToComplete for more accurate engagement analysis (stateless)
         var timePercentage = this.levelProvider.GetCurrentLevelTimePercentage();
         var avgSessionDuration = this.rageProvider.GetAverageSessionDuration();
         var recentRageQuits = this.rageProvider.GetRecentRageQuitCount();
@@ -1018,7 +1158,7 @@ public class TimeBasedEngagementModifier : BaseDifficultyModifier<TimeBasedEngag
             ModifierName = ModifierName,
             Value = adjustment,
             Reason = GetEngagementReason(engagementScore, timePercentage),
-            Metadata = new Dictionary<string, object>
+            Metadata =
             {
                 ["engagement_score"] = engagementScore,
                 ["time_percentage"] = timePercentage, // 🆕 NEW
@@ -1103,6 +1243,7 @@ public class TimeBasedEngagementModifier : BaseDifficultyModifier<TimeBasedEngag
 using NUnit.Framework;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
+using Moq;
 
 [TestFixture]
 public class EnhancedModifierTests
@@ -1127,10 +1268,9 @@ public class EnhancedModifierTests
         // Arrange
         mockProvider.Setup(p => p.GetCurrentLevelTimePercentage()).Returns(0.6f); // Fast completion
         mockProvider.Setup(p => p.GetAttemptsOnCurrentLevel()).Returns(3);
-        var sessionData = new PlayerSessionData();
 
         // Act
-        var result = modifier.Calculate(sessionData);
+        var result = modifier.Calculate(); // No parameters - stateless!
 
         // Assert
         Assert.Greater(result.Value, 0);
@@ -1145,10 +1285,9 @@ public class EnhancedModifierTests
         // Arrange
         mockProvider.Setup(p => p.GetCurrentLevelTimePercentage()).Returns(1.8f); // Slow completion
         mockProvider.Setup(p => p.GetAttemptsOnCurrentLevel()).Returns(3);
-        var sessionData = new PlayerSessionData();
 
         // Act
-        var result = modifier.Calculate(sessionData);
+        var result = modifier.Calculate(); // No parameters - stateless!
 
         // Assert
         Assert.Less(result.Value, 0);
@@ -1166,10 +1305,9 @@ public class EnhancedModifierTests
         // Arrange
         mockProvider.Setup(p => p.GetCurrentLevelTimePercentage()).Returns(timePercentage);
         mockProvider.Setup(p => p.GetAttemptsOnCurrentLevel()).Returns(3);
-        var sessionData = new PlayerSessionData();
 
         // Act
-        var result = modifier.Calculate(sessionData);
+        var result = modifier.Calculate(); // No parameters - stateless!
 
         // Assert
         if (expectedSign > 0)
@@ -1178,28 +1316,6 @@ public class EnhancedModifierTests
             Assert.Less(result.Value, 0, $"Expected negative adjustment for time percentage {timePercentage}");
         else
             Assert.AreEqual(0, result.Value, 0.01f, $"Expected no adjustment for time percentage {timePercentage}");
-    }
-
-    [Test]
-    public void Calculate_FallsBackToSessionTime_WhenTimePercentageUnavailable()
-    {
-        // Arrange
-        mockProvider.Setup(p => p.GetCurrentLevelTimePercentage()).Returns(0f); // Not available
-        mockProvider.Setup(p => p.GetAverageCompletionTime()).Returns(60f);
-        mockProvider.Setup(p => p.GetAttemptsOnCurrentLevel()).Returns(3);
-
-        var sessionData = new PlayerSessionData();
-        sessionData.RecentSessions.Enqueue(new SessionInfo { PlayDuration = 30f }); // Fast completion
-
-        // Act
-        var result = modifier.Calculate(sessionData);
-
-        // Assert
-        Assert.Greater(result.Value, 0); // Should get bonus from fast session time
-        Assert.Contains("Fast completion", result.Reason);
-        // Verify fallback was used
-        mockProvider.Verify(p => p.GetCurrentLevelTimePercentage(), Times.Once);
-        mockProvider.Verify(p => p.GetAverageCompletionTime(), Times.Once);
     }
 }
 ```
@@ -1223,7 +1339,7 @@ public void EnhancedModifierUsesAllProviderMethods_Correctly()
     var modifier = new LevelProgressModifier(config, levelProvider.Object);
 
     // Act
-    var result = modifier.Calculate(sessionData);
+    var result = modifier.Calculate(); // No parameters - stateless!
 
     // Assert - Verify all provider methods were called
     levelProvider.Verify(p => p.GetCurrentLevel(), Times.Once);
@@ -1266,17 +1382,15 @@ public void EnhancedConfiguration_EmbeddedInDifficultyConfig_WorksCorrectly()
     Assert.AreEqual(2f, levelProgressConfig.EasyLevelThreshold);
     Assert.AreEqual(0.3f, levelProgressConfig.StruggleCompletionRate);
     Assert.AreEqual(0.3f, levelProgressConfig.StrugglePenalty);
-    Assert.AreEqual(0.33f, levelProgressConfig.EstimatedHoursPerSession);
 }
 ```
 
 ### Manual Testing Checklist
 
 - [ ] Enhanced modifier registers correctly in DI
-- [ ] All 15 configuration parameters load properly from single DifficultyConfig
+- [ ] All configuration parameters load properly from single DifficultyConfig
 - [ ] `GetCurrentLevelTimePercentage()` provider method is called correctly
 - [ ] Time-based calculations use PercentUsingTimeToComplete as primary metric
-- [ ] Fallback to session-based completion time works when time percentage unavailable
 - [ ] New configuration parameters (maxPenaltyMultiplier, fastCompletionMultiplier, etc.) affect calculations
 - [ ] Mastery and struggle detection works with configurable thresholds
 - [ ] Edge cases handled gracefully (zero/negative values)
@@ -1285,6 +1399,7 @@ public void EnhancedConfiguration_EmbeddedInDifficultyConfig_WorksCorrectly()
 - [ ] Metadata populated with all new fields for debugging
 - [ ] Integration with all 7 modifiers still works
 - [ ] Unity Inspector shows all enhanced config parameters properly
+- [ ] Stateless Calculate() method works without parameters
 
 ## Troubleshooting
 
@@ -1298,7 +1413,6 @@ public void EnhancedConfiguration_EmbeddedInDifficultyConfig_WorksCorrectly()
 
 2. **Enhanced Configuration Issues** ⚠️ **UPDATED**
    - Only ONE DifficultyConfig ScriptableObject should exist
-   - LevelProgressConfig should have all 15 parameters visible in Inspector
    - All modifier configs use [Serializable], not [CreateAssetMenu]
    - All modifier configs are embedded in the single asset
    - Use type-safe property access: `this.config.MaxPenaltyMultiplier`
@@ -1306,22 +1420,27 @@ public void EnhancedConfiguration_EmbeddedInDifficultyConfig_WorksCorrectly()
 3. **Time Percentage Issues** 🆕 **NEW**
    - Verify `GetCurrentLevelTimePercentage()` implementation returns valid values (0-positive)
    - Check UITemplate integration provides `PercentUsingTimeToComplete` data
-   - Ensure fallback to session-based time calculation works
    - Values < 1.0 should indicate faster than expected completion
 
-4. **Wrong values**
+4. **Stateless Issues** ⚠️ **CRITICAL**
+   - Calculate() method should take NO parameters
+   - All data must come from provider interfaces
+   - No internal state should be stored in modifiers
+   - Providers must be injected via constructor
+
+5. **Wrong values**
    - Verify provider data is correct, especially new time percentage method
-   - Check all 15 configuration values in Unity Inspector
+   - Check all configuration values in Unity Inspector
    - Test with mock providers to isolate calculation logic
    - Validate time-based calculation logic
 
-5. **Performance issues**
+6. **Performance issues**
    - Cache expensive calculations
    - Avoid LINQ in hot paths
    - Profile with Unity Profiler
    - Check provider method performance, especially new time percentage calculation
 
-6. **Provider-related exceptions**
+7. **Provider-related exceptions**
    - Check provider implementations include new `GetCurrentLevelTimePercentage()` method
    - Verify provider registration in DI
    - Handle null provider data gracefully
@@ -1329,6 +1448,5 @@ public void EnhancedConfiguration_EmbeddedInDifficultyConfig_WorksCorrectly()
 
 ---
 
-*Last Updated: 2025-01-26*
-*Enhanced LevelProgressModifier with PercentUsingTimeToComplete Integration*
-*15 Configuration Parameters • Primary/Fallback Time Calculation Architecture • Production Ready*
+*Last Updated: 2025-01-29*
+*Stateless Architecture Implementation • Calculate() Method Takes NO Parameters • 7 Modifiers Complete • Enhanced LevelProgressModifier with PercentUsingTimeToComplete Integration • Production Ready*
