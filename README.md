@@ -237,6 +237,20 @@ The system automatically:
 | **[Documentation/ImplementationGuide.md](Documentation/ImplementationGuide.md)** | Step-by-step stateless implementation | Building from scratch |
 | **[Documentation/APIReference.md](Documentation/APIReference.md)** | Complete API documentation | During development |
 | **[Documentation/ModifierGuide.md](Documentation/ModifierGuide.md)** | Creating custom modifiers (stateless) | Extending the system |
+
+### Modifier Documentation
+
+| Document | Purpose | Read When |
+|----------|---------|-----------|
+| **[Documentation/ModifierReference.md](Documentation/ModifierReference.md)** | Complete reference for all 7 modifiers | Configuring modifiers |
+| **[Documentation/Modifiers/LevelProgressModifier.md](Documentation/Modifiers/LevelProgressModifier.md)** | Detailed LevelProgress documentation | Complex progression tuning |
+| **[Documentation/Modifiers/SessionPatternModifier.md](Documentation/Modifiers/SessionPatternModifier.md)** | Session pattern analysis guide | Mobile behavior analysis |
+| **[Documentation/MobilePuzzleGameOptimization.md](Documentation/MobilePuzzleGameOptimization.md)** | Mobile-specific configuration guide | Optimizing for mobile |
+
+### Integration & Testing
+
+| Document | Purpose | Read When |
+|----------|---------|-----------|
 | **[Documentation/IntegrationGuide.md](Documentation/IntegrationGuide.md)** | Integration with game systems | Connecting to your game |
 
 ### Testing Documentation ✅ COMPLETE
@@ -275,6 +289,10 @@ DynamicUserDifficulty/
 │   ├── 📄 APIReference.md
 │   ├── 📄 ModifierGuide.md
 │   ├── 📄 IntegrationGuide.md
+│   ├── 📄 ModifierReference.md          # 🆕 Comprehensive modifier guide
+│   ├── 📁 Modifiers/                    # 🆕 Detailed modifier docs
+│   │   ├── 📄 LevelProgressModifier.md  # 🆕 Enhanced progression analysis
+│   │   └── 📄 SessionPatternModifier.md # 🆕 Mobile session patterns
 │   ├── 📄 TestFrameworkDesign.md
 │   ├── 📄 TestStrategy.md
 │   └── 📄 TestImplementation.md ✅ 164 tests

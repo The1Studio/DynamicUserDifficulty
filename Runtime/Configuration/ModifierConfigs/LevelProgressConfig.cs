@@ -57,7 +57,7 @@ public class LevelProgressConfig : BaseModifierConfig
     [Tooltip("Maximum penalty multiplier for slow completion (caps penalty calculation)")]
     private float maxPenaltyMultiplier = 1.0f;
 
-    [SerializeField][Range(0.1f, 0.9f)]
+    [SerializeField][Range(0.5f, 2.0f)]
     [Tooltip("Multiplier for fast completion bonus based on time saved")]
     private float fastCompletionMultiplier = 1.0f;
 
@@ -125,7 +125,7 @@ public class LevelProgressConfig : BaseModifierConfig
             slowCompletionRatio = 1.5f,
             fastCompletionBonus = 0.3f,
             slowCompletionPenalty = 0.3f,
-            expectedLevelsPerHour = 15,
+            expectedLevelsPerHour = 10,  // More realistic for mobile puzzle games
             levelProgressionFactor = 0.1f,
             maxPenaltyMultiplier = 1.0f,
             fastCompletionMultiplier = 1.0f,
