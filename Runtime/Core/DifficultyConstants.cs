@@ -9,11 +9,15 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
     // These are default values - actual values should come from DifficultyConfig ScriptableObject
     public const float MIN_DIFFICULTY = 1f;
     public const float MAX_DIFFICULTY = 10f;
-    public const float DEFAULT_DIFFICULTY = 5f;  // Middle of the range for balanced starting point
+    public const float DEFAULT_DIFFICULTY = 3f;  // Lower starting point for new players (was 5f)
 
     // ========== TIME CONSTANTS ==========
     public const float HOURS_IN_DAY = 24f;
     public const int DAYS_IN_WEEK = 7;
+    public const int MINUTES_IN_HOUR = 60;
+    public const int SECONDS_IN_MINUTE = 60;
+    public const float SECONDS_IN_HOUR = 3600f;
+    public const float SECONDS_IN_DAY = 86400f;
 
     // ========== LEVEL AND PROGRESS DEFAULTS ==========
     /// <summary>Default starting level when no level data is available</summary>
