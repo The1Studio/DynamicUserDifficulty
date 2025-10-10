@@ -153,3 +153,4 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
             this.difficultyImprovementThreshold = 1.2f;
         }
     }
+}
