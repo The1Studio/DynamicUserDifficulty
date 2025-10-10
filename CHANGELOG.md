@@ -5,6 +5,29 @@ All notable changes to the Dynamic User Difficulty package will be documented in
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-10-10
+
+### Fixed
+- **Code Quality Improvements** - Resolved all code review findings
+  - Fixed Runtime/Editor assembly separation (removed Odin Inspector from Runtime)
+  - Added division-by-zero safety to all modifier config generation formulas
+  - Expanded GameStats validation from 8 to 17 fields
+  - Fixed indentation inconsistencies in modifier config files
+  - Added missing `[CustomEditor]` attribute to DifficultyConfigEditor
+  - Corrected LevelProgressConfig.cs structure and indentation
+- **Compilation Errors** - Fixed all C# compilation errors
+  - SessionPatternConfig.cs: Fixed indentation and missing namespace brace
+  - LevelProgressConfig.cs: Fixed class body indentation and closing braces
+  - LossStreakConfig.cs: Fixed indentation consistency
+  - TimeDecayConfig.cs: Fixed indentation consistency
+- **UI Functionality** - Generation buttons now visible in Unity Inspector
+
+### Technical Details
+- **Division-by-Zero Protection**: All 5 modifier configs now use `Mathf.Max()` guards
+- **Comprehensive Validation**: All 17 GameStats fields validated before generation
+- **Code Duplication**: Eliminated duplicate generation logic in preview
+- **Formatting**: All files follow C# coding standards
+
 ## [2.0.0] - 2025-01-22
 
 ### 🎉 Major Release - Production Ready with 7 Comprehensive Modifiers
