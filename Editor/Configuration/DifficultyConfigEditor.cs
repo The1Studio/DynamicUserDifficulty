@@ -11,6 +11,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor.Configuration
     /// Custom editor for DifficultyConfig with automatic configuration generation from game stats.
     /// Compatible with Odin Inspector.
     /// </summary>
+    [CustomEditor(typeof(DifficultyConfig))]
     public class DifficultyConfigEditor : OdinEditor
     {
         private bool showGameStatsHelp = false;
