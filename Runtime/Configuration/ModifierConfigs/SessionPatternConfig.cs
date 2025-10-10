@@ -8,148 +8,148 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// Configuration for Session Pattern modifier with type-safe properties
     /// </summary>
     [Serializable]
-public class SessionPatternConfig : BaseModifierConfig
-{
-    [Header("Session Duration Settings")]
-
-    [SerializeField][Range(60f, 600f)]
-    [Tooltip("Minimum session duration in seconds to be considered normal")]
-    private float minNormalSessionDuration = 180f; // 3 minutes
-
-    [SerializeField][Range(30f, 120f)]
-    [Tooltip("Session duration below this is considered very short (potential frustration)")]
-    private float veryShortSessionThreshold = 60f; // 1 minute
-
-    [SerializeField][Range(0.2f, 1f)]
-    [Tooltip("Difficulty decrease for very short sessions")]
-    private float veryShortSessionDecrease = 0.5f;
-
-    [Header("Session Pattern Detection")]
-
-    [SerializeField][Range(3, 10)]
-    [Tooltip("Number of recent sessions to analyze for patterns")]
-    private int sessionHistorySize = 5;
-
-    [SerializeField][Range(0.3f, 0.8f)]
-    [Tooltip("Percentage of sessions that must be short to trigger adjustment")]
-    private float shortSessionRatio = 0.5f;
-
-    [SerializeField][Range(0.3f, 1.5f)]
-    [Tooltip("Difficulty adjustment for consistent short sessions")]
-    private float consistentShortSessionsDecrease = 0.8f;
-
-    [Header("Session End Reason Analysis")]
-
-    [SerializeField][Range(0.5f, 2f)]
-    [Tooltip("Difficulty decrease for rage quit patterns")]
-    private float rageQuitPatternDecrease = 1f;
-
-    [SerializeField][Range(0.2f, 1f)]
-    [Tooltip("Difficulty decrease for quitting mid-level frequently")]
-    private float midLevelQuitDecrease = 0.4f;
-
-    [SerializeField][Range(0.2f, 0.6f)]
-    [Tooltip("Ratio of mid-level quits to trigger adjustment")]
-    private float midLevelQuitRatio = 0.3f;
-
-    [Header("Rage Quit Detection Settings")]
-
-    [SerializeField][Range(1, 5)]
-    [Tooltip("Minimum number of rage quits to trigger pattern detection")]
-    private int rageQuitCountThreshold = 2;
-
-    [SerializeField][Range(0.1f, 1f)]
-    [Tooltip("Multiplier for recent rage quit penalty")]
-    private float rageQuitPenaltyMultiplier = 0.5f;
-
-    [Header("Difficulty Adjustment Analysis")]
-
-    [SerializeField][Range(1.1f, 2f)]
-    [Tooltip("Improvement ratio to consider difficulty adjustments effective")]
-    private float difficultyImprovementThreshold = 1.2f;
-
-    // BaseModifierConfig implementation
-    public override string ModifierType => DifficultyConstants.MODIFIER_TYPE_SESSION_PATTERN;
-
-    // Type-safe properties
-    public float MinNormalSessionDuration => this.minNormalSessionDuration;
-    public float VeryShortSessionThreshold => this.veryShortSessionThreshold;
-    public float VeryShortSessionDecrease => this.veryShortSessionDecrease;
-    public int SessionHistorySize => this.sessionHistorySize;
-    public float ShortSessionRatio => this.shortSessionRatio;
-    public float ConsistentShortSessionsDecrease => this.consistentShortSessionsDecrease;
-    public float RageQuitPatternDecrease => this.rageQuitPatternDecrease;
-    public float MidLevelQuitDecrease => this.midLevelQuitDecrease;
-    public float MidLevelQuitRatio => this.midLevelQuitRatio;
-    public int RageQuitCountThreshold => this.rageQuitCountThreshold;
-    public float RageQuitPenaltyMultiplier => this.rageQuitPenaltyMultiplier;
-    public float DifficultyImprovementThreshold => this.difficultyImprovementThreshold;
-
-    public override IModifierConfig CreateDefault()
+    public class SessionPatternConfig : BaseModifierConfig
     {
-        var config = new SessionPatternConfig
+        [Header("Session Duration Settings")]
+
+        [SerializeField][Range(60f, 600f)]
+        [Tooltip("Minimum session duration in seconds to be considered normal")]
+        private float minNormalSessionDuration = 180f; // 3 minutes
+
+        [SerializeField][Range(30f, 120f)]
+        [Tooltip("Session duration below this is considered very short (potential frustration)")]
+        private float veryShortSessionThreshold = 60f; // 1 minute
+
+        [SerializeField][Range(0.2f, 1f)]
+        [Tooltip("Difficulty decrease for very short sessions")]
+        private float veryShortSessionDecrease = 0.5f;
+
+        [Header("Session Pattern Detection")]
+
+        [SerializeField][Range(3, 10)]
+        [Tooltip("Number of recent sessions to analyze for patterns")]
+        private int sessionHistorySize = 5;
+
+        [SerializeField][Range(0.3f, 0.8f)]
+        [Tooltip("Percentage of sessions that must be short to trigger adjustment")]
+        private float shortSessionRatio = 0.5f;
+
+        [SerializeField][Range(0.3f, 1.5f)]
+        [Tooltip("Difficulty adjustment for consistent short sessions")]
+        private float consistentShortSessionsDecrease = 0.8f;
+
+        [Header("Session End Reason Analysis")]
+
+        [SerializeField][Range(0.5f, 2f)]
+        [Tooltip("Difficulty decrease for rage quit patterns")]
+        private float rageQuitPatternDecrease = 1f;
+
+        [SerializeField][Range(0.2f, 1f)]
+        [Tooltip("Difficulty decrease for quitting mid-level frequently")]
+        private float midLevelQuitDecrease = 0.4f;
+
+        [SerializeField][Range(0.2f, 0.6f)]
+        [Tooltip("Ratio of mid-level quits to trigger adjustment")]
+        private float midLevelQuitRatio = 0.3f;
+
+        [Header("Rage Quit Detection Settings")]
+
+        [SerializeField][Range(1, 5)]
+        [Tooltip("Minimum number of rage quits to trigger pattern detection")]
+        private int rageQuitCountThreshold = 2;
+
+        [SerializeField][Range(0.1f, 1f)]
+        [Tooltip("Multiplier for recent rage quit penalty")]
+        private float rageQuitPenaltyMultiplier = 0.5f;
+
+        [Header("Difficulty Adjustment Analysis")]
+
+        [SerializeField][Range(1.1f, 2f)]
+        [Tooltip("Improvement ratio to consider difficulty adjustments effective")]
+        private float difficultyImprovementThreshold = 1.2f;
+
+        // BaseModifierConfig implementation
+        public override string ModifierType => DifficultyConstants.MODIFIER_TYPE_SESSION_PATTERN;
+
+        // Type-safe properties
+        public float MinNormalSessionDuration => this.minNormalSessionDuration;
+        public float VeryShortSessionThreshold => this.veryShortSessionThreshold;
+        public float VeryShortSessionDecrease => this.veryShortSessionDecrease;
+        public int SessionHistorySize => this.sessionHistorySize;
+        public float ShortSessionRatio => this.shortSessionRatio;
+        public float ConsistentShortSessionsDecrease => this.consistentShortSessionsDecrease;
+        public float RageQuitPatternDecrease => this.rageQuitPatternDecrease;
+        public float MidLevelQuitDecrease => this.midLevelQuitDecrease;
+        public float MidLevelQuitRatio => this.midLevelQuitRatio;
+        public int RageQuitCountThreshold => this.rageQuitCountThreshold;
+        public float RageQuitPenaltyMultiplier => this.rageQuitPenaltyMultiplier;
+        public float DifficultyImprovementThreshold => this.difficultyImprovementThreshold;
+
+        public override IModifierConfig CreateDefault()
         {
-            minNormalSessionDuration = 180f,
-            veryShortSessionThreshold = 60f,
-            veryShortSessionDecrease = 0.5f,
-            sessionHistorySize = 5,
-            shortSessionRatio = 0.5f,
-            consistentShortSessionsDecrease = 0.8f,
-            rageQuitPatternDecrease = 1f,
-            midLevelQuitDecrease = 0.4f,
-            midLevelQuitRatio = 0.3f,
-            rageQuitCountThreshold = 2,
-            rageQuitPenaltyMultiplier = 0.5f,
-            difficultyImprovementThreshold = 1.2f,
-        };
-        config.SetEnabled(true);
-        config.SetPriority(7);
-        return config;
+            var config = new SessionPatternConfig
+            {
+                minNormalSessionDuration = 180f,
+                veryShortSessionThreshold = 60f,
+                veryShortSessionDecrease = 0.5f,
+                sessionHistorySize = 5,
+                shortSessionRatio = 0.5f,
+                consistentShortSessionsDecrease = 0.8f,
+                rageQuitPatternDecrease = 1f,
+                midLevelQuitDecrease = 0.4f,
+                midLevelQuitRatio = 0.3f,
+                rageQuitCountThreshold = 2,
+                rageQuitPenaltyMultiplier = 0.5f,
+                difficultyImprovementThreshold = 1.2f,
+            };
+            config.SetEnabled(true);
+            config.SetPriority(7);
+            return config;
+        }
+
+        public override void GenerateFromStats(GameStats stats)
+        {
+            // minNormalSessionDuration = avgSessionDuration * 60 (in seconds)
+            this.minNormalSessionDuration = stats.avgSessionDurationMinutes * 60f;
+            this.minNormalSessionDuration = Mathf.Clamp(this.minNormalSessionDuration, 60f, 600f);
+
+            // veryShortSessionThreshold = minNormal / 3 (very short)
+            this.veryShortSessionThreshold = this.minNormalSessionDuration / 3f;
+            this.veryShortSessionThreshold = Mathf.Clamp(this.veryShortSessionThreshold, 30f, 120f);
+
+            // veryShortSessionDecrease = maxChange / 4
+            this.veryShortSessionDecrease = stats.maxDifficultyChangePerSession / 4f;
+            this.veryShortSessionDecrease = Mathf.Clamp(this.veryShortSessionDecrease, 0.2f, 1f);
+
+            // sessionHistorySize = 5 (standard)
+            this.sessionHistorySize = 5;
+
+            // shortSessionRatio = 50% (half of sessions)
+            this.shortSessionRatio = 0.5f;
+
+            // consistentShortSessionsDecrease = maxChange / 2.5
+            this.consistentShortSessionsDecrease = stats.maxDifficultyChangePerSession / 2.5f;
+            this.consistentShortSessionsDecrease = Mathf.Clamp(this.consistentShortSessionsDecrease, 0.3f, 1.5f);
+
+            // rageQuitPatternDecrease = maxChange / 2
+            this.rageQuitPatternDecrease = stats.maxDifficultyChangePerSession / 2f;
+            this.rageQuitPatternDecrease = Mathf.Clamp(this.rageQuitPatternDecrease, 0.5f, 2f);
+
+            // midLevelQuitDecrease = maxChange / 5
+            this.midLevelQuitDecrease = stats.maxDifficultyChangePerSession / 5f;
+            this.midLevelQuitDecrease = Mathf.Clamp(this.midLevelQuitDecrease, 0.2f, 1f);
+
+            // midLevelQuitRatio = rageQuitPercentage / 100 (use game's rage quit rate)
+            this.midLevelQuitRatio = stats.rageQuitPercentage / 100f;
+            this.midLevelQuitRatio = Mathf.Clamp(this.midLevelQuitRatio, 0.2f, 0.6f);
+
+            // rageQuitCountThreshold = 2 (minimum to detect pattern)
+            this.rageQuitCountThreshold = 2;
+
+            // rageQuitPenaltyMultiplier = 0.5 (50% of base penalty)
+            this.rageQuitPenaltyMultiplier = 0.5f;
+
+            // difficultyImprovementThreshold = 1.2 (20% improvement)
+            this.difficultyImprovementThreshold = 1.2f;
+        }
     }
-
-    public override void GenerateFromStats(GameStats stats)
-    {
-        // minNormalSessionDuration = avgSessionDuration * 60 (in seconds)
-        this.minNormalSessionDuration = stats.avgSessionDurationMinutes * 60f;
-        this.minNormalSessionDuration = Mathf.Clamp(this.minNormalSessionDuration, 60f, 600f);
-
-        // veryShortSessionThreshold = minNormal / 3 (very short)
-        this.veryShortSessionThreshold = this.minNormalSessionDuration / 3f;
-        this.veryShortSessionThreshold = Mathf.Clamp(this.veryShortSessionThreshold, 30f, 120f);
-
-        // veryShortSessionDecrease = maxChange / 4
-        this.veryShortSessionDecrease = stats.maxDifficultyChangePerSession / 4f;
-        this.veryShortSessionDecrease = Mathf.Clamp(this.veryShortSessionDecrease, 0.2f, 1f);
-
-        // sessionHistorySize = 5 (standard)
-        this.sessionHistorySize = 5;
-
-        // shortSessionRatio = 50% (half of sessions)
-        this.shortSessionRatio = 0.5f;
-
-        // consistentShortSessionsDecrease = maxChange / 2.5
-        this.consistentShortSessionsDecrease = stats.maxDifficultyChangePerSession / 2.5f;
-        this.consistentShortSessionsDecrease = Mathf.Clamp(this.consistentShortSessionsDecrease, 0.3f, 1.5f);
-
-        // rageQuitPatternDecrease = maxChange / 2
-        this.rageQuitPatternDecrease = stats.maxDifficultyChangePerSession / 2f;
-        this.rageQuitPatternDecrease = Mathf.Clamp(this.rageQuitPatternDecrease, 0.5f, 2f);
-
-        // midLevelQuitDecrease = maxChange / 5
-        this.midLevelQuitDecrease = stats.maxDifficultyChangePerSession / 5f;
-        this.midLevelQuitDecrease = Mathf.Clamp(this.midLevelQuitDecrease, 0.2f, 1f);
-
-        // midLevelQuitRatio = rageQuitPercentage / 100 (use game's rage quit rate)
-        this.midLevelQuitRatio = stats.rageQuitPercentage / 100f;
-        this.midLevelQuitRatio = Mathf.Clamp(this.midLevelQuitRatio, 0.2f, 0.6f);
-
-        // rageQuitCountThreshold = 2 (minimum to detect pattern)
-        this.rageQuitCountThreshold = 2;
-
-        // rageQuitPenaltyMultiplier = 0.5 (50% of base penalty)
-        this.rageQuitPenaltyMultiplier = 0.5f;
-
-        // difficultyImprovementThreshold = 1.2 (20% improvement)
-        this.difficultyImprovementThreshold = 1.2f;
-    }
-}
