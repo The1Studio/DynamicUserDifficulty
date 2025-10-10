@@ -207,4 +207,3 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         this.estimatedHoursPerSession = Mathf.Clamp(this.estimatedHoursPerSession, 0.1f, 1f);
     }
 }
-}
