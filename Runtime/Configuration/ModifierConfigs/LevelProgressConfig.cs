@@ -7,12 +7,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// <summary>
     /// Configuration for Level Progress modifier with type-safe properties
     /// </summary>
-    /// <summary>
-/// Configuration for Level Progress modifier with type-safe properties
-/// </summary>
-[Serializable]
-public class LevelProgressConfig : BaseModifierConfig
-{
+    [Serializable]
+    public class LevelProgressConfig : BaseModifierConfig
+    {
     [Header("Attempts Settings")]
 
     [SerializeField][Range(3, 10)]
@@ -149,7 +146,8 @@ public class LevelProgressConfig : BaseModifierConfig
         this.highAttemptsThreshold = Mathf.Clamp(this.highAttemptsThreshold, 3, 10);
 
         // Difficulty decrease per attempt = maxChange / (highAttempts * 2)
-        this.difficultyDecreasePerAttempt = stats.maxDifficultyChangePerSession / (this.highAttemptsThreshold * 2f);
+        float divisor = Mathf.Max(1f, this.highAttemptsThreshold * 2f);
+        this.difficultyDecreasePerAttempt = stats.maxDifficultyChangePerSession / divisor;
         this.difficultyDecreasePerAttempt = Mathf.Clamp(this.difficultyDecreasePerAttempt, 0.1f, 0.5f);
 
         // Fast completion = 70% of average time

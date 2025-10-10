@@ -2,6 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
+using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using Sirenix.OdinInspector.Editor;
 
 namespace TheOneStudio.DynamicUserDifficulty.Editor.Configuration
@@ -93,8 +94,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor.Configuration
                 return;
             }
 
-            // Create preview message
+            // Generate temporary configs to preview values
             var gameStats = config.GameStats;
+            var winConfig = new WinStreakConfig();
+            winConfig.GenerateFromStats(gameStats);
+
+            var lossConfig = new LossStreakConfig();
+            lossConfig.GenerateFromStats(gameStats);
+
+            var timeConfig = new TimeDecayConfig();
+            timeConfig.GenerateFromStats(gameStats);
+
+            // Create preview message using actual generated values
             string preview = "📊 Preview of Generated Config Values:\n\n";
 
             preview += "=== Difficulty Range ===\n";
@@ -104,29 +115,19 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor.Configuration
             preview += $"Max Change/Session: {gameStats.maxDifficultyChangePerSession:F1}\n\n";
 
             preview += "=== Win Streak Modifier ===\n";
-            float winThreshold = Mathf.Max(2f, Mathf.Round(gameStats.avgConsecutiveWins * 0.75f));
-            float diffRange = gameStats.difficultyMax - gameStats.difficultyMin;
-            float winStepSize = Mathf.Clamp(diffRange / (gameStats.avgConsecutiveWins * 2f), 0.1f, 2f);
-            float winMaxBonus = Mathf.Clamp(diffRange * 0.3f, 0.5f, 5f);
-            preview += $"Win Threshold: {winThreshold:F1}\n";
-            preview += $"Step Size: {winStepSize:F2}\n";
-            preview += $"Max Bonus: {winMaxBonus:F2}\n\n";
+            preview += $"Win Threshold: {winConfig.WinThreshold:F1}\n";
+            preview += $"Step Size: {winConfig.StepSize:F2}\n";
+            preview += $"Max Bonus: {winConfig.MaxBonus:F2}\n\n";
 
             preview += "=== Loss Streak Modifier ===\n";
-            float lossThreshold = Mathf.Max(2f, Mathf.Round(gameStats.avgConsecutiveLosses * 0.8f));
-            float lossStepSize = Mathf.Clamp(diffRange / (gameStats.avgConsecutiveLosses * 3f), 0.1f, 2f);
-            float lossMaxReduction = Mathf.Clamp(diffRange * 0.25f, 0.5f, 5f);
-            preview += $"Loss Threshold: {lossThreshold:F1}\n";
-            preview += $"Step Size: {lossStepSize:F2}\n";
-            preview += $"Max Reduction: {lossMaxReduction:F2}\n\n";
+            preview += $"Loss Threshold: {lossConfig.LossThreshold:F1}\n";
+            preview += $"Step Size: {lossConfig.StepSize:F2}\n";
+            preview += $"Max Reduction: {lossConfig.MaxReduction:F2}\n\n";
 
             preview += "=== Time Decay Modifier ===\n";
-            float decayPerDay = Mathf.Clamp(gameStats.maxDifficultyChangePerSession / gameStats.targetRetentionDays, 0.1f, 2f);
-            float maxDecay = Mathf.Clamp(gameStats.maxDifficultyChangePerSession, 0.5f, 5f);
-            float graceHours = Mathf.Clamp(gameStats.avgHoursBetweenSessions, 0f, 48f);
-            preview += $"Decay/Day: {decayPerDay:F2}\n";
-            preview += $"Max Decay: {maxDecay:F2}\n";
-            preview += $"Grace Hours: {graceHours:F1}\n\n";
+            preview += $"Decay/Day: {timeConfig.DecayPerDay:F2}\n";
+            preview += $"Max Decay: {timeConfig.MaxDecay:F2}\n";
+            preview += $"Grace Hours: {timeConfig.GraceHours:F1}\n\n";
 
             preview += "...and 4 more modifiers\n\n";
             preview += "Click 'Generate All Configs' to apply these values.";
@@ -169,29 +170,38 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor.Configuration
             // Record undo for the entire config
             Undo.RecordObject(config, "Generate Configs from Stats");
 
-            // Generate all configs
-            config.GenerateAllConfigsFromStats();
+            // Generate all configs (pure data transformation in runtime)
+            bool success = config.GenerateAllConfigsFromStats();
 
             // Mark as dirty to ensure Unity saves the changes
-            EditorUtility.SetDirty(config);
+            if (success)
+            {
+                EditorUtility.SetDirty(config);
 
-            // Show success dialog
-            EditorUtility.DisplayDialog(
-                "Success",
-                "✓ All modifier configurations have been generated successfully from your Game Statistics!\n\n" +
-                "Check the Console for details about each generated config.\n\n" +
-                "You can now manually fine-tune individual configs if needed.",
-                "OK"
-            );
+                // Show success dialog
+                EditorUtility.DisplayDialog(
+                    "Success",
+                    "✓ All modifier configurations have been generated successfully from your Game Statistics!\n\n" +
+                    "Check the Console for details about each generated config.\n\n" +
+                    "You can now manually fine-tune individual configs if needed.",
+                    "OK"
+                );
 
-            // Log summary
-            Debug.Log("═══════════════════════════════════════");
-            Debug.Log("[DifficultyConfigEditor] Config Generation Complete");
-            Debug.Log($"  • Difficulty Range: {config.MinDifficulty:F1} - {config.MaxDifficulty:F1}");
-            Debug.Log($"  • Default Difficulty: {config.DefaultDifficulty:F1}");
-            Debug.Log($"  • Max Change/Session: {config.MaxChangePerSession:F1}");
-            Debug.Log($"  • All 7 modifier configs updated");
-            Debug.Log("═══════════════════════════════════════");
+                // Log summary
+                Debug.Log("[DifficultyConfigEditor] Config Generation Complete\n" +
+                         $"  • Difficulty Range: {config.MinDifficulty:F1} - {config.MaxDifficulty:F1}\n" +
+                         $"  • Default Difficulty: {config.DefaultDifficulty:F1}\n" +
+                         $"  • Max Change/Session: {config.MaxChangePerSession:F1}\n" +
+                         $"  • All 7 modifier configs updated");
+            }
+            else
+            {
+                EditorUtility.DisplayDialog(
+                    "Generation Failed",
+                    "Failed to generate configurations. Check the Console for error details.",
+                    "OK"
+                );
+            }
         }
     }
 }

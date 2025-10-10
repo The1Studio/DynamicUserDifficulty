@@ -48,7 +48,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
 
             // stepSize = range / (avgConsecutiveLosses * 3) (gentler decrease than win streak)
             float diffRange = stats.difficultyMax - stats.difficultyMin;
-            this.stepSize = diffRange / (stats.avgConsecutiveLosses * 3f);
+            float divisor = Mathf.Max(0.1f, stats.avgConsecutiveLosses * 3f);
+        this.stepSize = diffRange / divisor;
             this.stepSize = Mathf.Clamp(this.stepSize, 0.1f, 2f);
 
             // maxReduction = 25% of range (less aggressive than win streak bonus)

@@ -83,9 +83,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
 
         /// <summary>
         /// Validates the game stats to ensure they are within reasonable ranges.
+        /// Comprehensive validation for all 17 fields to prevent division by zero and invalid configs.
         /// </summary>
         public bool Validate(out string errorMessage)
         {
+            // Player Behavior validations
             if (this.avgConsecutiveWins <= 0)
             {
                 errorMessage = "Average consecutive wins must be greater than 0";
@@ -104,6 +106,38 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
                 return false;
             }
 
+            if (this.avgAttemptsPerLevel <= 0)
+            {
+                errorMessage = "Average attempts per level must be greater than 0";
+                return false;
+            }
+
+            // Session & Time validations
+            if (this.avgHoursBetweenSessions <= 0)
+            {
+                errorMessage = "Average hours between sessions must be greater than 0";
+                return false;
+            }
+
+            if (this.avgSessionDurationMinutes <= 0)
+            {
+                errorMessage = "Average session duration must be greater than 0 minutes";
+                return false;
+            }
+
+            if (this.avgLevelsPerSession <= 0)
+            {
+                errorMessage = "Average levels per session must be greater than 0";
+                return false;
+            }
+
+            if (this.rageQuitPercentage < 0 || this.rageQuitPercentage > 100)
+            {
+                errorMessage = "Rage quit percentage must be between 0 and 100";
+                return false;
+            }
+
+            // Level Design validations
             if (this.difficultyMin >= this.difficultyMax)
             {
                 errorMessage = "Difficulty min must be less than difficulty max";
@@ -116,21 +150,46 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
                 return false;
             }
 
-            if (this.avgHoursBetweenSessions <= 0)
+            if (this.avgLevelCompletionTimeSeconds <= 0)
             {
-                errorMessage = "Average hours between sessions must be greater than 0";
+                errorMessage = "Average level completion time must be greater than 0 seconds";
                 return false;
             }
 
+            // Progression validations
             if (this.totalLevels <= 0)
             {
                 errorMessage = "Total levels must be greater than 0";
                 return false;
             }
 
+            if (this.difficultyIncreaseStartLevel < 0)
+            {
+                errorMessage = "Difficulty increase start level cannot be negative";
+                return false;
+            }
+
+            if (this.difficultyIncreaseStartLevel > this.totalLevels)
+            {
+                errorMessage = $"Difficulty increase start level ({this.difficultyIncreaseStartLevel}) cannot exceed total levels ({this.totalLevels})";
+                return false;
+            }
+
+            if (this.targetRetentionDays <= 0)
+            {
+                errorMessage = "Target retention days must be greater than 0";
+                return false;
+            }
+
             if (this.maxDifficultyChangePerSession <= 0)
             {
                 errorMessage = "Max difficulty change per session must be greater than 0";
+                return false;
+            }
+
+            if (this.gameCompletionRate < 0 || this.gameCompletionRate > 100)
+            {
+                errorMessage = "Game completion rate must be between 0 and 100";
                 return false;
             }
 

@@ -3,8 +3,7 @@
     "rootNamespace": "TheOneStudio.DynamicUserDifficulty",
     "references": [
         "TheOne.Logging",
-        "VContainer",
-        "Sirenix.OdinInspector"
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

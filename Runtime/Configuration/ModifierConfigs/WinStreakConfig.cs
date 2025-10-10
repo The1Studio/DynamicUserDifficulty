@@ -47,8 +47,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
             this.winThreshold = Mathf.Max(2f, Mathf.Round(stats.avgConsecutiveWins * 0.75f));
 
             // stepSize = range / (avgConsecutiveWins * 2) (gradual scaling)
+            // SAFE: Prevent division by zero
             float diffRange = stats.difficultyMax - stats.difficultyMin;
-            this.stepSize = diffRange / (stats.avgConsecutiveWins * 2f);
+            float divisor = Mathf.Max(0.1f, stats.avgConsecutiveWins * 2f);
+            this.stepSize = diffRange / divisor;
             this.stepSize = Mathf.Clamp(this.stepSize, 0.1f, 2f);
 
             // maxBonus = 30% of range (prevent extremes)

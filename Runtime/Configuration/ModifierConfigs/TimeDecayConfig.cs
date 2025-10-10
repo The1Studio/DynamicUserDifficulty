@@ -44,7 +44,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         public override void GenerateFromStats(GameStats stats)
         {
             // decayPerDay = maxChange / targetRetentionDays (reach maxChange over retention period)
-            this.decayPerDay = stats.maxDifficultyChangePerSession / stats.targetRetentionDays;
+            float divisor = Mathf.Max(1f, stats.targetRetentionDays);
+        this.decayPerDay = stats.maxDifficultyChangePerSession / divisor;
             this.decayPerDay = Mathf.Clamp(this.decayPerDay, 0.1f, 2f);
 
             // maxDecay = maxChange (align with session limits)

@@ -153,4 +153,3 @@ public class SessionPatternConfig : BaseModifierConfig
         this.difficultyImprovementThreshold = 1.2f;
     }
 }
-}
