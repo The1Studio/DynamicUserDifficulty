@@ -7,6 +7,7 @@ using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;
 using TheOneStudio.DynamicUserDifficulty.Providers;
+using UnityEngine;
 using UnityEngine.Scripting;
 
 namespace TheOneStudio.DynamicUserDifficulty.Core
@@ -50,13 +51,31 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         {
             try
             {
+                Debug.Log("[DynamicDifficultyService] ===== START CALCULATION =====");
+                Debug.Log($"[DynamicDifficultyService] Current difficulty: {this.CurrentDifficulty:F2}");
+
                 // Get enabled modifiers sorted by priority
                 var enabledModifiers = this.modifiers
                     .Where(m => m is { IsEnabled: true })
-                    .OrderBy(m => m.Priority);
+                    .OrderBy(m => m.Priority)
+                    .ToList();
+
+                Debug.Log($"[DynamicDifficultyService] Found {enabledModifiers.Count} enabled modifiers:");
+                foreach (var modifier in enabledModifiers)
+                {
+                    Debug.Log($"  - {modifier.ModifierName} (Priority: {modifier.Priority}, Enabled: {modifier.IsEnabled})");
+                }
 
                 // Calculate new difficulty - all data comes from providers
+                Debug.Log("[DynamicDifficultyService] Calling calculator.Calculate()...");
                 var result = this.calculator.Calculate(enabledModifiers);
+
+                Debug.Log("[DynamicDifficultyService] ===== CALCULATION COMPLETE =====");
+                Debug.Log($"[DynamicDifficultyService] Result:");
+                Debug.Log($"  - Previous: {result.PreviousDifficulty:F2}");
+                Debug.Log($"  - New: {result.NewDifficulty:F2}");
+                Debug.Log($"  - Change: {result.NewDifficulty - result.PreviousDifficulty:+0.##;-0.##}");
+                Debug.Log($"  - Reason: {result.PrimaryReason}");
 
                 this.logger?.Info($"[DynamicDifficultyService] Calculated difficulty: " +
                          $"{result.PreviousDifficulty:F2} -> {result.NewDifficulty:F2}");
@@ -67,6 +86,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
             }
             catch (Exception e)
             {
+                Debug.LogError($"[DynamicDifficultyService] ❌ CALCULATION FAILED: {e.Message}");
+                Debug.LogError($"[DynamicDifficultyService] Stack trace: {e.StackTrace}");
                 this.logger?.Error($"[DynamicDifficultyService] Calculation failed: {e.Message}");
 
                 var currentDiff = this.dataProvider?.GetCurrentDifficulty() ?? DifficultyConstants.DEFAULT_DIFFICULTY;

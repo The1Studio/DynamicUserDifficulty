@@ -141,5 +141,72 @@ public class LevelProgressConfig : BaseModifierConfig
         config.SetPriority(6);
         return config;
     }
+
+    public override void GenerateFromStats(GameStats stats)
+    {
+        // High attempts threshold = avgAttemptsPerLevel * 2 (struggling indicator)
+        this.highAttemptsThreshold = Mathf.RoundToInt(stats.avgAttemptsPerLevel * 2f);
+        this.highAttemptsThreshold = Mathf.Clamp(this.highAttemptsThreshold, 3, 10);
+
+        // Difficulty decrease per attempt = maxChange / (highAttempts * 2)
+        this.difficultyDecreasePerAttempt = stats.maxDifficultyChangePerSession / (this.highAttemptsThreshold * 2f);
+        this.difficultyDecreasePerAttempt = Mathf.Clamp(this.difficultyDecreasePerAttempt, 0.1f, 0.5f);
+
+        // Fast completion = 70% of average time
+        this.fastCompletionRatio = 0.7f;
+
+        // Slow completion = 150% of average time
+        this.slowCompletionRatio = 1.5f;
+
+        // Fast completion bonus = maxChange / 6
+        this.fastCompletionBonus = stats.maxDifficultyChangePerSession / 6f;
+        this.fastCompletionBonus = Mathf.Clamp(this.fastCompletionBonus, 0.1f, 1f);
+
+        // Slow completion penalty = fastBonus (symmetrical)
+        this.slowCompletionPenalty = this.fastCompletionBonus;
+
+        // Expected levels per hour = avgLevelsPerSession / (avgSessionDuration / 60)
+        float expectedRate = stats.avgLevelsPerSession / (stats.avgSessionDurationMinutes / 60f);
+        this.expectedLevelsPerHour = Mathf.RoundToInt(expectedRate);
+        this.expectedLevelsPerHour = Mathf.Clamp(this.expectedLevelsPerHour, 5, 30);
+
+        // Level progression factor = maxChange / 20 (subtle adjustments)
+        this.levelProgressionFactor = stats.maxDifficultyChangePerSession / 20f;
+        this.levelProgressionFactor = Mathf.Clamp(this.levelProgressionFactor, 0.05f, 0.2f);
+
+        // Max penalty multiplier = 1.0 (standard)
+        this.maxPenaltyMultiplier = 1.0f;
+
+        // Fast completion multiplier = 1.0 (standard)
+        this.fastCompletionMultiplier = 1.0f;
+
+        // Hard level threshold = 50% between min and max
+        this.hardLevelThreshold = stats.difficultyMin + (stats.difficultyMax - stats.difficultyMin) * 0.5f;
+        this.hardLevelThreshold = Mathf.Clamp(this.hardLevelThreshold, 2f, 5f);
+
+        // Mastery completion rate = winRate + 5%
+        this.masteryCompletionRate = (stats.winRatePercentage / 100f) + 0.05f;
+        this.masteryCompletionRate = Mathf.Clamp(this.masteryCompletionRate, 0.5f, 1f);
+
+        // Mastery bonus = maxChange / 6
+        this.masteryBonus = stats.maxDifficultyChangePerSession / 6f;
+        this.masteryBonus = Mathf.Clamp(this.masteryBonus, 0.1f, 0.5f);
+
+        // Easy level threshold = 30% between min and max
+        this.easyLevelThreshold = stats.difficultyMin + (stats.difficultyMax - stats.difficultyMin) * 0.3f;
+        this.easyLevelThreshold = Mathf.Clamp(this.easyLevelThreshold, 1f, 3f);
+
+        // Struggle completion rate = winRate - 35%
+        this.struggleCompletionRate = (stats.winRatePercentage / 100f) - 0.35f;
+        this.struggleCompletionRate = Mathf.Clamp(this.struggleCompletionRate, 0.1f, 0.5f);
+
+        // Struggle penalty = maxChange / 6
+        this.strugglePenalty = stats.maxDifficultyChangePerSession / 6f;
+        this.strugglePenalty = Mathf.Clamp(this.strugglePenalty, 0.1f, 0.5f);
+
+        // Estimated hours per session = avgSessionDuration / 60
+        this.estimatedHoursPerSession = stats.avgSessionDurationMinutes / 60f;
+        this.estimatedHoursPerSession = Mathf.Clamp(this.estimatedHoursPerSession, 0.1f, 1f);
+    }
 }
 }

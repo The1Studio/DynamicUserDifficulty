@@ -40,5 +40,20 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
             // Field values are already set to defaults via DifficultyConstants
             return config;
         }
+
+        public override void GenerateFromStats(GameStats stats)
+        {
+            // winThreshold = avgConsecutiveWins * 0.75 (trigger before average ends)
+            this.winThreshold = Mathf.Max(2f, Mathf.Round(stats.avgConsecutiveWins * 0.75f));
+
+            // stepSize = range / (avgConsecutiveWins * 2) (gradual scaling)
+            float diffRange = stats.difficultyMax - stats.difficultyMin;
+            this.stepSize = diffRange / (stats.avgConsecutiveWins * 2f);
+            this.stepSize = Mathf.Clamp(this.stepSize, 0.1f, 2f);
+
+            // maxBonus = 30% of range (prevent extremes)
+            this.maxBonus = diffRange * 0.3f;
+            this.maxBonus = Mathf.Clamp(this.maxBonus, 0.5f, 5f);
+        }
     }
 }

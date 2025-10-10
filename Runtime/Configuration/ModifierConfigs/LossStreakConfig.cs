@@ -40,5 +40,20 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
             // Field values are already set to defaults via DifficultyConstants
             return config;
         }
+
+        public override void GenerateFromStats(GameStats stats)
+        {
+            // lossThreshold = avgConsecutiveLosses * 0.8 (trigger slightly before average)
+            this.lossThreshold = Mathf.Max(2f, Mathf.Round(stats.avgConsecutiveLosses * 0.8f));
+
+            // stepSize = range / (avgConsecutiveLosses * 3) (gentler decrease than win streak)
+            float diffRange = stats.difficultyMax - stats.difficultyMin;
+            this.stepSize = diffRange / (stats.avgConsecutiveLosses * 3f);
+            this.stepSize = Mathf.Clamp(this.stepSize, 0.1f, 2f);
+
+            // maxReduction = 25% of range (less aggressive than win streak bonus)
+            this.maxReduction = diffRange * 0.25f;
+            this.maxReduction = Mathf.Clamp(this.maxReduction, 0.5f, 5f);
+        }
     }
 }

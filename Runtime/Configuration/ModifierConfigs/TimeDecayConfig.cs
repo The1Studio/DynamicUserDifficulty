@@ -40,5 +40,20 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
             // Field values are already set to defaults via DifficultyConstants
             return config;
         }
+
+        public override void GenerateFromStats(GameStats stats)
+        {
+            // decayPerDay = maxChange / targetRetentionDays (reach maxChange over retention period)
+            this.decayPerDay = stats.maxDifficultyChangePerSession / stats.targetRetentionDays;
+            this.decayPerDay = Mathf.Clamp(this.decayPerDay, 0.1f, 2f);
+
+            // maxDecay = maxChange (align with session limits)
+            this.maxDecay = stats.maxDifficultyChangePerSession;
+            this.maxDecay = Mathf.Clamp(this.maxDecay, 0.5f, 5f);
+
+            // graceHours = avgHoursBetweenSessions (no decay for regular players)
+            this.graceHours = stats.avgHoursBetweenSessions;
+            this.graceHours = Mathf.Clamp(this.graceHours, 0f, 48f);
+        }
     }
 }

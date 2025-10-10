@@ -299,6 +299,257 @@ var threshold = config.GetParameter("WinThreshold", 3f); // OLD APPROACH
 var threshold = this.config.WinThreshold; // NEW APPROACH
 ```
 
+## 🎛️ **AUTOMATIC CONFIGURATION GENERATION FROM GAME STATS**
+
+### **✨ NEW FEATURE: One-Click Config Generation**
+
+**The module now includes an automatic configuration generation system that calculates optimal modifier settings based on your game's player behavior statistics.**
+
+#### **🎯 How It Works**
+
+1. **Fill Game Statistics Form** - Input your game's analytics data once
+2. **Click Generate Button** - Automatic calculation of all 7 modifier configs
+3. **Fine-tune if Needed** - Manual adjustments available after generation
+
+#### **📊 Game Statistics Input (17 Fields)**
+
+The system uses 17 key statistics organized in 4 categories:
+
+**Player Behavior:**
+- Average consecutive wins before a loss
+- Average consecutive losses before a win
+- Overall win rate percentage (0-100)
+- Average attempts per level before completion
+
+**Session & Time:**
+- Average hours between play sessions
+- Average session duration (minutes)
+- Average levels completed per session
+- Rage quit percentage (0-100)
+
+**Level Design:**
+- Minimum difficulty value
+- Maximum difficulty value
+- Default starting difficulty
+- Average level completion time (seconds)
+
+**Progression:**
+- Total number of levels in game
+- Level where difficulty ramp starts
+- Target player retention (days)
+- Max difficulty change per session
+- Game completion rate percentage (0-100)
+
+#### **🔧 Usage in Unity Editor**
+
+```bash
+# Step 1: Open your DifficultyConfig asset
+Assets/Resources/GameConfigs/DifficultyConfig.asset
+
+# Step 2: Scroll to "Configuration Generation" section
+# Fill in the 17 Game Statistics fields based on your analytics
+
+# Step 3: Click "Preview Generated Values" (optional)
+# See what configs will be generated before applying
+
+# Step 4: Click "Generate All Configs from Stats"
+# Confirm the dialog → All 7 modifier configs automatically calculated
+```
+
+#### **📐 Generation Formulas (Examples)**
+
+**Win Streak Modifier:**
+```csharp
+// winThreshold = avgConsecutiveWins * 0.75 (trigger before average ends)
+winThreshold = Max(2, Round(avgConsecutiveWins * 0.75))
+
+// stepSize = difficultyRange / (avgConsecutiveWins * 2) (gradual scaling)
+stepSize = Clamp((diffMax - diffMin) / (avgConsecutiveWins * 2), 0.1, 2.0)
+
+// maxBonus = 30% of range (prevent extremes)
+maxBonus = Clamp((diffMax - diffMin) * 0.3, 0.5, 5.0)
+```
+
+**Loss Streak Modifier:**
+```csharp
+// lossThreshold = avgConsecutiveLosses * 0.8 (trigger slightly earlier)
+lossThreshold = Max(2, Round(avgConsecutiveLosses * 0.8))
+
+// stepSize = range / (avgLosses * 3) (gentler than wins)
+stepSize = Clamp((diffMax - diffMin) / (avgConsecutiveLosses * 3), 0.1, 2.0)
+```
+
+**Time Decay Modifier:**
+```csharp
+// decayPerDay = maxChange / targetRetentionDays
+decayPerDay = Clamp(maxChangePerSession / targetRetentionDays, 0.1, 2.0)
+
+// graceHours = avgHoursBetweenSessions (no decay for regular players)
+graceHours = Clamp(avgHoursBetweenSessions, 0, 48)
+```
+
+**All 7 modifiers** have intelligent formulas that scale based on your game's specific characteristics.
+
+#### **💾 What Gets Generated**
+
+When you click "Generate All Configs from Stats":
+
+1. **Difficulty Range Updated:**
+   - Min/Max/Default difficulty from your stats
+   - Max change per session value
+
+2. **All 7 Modifier Configs Calculated:**
+   - WinStreakConfig: threshold, stepSize, maxBonus
+   - LossStreakConfig: threshold, stepSize, maxReduction
+   - TimeDecayConfig: decayPerDay, maxDecay, graceHours
+   - RageQuitConfig: thresholds and reduction values
+   - CompletionRateConfig: thresholds and adjustments
+   - LevelProgressConfig: 17 parameters calculated
+   - SessionPatternConfig: 12 parameters calculated
+
+3. **Undo Support:**
+   - Full undo/redo support (Ctrl+Z)
+   - All changes tracked in single operation
+
+#### **✅ Benefits**
+
+- **No Manual Math** - Complex formulas calculated automatically
+- **Consistency** - All configs balanced relative to each other
+- **Game-Specific** - Tailored to your exact player behavior
+- **Quick Iteration** - Update stats and regenerate anytime
+- **Safe Defaults** - Validated ranges and clamping applied
+- **Manual Override** - Fine-tune any generated value afterward
+
+#### **🎮 Example Workflow**
+
+```bash
+# 1. Gather analytics data from your game
+avgConsecutiveWins: 3.5 levels
+avgConsecutiveLosses: 2.0 levels
+winRatePercentage: 65%
+...etc
+
+# 2. Fill Game Statistics in Unity Inspector
+DifficultyConfig → Configuration Generation section
+
+# 3. Preview (optional)
+Click "Preview Generated Values" to see calculations
+
+# 4. Generate
+Click "Generate All Configs from Stats"
+Confirm dialog → Done!
+
+# 5. Test in game
+All 7 modifiers now using optimized values
+
+# 6. Fine-tune if needed
+Manually adjust any config value
+Re-generate anytime with new stats
+```
+
+#### **⚠️ Important Notes**
+
+- **Validation:** Stats are validated before generation
+- **Editor-Only:** Generation only works in Unity Editor (build-safe)
+- **One Config Asset:** Works with single DifficultyConfig ScriptableObject
+- **Persisted:** Generated values saved with asset
+- **Logging:** Check Console for detailed generation report
+
+#### **📝 Code Implementation**
+
+**GameStats Structure:**
+```csharp
+// Runtime/Configuration/GameStats.cs
+[Serializable]
+public struct GameStats
+{
+    // 17 fields organized in 4 sections
+    public float avgConsecutiveWins;
+    public float avgConsecutiveLosses;
+    // ... etc
+
+    public bool Validate(out string errorMessage) { }
+    public static GameStats CreateDefault() { }
+}
+```
+
+**IModifierConfig Interface:**
+```csharp
+public interface IModifierConfig
+{
+    void GenerateFromStats(GameStats stats);
+    // ... other methods
+}
+```
+
+**DifficultyConfig Methods:**
+```csharp
+public class DifficultyConfig : ScriptableObject
+{
+    [SerializeField] private GameStats gameStats;
+
+    public void GenerateAllConfigsFromStats()
+    {
+        // Validates stats
+        // Updates difficulty range
+        // Generates all 7 modifier configs
+    }
+}
+```
+
+**Custom Editor:**
+```csharp
+// Editor/Configuration/DifficultyConfigEditor.cs
+[CustomEditor(typeof(DifficultyConfig))]
+public class DifficultyConfigEditor : Editor
+{
+    // Draws Game Statistics form
+    // Adds "Preview" button
+    // Adds "Generate All Configs" button
+    // Handles undo/redo
+}
+```
+
+#### **🔬 Testing Generated Configs**
+
+```bash
+# 1. Generate configs from stats
+DifficultyConfig Inspector → Generate button
+
+# 2. Check Console logs
+[DifficultyConfig] Generated config for WinStreak
+[DifficultyConfig] Generated config for LossStreak
+...
+[DifficultyConfig] ✓ All configs generated successfully
+
+# 3. Verify in Inspector
+Inspect each modifier config values
+Confirm they match your game's scale
+
+# 4. Test in Play Mode
+Run game → Win/lose levels
+Monitor difficulty adjustments in Console
+
+# 5. Iterate if needed
+Adjust Game Statistics → Regenerate
+```
+
+### **✨ This Feature Eliminates**
+
+- ❌ Manual calculation of complex formulas
+- ❌ Trial-and-error config tuning
+- ❌ Inconsistent modifier scaling
+- ❌ Time-consuming initial setup
+- ❌ Math errors in threshold calculations
+
+### **✨ This Feature Provides**
+
+- ✅ One-click optimal configuration
+- ✅ Game-specific difficulty curves
+- ✅ Balanced modifier relationships
+- ✅ Quick iteration workflow
+- ✅ Professional default values
+
 ## 🚨 CRITICAL Unity Development Rules
 
 ### ⚠️ **NEVER CREATE .meta FILES MANUALLY**
@@ -487,6 +738,7 @@ The DynamicUserDifficulty service is a Unity module within the UITemplate framew
 | Component | Status | Details |
 |-----------|--------|---------|
 | **Type-Safe Configuration System** | ✅ **COMPLETE** | Single ScriptableObject with embedded [Serializable] configs |
+| **Automatic Config Generation** | ✅ **NEW** | One-click generation from 17 game statistics fields |
 | **Core Implementation** | ✅ Complete | All services, modifiers, and calculators implemented |
 | **7 Comprehensive Modifiers** | ✅ Complete | WinStreak, LossStreak, TimeDecay, RageQuit, CompletionRate, LevelProgress, SessionPattern |
 | **Provider Method Usage** | ✅ 21/21 (100%) | Comprehensive utilization of all provider interfaces |
@@ -495,7 +747,7 @@ The DynamicUserDifficulty service is a Unity module within the UITemplate framew
 | **VContainer Integration** | ✅ Complete | Full DI setup with typed configuration injection |
 | **Production Readiness** | ✅ Ready | Type-safe, performance optimized, error handling |
 
-**The Dynamic User Difficulty module is now COMPLETE and ready for production use with comprehensive 7-modifier player behavior analysis using the corrected single ScriptableObject configuration structure.**
+**The Dynamic User Difficulty module is now COMPLETE and ready for production use with comprehensive 7-modifier player behavior analysis, automatic configuration generation from game stats, and the corrected single ScriptableObject configuration structure.**
 
 ## 🎯 Comprehensive Behavior Analysis Benefits
 
@@ -927,6 +1179,7 @@ Access via Unity Logs Viewer in-game console when enabled.
 
 ---
 
-*Last Updated: 2025-01-22*
+*Last Updated: 2025-01-23*
+*NEW: Automatic Configuration Generation Feature - One-Click Optimal Config from Game Stats*
 *Configuration Structure Corrected - Single ScriptableObject with Embedded [Serializable] Configs*
 *Provider Method Utilization: 21/21 (100%) - Complete Coverage*

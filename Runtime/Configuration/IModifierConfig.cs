@@ -25,5 +25,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         /// Creates a default instance of this configuration
         /// </summary>
         IModifierConfig CreateDefault();
+
+        /// <summary>
+        /// Generates optimal configuration values based on game statistics.
+        /// This method calculates appropriate thresholds, step sizes, and limits
+        /// based on your game's player behavior and design parameters.
+        /// </summary>
+        /// <param name="stats">Game statistics containing player behavior data</param>
+        void GenerateFromStats(GameStats stats);
     }
 }

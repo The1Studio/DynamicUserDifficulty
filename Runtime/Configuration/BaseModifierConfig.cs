@@ -20,6 +20,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         public abstract IModifierConfig CreateDefault();
 
         /// <summary>
+        /// Generates optimal configuration values based on game statistics.
+        /// Each modifier implements its own calculation logic.
+        /// </summary>
+        public abstract void GenerateFromStats(GameStats stats);
+
+        /// <summary>
         /// Sets the enabled state (for Unity Inspector)
         /// </summary>
         public void SetEnabled(bool enabled)

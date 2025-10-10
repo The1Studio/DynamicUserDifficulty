@@ -45,5 +45,24 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
             // Field values are already set to defaults via DifficultyConstants
             return config;
         }
+
+        public override void GenerateFromStats(GameStats stats)
+        {
+            // rageQuitThreshold = avgLevelCompletionTime / 2 (less than half expected time)
+            this.rageQuitThreshold = stats.avgLevelCompletionTimeSeconds / 2f;
+            this.rageQuitThreshold = Mathf.Clamp(this.rageQuitThreshold, 5f, 120f);
+
+            // rageQuitReduction = maxChange / 2 (significant but not max)
+            this.rageQuitReduction = stats.maxDifficultyChangePerSession / 2f;
+            this.rageQuitReduction = Mathf.Clamp(this.rageQuitReduction, 0.5f, 3f);
+
+            // quitReduction = rageQuitReduction / 2 (half of rage quit)
+            this.quitReduction = this.rageQuitReduction / 2f;
+            this.quitReduction = Mathf.Clamp(this.quitReduction, 0.1f, 2f);
+
+            // midPlayReduction = quitReduction / 2 (least severe)
+            this.midPlayReduction = this.quitReduction / 2f;
+            this.midPlayReduction = Mathf.Clamp(this.midPlayReduction, 0.1f, 1f);
+        }
     }
 }

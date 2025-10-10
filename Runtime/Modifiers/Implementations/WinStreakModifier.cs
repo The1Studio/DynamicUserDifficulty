@@ -32,13 +32,17 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             try
             {
+                Debug.Log("[WinStreakModifier] --- Calculate START ---");
+
                 // Get data from provider - stateless approach
                 var winStreak = this.winStreakProvider.GetWinStreak();
+                Debug.Log($"[WinStreakModifier] Win streak from provider: {winStreak}");
 
                 // Use strongly-typed properties instead of string parameters
                 var winThreshold = this.config.WinThreshold;
                 var stepSize = this.config.StepSize;
                 var maxBonus = this.config.MaxBonus;
+                Debug.Log($"[WinStreakModifier] Config - Threshold: {winThreshold}, StepSize: {stepSize}, MaxBonus: {maxBonus}");
 
                 var value = DifficultyConstants.ZERO_VALUE;
                 var reason = "No win streak";
@@ -47,14 +51,26 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 {
                     // Calculate base value
                     value = (winStreak - winThreshold + 1) * stepSize;
+                    Debug.Log($"[WinStreakModifier] Raw calculation: ({winStreak} - {winThreshold} + 1) * {stepSize} = {value:F2}");
 
                     // Apply max limit
+                    var beforeClamp = value;
                     value = Mathf.Min(value, maxBonus);
+                    if (beforeClamp != value)
+                    {
+                        Debug.Log($"[WinStreakModifier] Clamped to max bonus: {beforeClamp:F2} → {value:F2}");
+                    }
 
                     reason = $"Win streak: {winStreak} consecutive wins";
 
                     this.LogDebug($"Win streak {winStreak} -> adjustment {value:F2}");
                 }
+                else
+                {
+                    Debug.Log($"[WinStreakModifier] Below threshold ({winStreak} < {winThreshold}) - no adjustment");
+                }
+
+                Debug.Log($"[WinStreakModifier] --- Calculate END --- Result: {value:+0.##;-0.##} ({reason})");
 
                 return new()
                 {
@@ -71,6 +87,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             }
             catch (System.Exception e)
             {
+                Debug.LogError($"[WinStreakModifier] ❌ ERROR: {e.Message}");
                 this.logger?.Error($"[WinStreakModifier] Error calculating: {e.Message}");
                 return ModifierResult.NoChange();
             }

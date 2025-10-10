@@ -2,7 +2,8 @@
     "name": "DynamicUserDifficulty.Editor",
     "rootNamespace": "TheOneStudio.DynamicUserDifficulty.Editor",
     "references": [
-        "DynamicUserDifficulty"
+        "DynamicUserDifficulty",
+        "Sirenix.OdinInspector.Editor"
     ],
     "includePlatforms": [
         "Editor"

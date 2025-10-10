@@ -106,5 +106,51 @@ public class SessionPatternConfig : BaseModifierConfig
         config.SetPriority(7);
         return config;
     }
+
+    public override void GenerateFromStats(GameStats stats)
+    {
+        // minNormalSessionDuration = avgSessionDuration * 60 (in seconds)
+        this.minNormalSessionDuration = stats.avgSessionDurationMinutes * 60f;
+        this.minNormalSessionDuration = Mathf.Clamp(this.minNormalSessionDuration, 60f, 600f);
+
+        // veryShortSessionThreshold = minNormal / 3 (very short)
+        this.veryShortSessionThreshold = this.minNormalSessionDuration / 3f;
+        this.veryShortSessionThreshold = Mathf.Clamp(this.veryShortSessionThreshold, 30f, 120f);
+
+        // veryShortSessionDecrease = maxChange / 4
+        this.veryShortSessionDecrease = stats.maxDifficultyChangePerSession / 4f;
+        this.veryShortSessionDecrease = Mathf.Clamp(this.veryShortSessionDecrease, 0.2f, 1f);
+
+        // sessionHistorySize = 5 (standard)
+        this.sessionHistorySize = 5;
+
+        // shortSessionRatio = 50% (half of sessions)
+        this.shortSessionRatio = 0.5f;
+
+        // consistentShortSessionsDecrease = maxChange / 2.5
+        this.consistentShortSessionsDecrease = stats.maxDifficultyChangePerSession / 2.5f;
+        this.consistentShortSessionsDecrease = Mathf.Clamp(this.consistentShortSessionsDecrease, 0.3f, 1.5f);
+
+        // rageQuitPatternDecrease = maxChange / 2
+        this.rageQuitPatternDecrease = stats.maxDifficultyChangePerSession / 2f;
+        this.rageQuitPatternDecrease = Mathf.Clamp(this.rageQuitPatternDecrease, 0.5f, 2f);
+
+        // midLevelQuitDecrease = maxChange / 5
+        this.midLevelQuitDecrease = stats.maxDifficultyChangePerSession / 5f;
+        this.midLevelQuitDecrease = Mathf.Clamp(this.midLevelQuitDecrease, 0.2f, 1f);
+
+        // midLevelQuitRatio = rageQuitPercentage / 100 (use game's rage quit rate)
+        this.midLevelQuitRatio = stats.rageQuitPercentage / 100f;
+        this.midLevelQuitRatio = Mathf.Clamp(this.midLevelQuitRatio, 0.2f, 0.6f);
+
+        // rageQuitCountThreshold = 2 (minimum to detect pattern)
+        this.rageQuitCountThreshold = 2;
+
+        // rageQuitPenaltyMultiplier = 0.5 (50% of base penalty)
+        this.rageQuitPenaltyMultiplier = 0.5f;
+
+        // difficultyImprovementThreshold = 1.2 (20% improvement)
+        this.difficultyImprovementThreshold = 1.2f;
+    }
 }
 }

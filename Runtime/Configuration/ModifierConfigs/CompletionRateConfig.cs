@@ -62,5 +62,37 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
             config.SetPriority(4);
             return config;
         }
+
+        public override void GenerateFromStats(GameStats stats)
+        {
+            // lowCompletionThreshold = winRate - 20% (trigger help mode early)
+            float winRateNormalized = stats.winRatePercentage / 100f;
+            this.lowCompletionThreshold = winRateNormalized - 0.2f;
+            this.lowCompletionThreshold = Mathf.Clamp(this.lowCompletionThreshold, 0f, 1f);
+
+            // highCompletionThreshold = winRate + 10% (challenge mode)
+            this.highCompletionThreshold = winRateNormalized + 0.1f;
+            this.highCompletionThreshold = Mathf.Clamp(this.highCompletionThreshold, 0f, 1f);
+
+            // Ensure low < high
+            if (this.lowCompletionThreshold >= this.highCompletionThreshold)
+            {
+                this.highCompletionThreshold = this.lowCompletionThreshold + 0.2f;
+            }
+
+            // lowCompletionDecrease = maxChange / 4 (moderate help)
+            this.lowCompletionDecrease = stats.maxDifficultyChangePerSession / 4f;
+            this.lowCompletionDecrease = Mathf.Clamp(this.lowCompletionDecrease, 0.1f, 2f);
+
+            // highCompletionIncrease = lowCompletionDecrease (symmetrical)
+            this.highCompletionIncrease = this.lowCompletionDecrease;
+
+            // minAttemptsRequired = avgAttemptsPerLevel * 4 (reasonable sample)
+            this.minAttemptsRequired = Mathf.RoundToInt(stats.avgAttemptsPerLevel * 4f);
+            this.minAttemptsRequired = Mathf.Clamp(this.minAttemptsRequired, 5, 50);
+
+            // totalStatsWeight = 30% (balance recent vs overall)
+            this.totalStatsWeight = 0.3f;
+        }
     }
 }
