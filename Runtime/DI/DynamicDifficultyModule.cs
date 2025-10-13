@@ -23,7 +23,7 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
         public static void RegisterDynamicDifficulty(this IContainerBuilder builder, DifficultyConfig config = null)
         {
             // Try to load or create default config if not provided
-            var actualConfig = config ?? LoadOrCreateDefaultConfig();
+            var actualConfig = config ? config : LoadOrCreateDefaultConfig();
 
             // Register configuration
             builder.RegisterInstance(actualConfig);
