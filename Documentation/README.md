@@ -282,6 +282,17 @@ Use this updated checklist for the provider-based pattern:
 
 ### Recent Updates ✅
 
+#### **2025-11-04 Branch Migration**
+- **BRANCH_MIGRATION.md**: Created comprehensive migration guide
+- **README.md**: Added branch migration notice
+- **CHANGELOG.md**: Recorded migration in changelog
+- **Documentation/INDEX.md**: Added migration reference
+
+**Migration Details**:
+- Default branch changed from `main` to `master`
+- Both branches remain available for backward compatibility
+- Complete migration documentation added
+
 #### **2025-09-19 Provider Pattern Update**
 - **README.md**: Complete rewrite highlighting provider-based architecture
 - **CLAUDE.md**: Updated with provider workflow and one-line integration

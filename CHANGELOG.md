@@ -5,6 +5,15 @@ All notable changes to the Dynamic User Difficulty package will be documented in
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **Branch Migration** - Migrated default branch from `main` to `master` (2025-11-04)
+  - Updated GitHub repository default branch setting
+  - Created comprehensive migration documentation
+  - Both branches remain available for backward compatibility
+  - See [BRANCH_MIGRATION.md](Documentation/BRANCH_MIGRATION.md) for details
+
 ## [2.0.1] - 2025-10-10
 
 ### Fixed

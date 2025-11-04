@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **📢 Branch Migration Notice**: This repository's default branch has been migrated from `main` to `master` as of November 4, 2025. See [Documentation/BRANCH_MIGRATION.md](Documentation/BRANCH_MIGRATION.md) for details.
+
 ## 📚 Complete Documentation Index
 
 ### Master Index
@@ -33,6 +35,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Documentation Management
 - **[Documentation/README.md](Documentation/README.md)** - Documentation structure overview
+- **[Documentation/BRANCH_MIGRATION.md](Documentation/BRANCH_MIGRATION.md)** - Branch migration guide (main → master)
 
 ## 🏗️ **STATELESS ARCHITECTURE - PURE CALCULATION ENGINE**
 

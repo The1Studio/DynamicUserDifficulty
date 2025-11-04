@@ -74,6 +74,12 @@ DynamicUserDifficulty/
 |----------|---------|-----------|
 | [CLAUDE.md](../CLAUDE.md) | Claude Code AI assistant guidance | 5 min |
 
+### 📋 **Project Management**
+| Document | Purpose | Read Time |
+|----------|---------|-----------|
+| [BRANCH_MIGRATION.md](BRANCH_MIGRATION.md) | Branch migration from main to master | 5 min |
+| [CHANGELOG.md](../CHANGELOG.md) | Version history and release notes | Reference |
+
 ---
 
 ## 📖 Reading Paths by Role

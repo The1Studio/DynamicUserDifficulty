@@ -8,6 +8,8 @@ A **stateless difficulty calculation engine** for Unity games that adapts to pla
 [![Tests](https://img.shields.io/badge/tests-163%20passing-brightgreen.svg)](#testing)
 [![Coverage](https://img.shields.io/badge/coverage-~95%25-brightgreen.svg)](#testing)
 
+> **📢 Branch Migration Notice**: This repository's default branch has been migrated from `main` to `master` as of November 4, 2025. See [Branch Migration Guide](Documentation/BRANCH_MIGRATION.md) for details.
+
 ## 📋 Table of Contents
 
 - [Overview](#overview)
