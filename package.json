@@ -1,6 +1,6 @@
 {
   "name": "com.theone.dynamicuserdifficulty",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "displayName": "Dynamic User Difficulty Service",
   "description": "Stateless difficulty calculation engine with 7 comprehensive modifiers and provider-based architecture. Adapts game difficulty based on player performance, completion rates, session patterns, and behavioral analysis.",
   "unity": "2021.3",
