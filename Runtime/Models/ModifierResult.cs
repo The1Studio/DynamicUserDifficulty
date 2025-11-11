@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections.Generic;
 using TheOneStudio.DynamicUserDifficulty.Core;
 
@@ -6,7 +8,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
     /// <summary>
     /// Result from a single modifier calculation
     /// </summary>
-    public class ModifierResult
+    public sealed class ModifierResult
     {
         public string ModifierName { get; set; }
         public float Value { get; set; }

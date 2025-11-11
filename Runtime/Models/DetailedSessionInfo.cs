@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 
 namespace TheOneStudio.DynamicUserDifficulty.Models
@@ -6,7 +8,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
     /// Detailed session information for pattern analysis and difficulty adjustments
     /// </summary>
     [Serializable]
-    public class DetailedSessionInfo
+    public sealed class DetailedSessionInfo
     {
         /// <summary>
         /// Session start time

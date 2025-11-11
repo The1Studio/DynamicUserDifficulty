@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
@@ -13,7 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
     /// Uses total wins/losses to calculate success rate and adjusts accordingly.
     /// </summary>
     [Preserve]
-    public class CompletionRateModifier : BaseDifficultyModifier<CompletionRateConfig>
+    public sealed class CompletionRateModifier : BaseDifficultyModifier<CompletionRateConfig>
     {
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_COMPLETION_RATE;
 

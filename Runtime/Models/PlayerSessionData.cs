@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using TheOneStudio.DynamicUserDifficulty.Core;
@@ -8,7 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
     /// Stores player session information for difficulty calculation
     /// </summary>
     [Serializable]
-    public class PlayerSessionData
+    public sealed class PlayerSessionData
     {
         public float CurrentDifficulty { get; set; } = DifficultyConstants.DEFAULT_DIFFICULTY;
         public int WinStreak { get; set; }

@@ -1,3 +1,5 @@
+#nullable enable
+
 using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Calculators;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
@@ -105,7 +107,9 @@ namespace TheOneStudio.DynamicUserDifficulty.DI
             if (config != null)
             {
                 #if UNITY_EDITOR || DEVELOPMENT_BUILD
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.Log($"[DynamicDifficultyModule] Loaded DifficultyConfig from Resources/{DifficultyConstants.CONFIG_RESOURCES_PATH}");
+                #endif
                 #endif
                 return config;
             }

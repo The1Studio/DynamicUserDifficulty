@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections.Generic;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Modifiers;

@@ -1,3 +1,5 @@
+#nullable enable
+
 using NUnit.Framework;
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Core;

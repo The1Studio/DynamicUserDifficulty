@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
@@ -8,7 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// Configuration for Completion Rate modifier with type-safe properties
     /// </summary>
     [Serializable]
-    public class CompletionRateConfig : BaseModifierConfig
+    public sealed class CompletionRateConfig : BaseModifierConfig
     {
         [Header("Completion Rate Settings")]
 

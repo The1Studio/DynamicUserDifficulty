@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 
 namespace TheOneStudio.DynamicUserDifficulty.Models
@@ -6,7 +8,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
     /// Information about a single game session
     /// </summary>
     [Serializable]
-    public class SessionInfo
+    public sealed class SessionInfo
     {
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

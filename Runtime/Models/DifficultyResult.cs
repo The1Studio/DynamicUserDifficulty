@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Models
     /// <summary>
     /// Complete result of difficulty calculation
     /// </summary>
-    public class DifficultyResult
+    public sealed class DifficultyResult
     {
         public float PreviousDifficulty { get; set; }
         public float NewDifficulty { get; set; }

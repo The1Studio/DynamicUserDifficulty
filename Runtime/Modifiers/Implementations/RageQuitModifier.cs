@@ -1,3 +1,5 @@
+#nullable enable
+
 using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
@@ -12,7 +14,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
     /// Requires IRageQuitProvider to be implemented by the game
     /// </summary>
     [Preserve]
-    public class RageQuitModifier : BaseDifficultyModifier<RageQuitConfig>
+    public sealed class RageQuitModifier : BaseDifficultyModifier<RageQuitConfig>
     {
         private readonly IRageQuitProvider rageQuitProvider;
 

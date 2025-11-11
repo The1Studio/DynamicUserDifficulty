@@ -1,3 +1,5 @@
+#nullable enable
+
 using UnityEngine;
 using UnityEditor;
 using TheOneStudio.DynamicUserDifficulty.Configuration;

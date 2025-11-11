@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
@@ -8,7 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// Configuration for Win Streak modifier with type-safe properties
     /// </summary>
     [Serializable]
-    public class WinStreakConfig : BaseModifierConfig
+    public sealed class WinStreakConfig : BaseModifierConfig
     {
 
         [Header("Win Streak Settings")]

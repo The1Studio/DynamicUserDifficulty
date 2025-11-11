@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.IO;
 using UnityEngine;
 using UnityEditor;
@@ -168,7 +170,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor
     /// <summary>
     /// Editor window for creating DifficultyConfig with user confirmation
     /// </summary>
-    public class DifficultyConfigCreatorWindow : EditorWindow
+    public sealed class DifficultyConfigCreatorWindow : EditorWindow
     {
         private static DifficultyConfigCreatorWindow Window;
         private bool dontShowAgain = false;

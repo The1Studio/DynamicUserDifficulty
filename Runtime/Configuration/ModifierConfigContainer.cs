@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,7 +14,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
     /// Uses SerializeReference to support different config types.
     /// </summary>
     [Serializable]
-    public class ModifierConfigContainer : IEnumerable<IModifierConfig>
+    public sealed class ModifierConfigContainer : IEnumerable<IModifierConfig>
     {
         [SerializeReference]
         [Tooltip("List of modifier configurations. Use + to add new configs.")]
