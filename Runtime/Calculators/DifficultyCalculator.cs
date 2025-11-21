@@ -42,25 +42,49 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
         {
             Debug.Log("[DifficultyCalculator] ===== CALCULATOR START =====");
 
+            // H3 Fix: Add timeout protection
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            const int MAX_TOTAL_TIME_MS = 150; // Increased from 100ms to handle stress tests
+            const int MAX_MODIFIER_TIME_MS = 20;
+
             // Get current difficulty from provider - single source of truth
             var currentDifficulty = this.dataProvider?.GetCurrentDifficulty() ?? this.config.DefaultDifficulty;
             Debug.Log($"[DifficultyCalculator] Current difficulty from provider: {currentDifficulty:F2}");
             Debug.Log($"[DifficultyCalculator] Max change per session: ±{this.config.MaxChangePerSession:F2}");
             Debug.Log($"[DifficultyCalculator] Difficulty range: {this.config.MinDifficulty:F2} - {this.config.MaxDifficulty:F2}");
 
-            // Calculate all modifier results - each modifier uses its own providers
+            // Calculate all modifier results with timeout protection
             var modifierResults = new List<ModifierResult>();
             Debug.Log("[DifficultyCalculator] Processing modifiers...");
+
             foreach (var modifier in modifiers)
             {
                 if (modifier == null || !modifier.IsEnabled)
                     continue;
 
+                // Check total time budget
+                if (stopwatch.ElapsedMilliseconds > MAX_TOTAL_TIME_MS)
+                {
+                    this.logger?.Error($"Calculation timeout after {stopwatch.ElapsedMilliseconds}ms (max: {MAX_TOTAL_TIME_MS}ms). Processed {modifierResults.Count} modifiers.");
+                    Debug.LogError($"[DifficultyCalculator] ⏱️ Timeout after {stopwatch.ElapsedMilliseconds}ms (max: {MAX_TOTAL_TIME_MS}ms)");
+                    break;
+                }
+
+                var modifierStartTime = stopwatch.ElapsedMilliseconds;
+
                 try
                 {
                     Debug.Log($"[DifficultyCalculator] → Calling {modifier.ModifierName}.Calculate()...");
-                    // Modifiers now get all data from their injected providers
+
                     var modifierResult = modifier.Calculate();
+
+                    var modifierTime = stopwatch.ElapsedMilliseconds - modifierStartTime;
+                    if (modifierTime > MAX_MODIFIER_TIME_MS)
+                    {
+                        this.logger?.Warning($"{modifier.ModifierName} took {modifierTime}ms (threshold: {MAX_MODIFIER_TIME_MS}ms)");
+                        Debug.LogWarning($"[DifficultyCalculator] ⚠️ {modifier.ModifierName} slow: {modifierTime}ms");
+                    }
+
                     if (modifierResult != null)
                     {
                         modifierResults.Add(modifierResult);
@@ -68,22 +92,23 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
                         Debug.Log($"[DifficultyCalculator]   ✓ {modifierResult.ModifierName}: {modifierResult.Value:+0.##;-0.##} ({modifierResult.Reason})");
                         if (this.config.EnableDebugLogs)
                         {
-                            this.logger.Info($"[DifficultyCalculator] {modifierResult.ModifierName}: {modifierResult.Value:F2} ({modifierResult.Reason})");
+                            this.logger?.Info($"[DifficultyCalculator] {modifierResult.ModifierName}: {modifierResult.Value:F2} ({modifierResult.Reason})");
                         }
                     }
                 }
                 catch (Exception e)
                 {
                     Debug.LogError($"[DifficultyCalculator] ❌ Error in {modifier.ModifierName}: {e.Message}");
-                    this.logger.Error($"Error calculating modifier {modifier.ModifierName}: {e.Message}");
+                    this.logger?.Error($"Error calculating modifier {modifier.ModifierName}: {e.Message}");
                 }
             }
 
-            Debug.Log($"[DifficultyCalculator] Processed {modifierResults.Count} modifiers");
+            Debug.Log($"[DifficultyCalculator] Processed {modifierResults.Count} modifiers in {stopwatch.ElapsedMilliseconds}ms");
 
-            // Aggregate all modifier values
-            Debug.Log("[DifficultyCalculator] Aggregating modifier values...");
-            var totalAdjustment = this.aggregator.Aggregate(modifierResults);
+            // Aggregate all modifier values using diminishing returns strategy
+            Debug.Log("[DifficultyCalculator] Aggregating modifier values with diminishing returns...");
+            Debug.Log($"[DifficultyCalculator] Diminishing factor: {this.config.DiminishingFactor:F2}");
+            var totalAdjustment = this.aggregator.AggregateDiminishing(modifierResults, this.config.DiminishingFactor);
             Debug.Log($"[DifficultyCalculator] Total raw adjustment: {totalAdjustment:+0.##;-0.##}");
 
             // Apply max change per session limit
@@ -126,7 +151,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
 
             if (this.config.EnableDebugLogs)
             {
-                this.logger.Info($"[DifficultyCalculator] Final: {currentDifficulty:F2} -> {newDifficulty:F2} " +
+                this.logger?.Info($"[DifficultyCalculator] Final: {currentDifficulty:F2} -> {newDifficulty:F2} " +
                          $"(Change: {totalAdjustment:F2}, Reason: {result.PrimaryReason})");
             }
 

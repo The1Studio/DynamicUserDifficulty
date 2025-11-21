@@ -249,6 +249,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Integration
                 (SessionPatternConfig)new SessionPatternConfig().CreateDefault(),
                 provider,
                 provider,
+                provider, // IWinStreakProvider
                 null);
 
             // Act & Assert
@@ -289,7 +290,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Integration
                 new RageQuitModifier((RageQuitConfig)new RageQuitConfig().CreateDefault(), emptyProvider, null),
                 new CompletionRateModifier((CompletionRateConfig)new CompletionRateConfig().CreateDefault(), emptyProvider, emptyProvider, null),
                 new LevelProgressModifier((LevelProgressConfig)new LevelProgressConfig().CreateDefault(), emptyProvider, null),
-                new SessionPatternModifier((SessionPatternConfig)new SessionPatternConfig().CreateDefault(), emptyProvider, emptyProvider, null)
+                new SessionPatternModifier((SessionPatternConfig)new SessionPatternConfig().CreateDefault(), emptyProvider, emptyProvider, emptyProvider, null)
             };
 
             // Act & Assert - Most should return no change, except RageQuit which detects Normal quit
@@ -496,6 +497,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Integration
                 (SessionPatternConfig)new SessionPatternConfig().CreateDefault(),
                 provider,
                 provider,
+                provider, // IWinStreakProvider
                 null);
 
             // Act
@@ -519,7 +521,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Integration
                 new RageQuitModifier((RageQuitConfig)new RageQuitConfig().CreateDefault(), provider, null),
                 new CompletionRateModifier((CompletionRateConfig)new CompletionRateConfig().CreateDefault(), provider, provider, null),
                 new LevelProgressModifier((LevelProgressConfig)new LevelProgressConfig().CreateDefault(), provider, null),
-                new SessionPatternModifier((SessionPatternConfig)new SessionPatternConfig().CreateDefault(), provider, provider, null)
+                new SessionPatternModifier((SessionPatternConfig)new SessionPatternConfig().CreateDefault(), provider, provider, provider, null)
             };
         }
     }

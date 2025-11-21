@@ -33,7 +33,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
     try
     {
         // Get data from providers - stateless approach
-        if (this.levelProgressProvider == null)
+        if (this.config == null || this.levelProgressProvider == null)
         {
             return ModifierResult.NoChange();
         }

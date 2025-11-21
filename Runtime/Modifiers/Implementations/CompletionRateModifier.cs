@@ -35,8 +35,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
         {
             try
             {
-                // Get data from providers - stateless approach
-                if (this.winStreakProvider == null || this.levelProgressProvider == null)
+                // Defensive null checks
+                if (this.config == null || this.winStreakProvider == null || this.levelProgressProvider == null)
                 {
                     return ModifierResult.NoChange();
                 }

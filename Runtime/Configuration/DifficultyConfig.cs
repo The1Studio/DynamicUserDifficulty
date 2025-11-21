@@ -28,6 +28,11 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         [SerializeField]
         private ModifierConfigContainer modifierConfigs = new();
 
+        [Header("Aggregation Settings")]
+        [SerializeField][Range(0.3f, 0.8f)]
+        [Tooltip("Diminishing returns factor: higher value = more weight to secondary signals (0.6 = 60% weight to each subsequent modifier)")]
+        private float diminishingFactor = 0.6f;
+
         [Header("Debug")]
         [SerializeField]
         private bool enableDebugLogs = false;
@@ -42,6 +47,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
         public float MaxDifficulty => this.maxDifficulty;
         public float DefaultDifficulty => this.defaultDifficulty;
         public float MaxChangePerSession => this.maxChangePerSession;
+        public float DiminishingFactor => this.diminishingFactor;
 
         // Other
         public ModifierConfigContainer ModifierConfigs => this.modifierConfigs;
@@ -111,19 +117,96 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             this.defaultDifficulty = this.gameStats.difficultyDefault;
             this.maxChangePerSession = this.gameStats.maxDifficultyChangePerSession;
 
-            // Generate all modifier configs
-            int successCount = 0;
+            // Generate all modifier configs with post-generation validation (H2 Fix)
+            var successCount = 0;
+            var validationErrors = new System.Collections.Generic.List<string>();
+
             foreach (var config in this.modifierConfigs.AllConfigs)
             {
                 if (config != null)
                 {
                     config.GenerateFromStats(this.gameStats);
-                    Debug.Log($"[DifficultyConfig] Generated config for {config.ModifierType}");
-                    successCount++;
+
+                    // Validate generated config values
+                    if (!this.ValidateGeneratedConfig(config, out var validationError))
+                    {
+                        validationErrors.Add($"{config.ModifierType}: {validationError}");
+                        Debug.LogError($"[DifficultyConfig] Generated invalid config for {config.ModifierType}: {validationError}");
+                    }
+                    else
+                    {
+                        Debug.Log($"[DifficultyConfig] Generated config for {config.ModifierType}");
+                        successCount++;
+                    }
                 }
             }
 
+            if (validationErrors.Count > 0)
+            {
+                Debug.LogError($"[DifficultyConfig] Config generation completed with {validationErrors.Count} validation errors:\n" +
+                             string.Join("\n", validationErrors));
+                return false;
+            }
+
             Debug.Log($"[DifficultyConfig] ✓ Generated {successCount}/{this.modifierConfigs.Count} configs successfully");
+            return true;
+        }
+
+        /// <summary>
+        /// Validates generated config values to ensure they're within acceptable ranges.
+        /// </summary>
+        private bool ValidateGeneratedConfig(IModifierConfig config, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            // Use reflection to check for common invalid values
+            var properties = config.GetType().GetProperties();
+
+            foreach (var prop in properties)
+            {
+                if (prop.PropertyType == typeof(float))
+                {
+                    var value = (float)prop.GetValue(config);
+
+                    // Check for invalid float values
+                    if (float.IsNaN(value))
+                    {
+                        errorMessage = $"{prop.Name} is NaN";
+                        return false;
+                    }
+
+                    if (float.IsInfinity(value))
+                    {
+                        errorMessage = $"{prop.Name} is Infinity";
+                        return false;
+                    }
+
+                    // Check for negative values where they shouldn't exist (common pattern)
+                    if (prop.Name.Contains("Threshold") || prop.Name.Contains("Size") || prop.Name.Contains("Bonus") || prop.Name.Contains("Max"))
+                    {
+                        if (value < 0)
+                        {
+                            errorMessage = $"{prop.Name} is negative ({value})";
+                            return false;
+                        }
+                    }
+                }
+                else if (prop.PropertyType == typeof(int))
+                {
+                    var value = (int)prop.GetValue(config);
+
+                    // Check for negative values in thresholds/counts
+                    if (prop.Name.Contains("Threshold") || prop.Name.Contains("Count") || prop.Name.Contains("Max"))
+                    {
+                        if (value < 0)
+                        {
+                            errorMessage = $"{prop.Name} is negative ({value})";
+                            return false;
+                        }
+                    }
+                }
+            }
+
             return true;
         }
 

@@ -33,6 +33,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             try
             {
+                // Defensive null checks
+                if (this.config == null || this.timeDecayProvider == null)
+                {
+                    return ModifierResult.NoChange();
+                }
+
                 // Get data from providers - stateless approach
                 // Use all three provider methods for comprehensive tracking
                 var lastPlayTime = this.timeDecayProvider.GetLastPlayTime();

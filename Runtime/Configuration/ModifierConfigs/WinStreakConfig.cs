@@ -24,13 +24,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         [Tooltip("Maximum difficulty increase from win streaks")]
         private float maxBonus = 2f;
 
+        [SerializeField][Range(1.0f, 1.5f)]
+        [Tooltip("Exponential acceleration factor: higher value = faster difficulty ramp (1.15 = 15% increase per win above threshold)")]
+        private float exponentialFactor = 1.15f;
+
         // BaseModifierConfig implementation
         public override string ModifierType => DifficultyConstants.MODIFIER_TYPE_WIN_STREAK;
 
         // Type-safe properties
-        public float WinThreshold => this.winThreshold;
-        public float StepSize     => this.stepSize;
-        public float MaxBonus     => this.maxBonus;
+        public float WinThreshold       => this.winThreshold;
+        public float StepSize           => this.stepSize;
+        public float MaxBonus           => this.maxBonus;
+        public float ExponentialFactor  => this.exponentialFactor;
 
         public override IModifierConfig CreateDefault()
         {

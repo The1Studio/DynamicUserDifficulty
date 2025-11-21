@@ -34,6 +34,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             {
                 Debug.Log("[WinStreakModifier] --- Calculate START ---");
 
+                // Defensive null checks
+                if (this.config == null || this.winStreakProvider == null)
+                {
+                    Debug.LogWarning("[WinStreakModifier] Config or provider is null - returning no change");
+                    return ModifierResult.NoChange();
+                }
+
                 // Get data from provider - stateless approach
                 var winStreak = this.winStreakProvider.GetWinStreak();
                 Debug.Log($"[WinStreakModifier] Win streak from provider: {winStreak}");
@@ -42,16 +49,25 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 var winThreshold = this.config.WinThreshold;
                 var stepSize = this.config.StepSize;
                 var maxBonus = this.config.MaxBonus;
-                Debug.Log($"[WinStreakModifier] Config - Threshold: {winThreshold}, StepSize: {stepSize}, MaxBonus: {maxBonus}");
+                var exponentialFactor = this.config.ExponentialFactor;
+                Debug.Log($"[WinStreakModifier] Config - Threshold: {winThreshold}, StepSize: {stepSize}, MaxBonus: {maxBonus}, ExponentialFactor: {exponentialFactor:F2}");
 
                 var value = DifficultyConstants.ZERO_VALUE;
                 var reason = "No win streak";
 
                 if (winStreak >= winThreshold)
                 {
-                    // Calculate base value
-                    value = (winStreak - winThreshold + 1) * stepSize;
-                    Debug.Log($"[WinStreakModifier] Raw calculation: ({winStreak} - {winThreshold} + 1) * {stepSize} = {value:F2}");
+                    // Calculate base value (linear component)
+                    var streakAboveThreshold = winStreak - winThreshold + 1;
+                    var baseAdjustment = streakAboveThreshold * stepSize;
+                    Debug.Log($"[WinStreakModifier] Linear base: ({winStreak} - {winThreshold} + 1) * {stepSize} = {baseAdjustment:F2}");
+
+                    // Apply exponential acceleration
+                    var exponent = winStreak - winThreshold;
+                    var exponentialMultiplier = Mathf.Pow(exponentialFactor, exponent);
+                    value = baseAdjustment * exponentialMultiplier;
+                    Debug.Log($"[WinStreakModifier] Exponential multiplier: {exponentialFactor:F2}^{exponent} = {exponentialMultiplier:F2}");
+                    Debug.Log($"[WinStreakModifier] Exponential value: {baseAdjustment:F2} * {exponentialMultiplier:F2} = {value:F2}");
 
                     // Apply max limit
                     var beforeClamp = value;
@@ -61,9 +77,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                         Debug.Log($"[WinStreakModifier] Clamped to max bonus: {beforeClamp:F2} → {value:F2}");
                     }
 
-                    reason = $"Win streak: {winStreak} consecutive wins";
+                    reason = $"Win streak: {winStreak} consecutive wins (exponential x{exponentialMultiplier:F2})";
 
-                    this.LogDebug($"Win streak {winStreak} -> adjustment {value:F2}");
+                    this.LogDebug($"Win streak {winStreak} -> adjustment {value:F2} (exponential)");
                 }
                 else
                 {

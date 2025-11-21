@@ -33,6 +33,13 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             {
                 Debug.Log("[LossStreakModifier] --- Calculate START ---");
 
+                // Defensive null checks
+                if (this.config == null || this.winStreakProvider == null)
+                {
+                    Debug.LogWarning("[LossStreakModifier] Config or provider is null - returning no change");
+                    return ModifierResult.NoChange();
+                }
+
                 // Get data from provider - stateless approach
                 var lossStreak = this.winStreakProvider.GetLossStreak();
                 Debug.Log($"[LossStreakModifier] Loss streak from provider: {lossStreak}");
@@ -41,16 +48,25 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 var lossThreshold = this.config.LossThreshold;
                 var stepSize = this.config.StepSize;
                 var maxReduction = this.config.MaxReduction;
-                Debug.Log($"[LossStreakModifier] Config - Threshold: {lossThreshold}, StepSize: {stepSize}, MaxReduction: {maxReduction}");
+                var exponentialFactor = this.config.ExponentialFactor;
+                Debug.Log($"[LossStreakModifier] Config - Threshold: {lossThreshold}, StepSize: {stepSize}, MaxReduction: {maxReduction}, ExponentialFactor: {exponentialFactor:F2}");
 
                 var value = DifficultyConstants.ZERO_VALUE;
                 var reason = "No loss streak";
 
                 if (lossStreak >= lossThreshold)
                 {
-                    // Calculate base reduction
-                    value = -(lossStreak - lossThreshold + 1) * stepSize;
-                    Debug.Log($"[LossStreakModifier] Raw calculation: -({lossStreak} - {lossThreshold} + 1) * {stepSize} = {value:F2}");
+                    // Calculate base value (linear component)
+                    var streakAboveThreshold = lossStreak - lossThreshold + 1;
+                    var baseAdjustment = streakAboveThreshold * stepSize;
+                    Debug.Log($"[LossStreakModifier] Linear base: ({lossStreak} - {lossThreshold} + 1) * {stepSize} = {baseAdjustment:F2}");
+
+                    // Apply exponential acceleration
+                    var exponent = lossStreak - lossThreshold;
+                    var exponentialMultiplier = Mathf.Pow(exponentialFactor, exponent);
+                    value = -(baseAdjustment * exponentialMultiplier);
+                    Debug.Log($"[LossStreakModifier] Exponential multiplier: {exponentialFactor:F2}^{exponent} = {exponentialMultiplier:F2}");
+                    Debug.Log($"[LossStreakModifier] Exponential value: -{baseAdjustment:F2} * {exponentialMultiplier:F2} = {value:F2}");
 
                     // Apply max limit
                     var beforeClamp = value;
@@ -60,9 +76,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                         Debug.Log($"[LossStreakModifier] Clamped to max reduction: {beforeClamp:F2} → {value:F2}");
                     }
 
-                    reason = $"Loss streak: {lossStreak} consecutive losses";
+                    reason = $"Loss streak: {lossStreak} consecutive losses (exponential x{exponentialMultiplier:F2})";
 
-                    this.LogDebug($"Loss streak {lossStreak} -> adjustment {value:F2}");
+                    this.LogDebug($"Loss streak {lossStreak} -> adjustment {value:F2} (exponential)");
                 }
                 else
                 {

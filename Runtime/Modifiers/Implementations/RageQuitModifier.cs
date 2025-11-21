@@ -29,6 +29,12 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             try
             {
+                // Defensive null checks
+                if (this.config == null || this.rageQuitProvider == null)
+                {
+                    return ModifierResult.NoChange();
+                }
+
                 // Get data from providers - stateless approach
                 var lastQuitType = this.rageQuitProvider.GetLastQuitType();
                 var recentRageQuits = this.rageQuitProvider.GetRecentRageQuitCount();

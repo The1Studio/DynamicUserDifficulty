@@ -65,7 +65,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
                 this.config,
                 this.mockProvider,
                 this.mockSessionProvider,
-                null
+                null, // IWinStreakProvider - not needed for session pattern tests
+                null  // ILogger
             );
 
             // Initialize session data with correct collection types
@@ -222,6 +223,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Modifiers
                 this.config,
                 this.mockProvider,
                 null, // No session pattern provider
+                null, // IWinStreakProvider
                 null  // No logger
             );
             

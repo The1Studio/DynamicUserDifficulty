@@ -24,13 +24,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         [Tooltip("Maximum difficulty reduction from loss streaks")]
         private float maxReduction = 1.5f;
 
+        [SerializeField][Range(1.0f, 1.5f)]
+        [Tooltip("Exponential acceleration factor: higher value = faster difficulty reduction (1.15 = 15% increase per loss above threshold)")]
+        private float exponentialFactor = 1.15f;
+
         // BaseModifierConfig implementation
         public override string ModifierType => DifficultyConstants.MODIFIER_TYPE_LOSS_STREAK;
 
         // Type-safe properties
-        public float LossThreshold => this.lossThreshold;
-        public float StepSize      => this.stepSize;
-        public float MaxReduction  => this.maxReduction;
+        public float LossThreshold      => this.lossThreshold;
+        public float StepSize           => this.stepSize;
+        public float MaxReduction       => this.maxReduction;
+        public float ExponentialFactor  => this.exponentialFactor;
 
         public override IModifierConfig CreateDefault()
         {

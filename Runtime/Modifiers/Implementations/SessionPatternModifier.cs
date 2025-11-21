@@ -19,24 +19,27 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
 
         private readonly IRageQuitProvider rageQuitProvider;
         private readonly ISessionPatternProvider sessionPatternProvider;
+        private readonly IWinStreakProvider winStreakProvider;
 
         public SessionPatternModifier(
             SessionPatternConfig config,
             IRageQuitProvider rageQuitProvider,
             ISessionPatternProvider sessionPatternProvider,
+            IWinStreakProvider winStreakProvider,
             ILogger logger)
             : base(config, logger)
         {
             this.rageQuitProvider = rageQuitProvider;
             this.sessionPatternProvider = sessionPatternProvider;
+            this.winStreakProvider = winStreakProvider;
         }
 
         public override ModifierResult Calculate()
 {
     try
     {
-        // Get data from providers - stateless approach
-        if (this.rageQuitProvider == null)
+        // Defensive null checks
+        if (this.config == null || this.rageQuitProvider == null)
         {
             return ModifierResult.NoChange();
         }
@@ -160,6 +163,39 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
                     value -= additionalAdjustment;
                     reasons.Add($"Difficulty adjustment not effective (improvement: {improvementRatio:F2}x)");
                     this.LogDebug($"Previous adjustment not effective enough ({improvementRatio:F2}x < {this.config.DifficultyImprovementThreshold:F2}x) -> additional decrease {additionalAdjustment:F2}");
+                }
+            }
+        }
+
+        // 7. Oscillation Detection - Detect alternating win/loss patterns
+        // This prevents difficulty from bouncing when player alternates between wins and losses
+        if (this.winStreakProvider != null)
+        {
+            var winStreak = this.winStreakProvider.GetWinStreak();
+            var lossStreak = this.winStreakProvider.GetLossStreak();
+            var totalWins = this.winStreakProvider.GetTotalWins();
+            var totalLosses = this.winStreakProvider.GetTotalLosses();
+            var totalGames = totalWins + totalLosses;
+
+            // Detect oscillation: both streaks are low AND we have enough data
+            var bothStreaksLow = winStreak <= this.config.OscillationStreakThreshold &&
+                                lossStreak <= this.config.OscillationStreakThreshold;
+            var hasEnoughData = totalGames >= this.config.OscillationMinimumGames;
+
+            if (bothStreaksLow && hasEnoughData && totalGames > 0)
+            {
+                // Player is oscillating between wins and losses
+                // Apply minimal adjustment to prevent difficulty bouncing
+                var originalValue = value;
+                var direction = value > 0 ? 1 : value < 0 ? -1 : 0;
+
+                // Override with minimal adjustment in the same direction
+                if (direction != 0)
+                {
+                    value = direction * this.config.OscillationAdjustment;
+                    reasons.Clear();
+                    reasons.Add($"Oscillating pattern detected (Win:{winStreak} Loss:{lossStreak} Total:{totalGames}) - minimal adjustment to prevent bouncing");
+                    this.LogDebug($"Oscillation detected: Win streak {winStreak}, Loss streak {lossStreak}, Total games {totalGames} -> minimal adjustment {value:F2} (was {originalValue:F2})");
                 }
             }
         }

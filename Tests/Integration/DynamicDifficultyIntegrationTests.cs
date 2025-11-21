@@ -154,6 +154,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Tests.Integration
                     (SessionPatternConfig)new SessionPatternConfig().CreateDefault(),
                     this.provider,
                     this.provider,
+                    this.provider, // IWinStreakProvider
                     null)
             };
 

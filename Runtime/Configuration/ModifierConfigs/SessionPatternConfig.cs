@@ -68,6 +68,20 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         [Tooltip("Improvement ratio to consider difficulty adjustments effective")]
         private float difficultyImprovementThreshold = 1.2f;
 
+        [Header("Oscillation Detection")]
+
+        [SerializeField][Range(1, 3)]
+        [Tooltip("Maximum streak length to detect oscillation (alternating wins/losses)")]
+        private int oscillationStreakThreshold = 2;
+
+        [SerializeField][Range(0.05f, 0.3f)]
+        [Tooltip("Minimal difficulty adjustment when oscillating (prevents bouncing)")]
+        private float oscillationAdjustment = 0.1f;
+
+        [SerializeField][Range(3, 10)]
+        [Tooltip("Minimum total games needed to detect oscillation pattern")]
+        private int oscillationMinimumGames = 4;
+
         // BaseModifierConfig implementation
         public override string ModifierType => DifficultyConstants.MODIFIER_TYPE_SESSION_PATTERN;
 
@@ -84,6 +98,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
         public int RageQuitCountThreshold => this.rageQuitCountThreshold;
         public float RageQuitPenaltyMultiplier => this.rageQuitPenaltyMultiplier;
         public float DifficultyImprovementThreshold => this.difficultyImprovementThreshold;
+        public int OscillationStreakThreshold => this.oscillationStreakThreshold;
+        public float OscillationAdjustment => this.oscillationAdjustment;
+        public int OscillationMinimumGames => this.oscillationMinimumGames;
 
         public override IModifierConfig CreateDefault()
         {
@@ -101,6 +118,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
                 rageQuitCountThreshold = 2,
                 rageQuitPenaltyMultiplier = 0.5f,
                 difficultyImprovementThreshold = 1.2f,
+                oscillationStreakThreshold = 2,
+                oscillationAdjustment = 0.1f,
+                oscillationMinimumGames = 4,
             };
             config.SetEnabled(true);
             config.SetPriority(7);
@@ -151,6 +171,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
 
             // difficultyImprovementThreshold = 1.2 (20% improvement)
             this.difficultyImprovementThreshold = 1.2f;
+
+            // oscillationStreakThreshold = 2 (detect alternating patterns)
+            this.oscillationStreakThreshold = 2;
+
+            // oscillationAdjustment = maxChange / 20 (minimal adjustment)
+            this.oscillationAdjustment = stats.maxDifficultyChangePerSession / 20f;
+            this.oscillationAdjustment = Mathf.Clamp(this.oscillationAdjustment, 0.05f, 0.3f);
+
+            // oscillationMinimumGames = 4 (need enough data to detect pattern)
+            this.oscillationMinimumGames = 4;
         }
     }
 }
