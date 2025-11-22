@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using TheOneStudio.DynamicUserDifficulty.Core;
@@ -11,14 +13,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Calculators
     /// Aggregates multiple modifier results into a single difficulty adjustment
     /// </summary>
     [Preserve]
-    public class ModifierAggregator
+    public sealed class ModifierAggregator
     {
         /// <summary>
         /// Aggregates multiple modifier results using sum strategy
         /// </summary>
         /// <param name="results">Collection of modifier results</param>
         /// <returns>Total difficulty adjustment</returns>
-        public virtual float Aggregate(List<ModifierResult> results)
+        public float Aggregate(List<ModifierResult> results)
         {
             if (results == null || results.Count == 0)
                 return DifficultyConstants.ZERO_VALUE;

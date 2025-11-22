@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +22,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
     /// All data should be retrieved from external services via providers.
     /// </summary>
     [Preserve]
-    public class DynamicDifficultyService : IDynamicDifficultyService
+    public sealed class DynamicDifficultyService : IDynamicDifficultyService
     {
         private readonly IDifficultyCalculator calculator;
         private readonly IDifficultyDataProvider dataProvider;
@@ -51,8 +53,10 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
         {
             try
             {
-                Debug.Log("[DynamicDifficultyService] ===== START CALCULATION =====");
-                Debug.Log($"[DynamicDifficultyService] Current difficulty: {this.CurrentDifficulty:F2}");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                this.logger?.Debug("[DynamicDifficultyService] ===== START CALCULATION =====");
+                this.logger?.Debug($"[DynamicDifficultyService] Current difficulty: {this.CurrentDifficulty:F2}");
+#endif
 
                 // Get enabled modifiers sorted by priority
                 var enabledModifiers = this.modifiers
@@ -60,22 +64,26 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
                     .OrderBy(m => m.Priority)
                     .ToList();
 
-                Debug.Log($"[DynamicDifficultyService] Found {enabledModifiers.Count} enabled modifiers:");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                this.logger?.Debug($"[DynamicDifficultyService] Found {enabledModifiers.Count} enabled modifiers:");
                 foreach (var modifier in enabledModifiers)
                 {
-                    Debug.Log($"  - {modifier.ModifierName} (Priority: {modifier.Priority}, Enabled: {modifier.IsEnabled})");
+                    this.logger?.Debug($"  - {modifier.ModifierName} (Priority: {modifier.Priority}, Enabled: {modifier.IsEnabled})");
                 }
 
                 // Calculate new difficulty - all data comes from providers
-                Debug.Log("[DynamicDifficultyService] Calling calculator.Calculate()...");
+                this.logger?.Debug("[DynamicDifficultyService] Calling calculator.Calculate()...");
+#endif
                 var result = this.calculator.Calculate(enabledModifiers);
 
-                Debug.Log("[DynamicDifficultyService] ===== CALCULATION COMPLETE =====");
-                Debug.Log($"[DynamicDifficultyService] Result:");
-                Debug.Log($"  - Previous: {result.PreviousDifficulty:F2}");
-                Debug.Log($"  - New: {result.NewDifficulty:F2}");
-                Debug.Log($"  - Change: {result.NewDifficulty - result.PreviousDifficulty:+0.##;-0.##}");
-                Debug.Log($"  - Reason: {result.PrimaryReason}");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                this.logger?.Debug("[DynamicDifficultyService] ===== CALCULATION COMPLETE =====");
+                this.logger?.Debug($"[DynamicDifficultyService] Result:");
+                this.logger?.Debug($"  - Previous: {result.PreviousDifficulty:F2}");
+                this.logger?.Debug($"  - New: {result.NewDifficulty:F2}");
+                this.logger?.Debug($"  - Change: {result.NewDifficulty - result.PreviousDifficulty:+0.##;-0.##}");
+                this.logger?.Debug($"  - Reason: {result.PrimaryReason}");
+#endif
 
                 this.logger?.Info($"[DynamicDifficultyService] Calculated difficulty: " +
                          $"{result.PreviousDifficulty:F2} -> {result.NewDifficulty:F2}");
@@ -86,9 +94,8 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
             }
             catch (Exception e)
             {
-                Debug.LogError($"[DynamicDifficultyService] ❌ CALCULATION FAILED: {e.Message}");
-                Debug.LogError($"[DynamicDifficultyService] Stack trace: {e.StackTrace}");
                 this.logger?.Error($"[DynamicDifficultyService] Calculation failed: {e.Message}");
+                this.logger?.Exception(e);
 
                 var currentDiff = this.dataProvider?.GetCurrentDifficulty() ?? DifficultyConstants.DEFAULT_DIFFICULTY;
 

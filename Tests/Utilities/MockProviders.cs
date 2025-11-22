@@ -1,3 +1,5 @@
+#nullable enable
+
 using TheOneStudio.DynamicUserDifficulty.Models;
 using TheOneStudio.DynamicUserDifficulty.Providers;
 

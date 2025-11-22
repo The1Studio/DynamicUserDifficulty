@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
@@ -8,7 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// Configuration for Session Pattern modifier with type-safe properties
     /// </summary>
     [Serializable]
-    public class SessionPatternConfig : BaseModifierConfig
+    public sealed class SessionPatternConfig : BaseModifierConfig
     {
         [Header("Session Duration Settings")]
 

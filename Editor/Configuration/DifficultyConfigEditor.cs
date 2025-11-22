@@ -1,3 +1,5 @@
+#nullable enable
+
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
@@ -12,7 +14,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Editor.Configuration
     /// Compatible with Odin Inspector.
     /// </summary>
     [CustomEditor(typeof(DifficultyConfig))]
-    public class DifficultyConfigEditor : OdinEditor
+    public sealed class DifficultyConfigEditor : OdinEditor
     {
         private bool showGameStatsHelp = false;
 

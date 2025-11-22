@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
@@ -13,7 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
     /// frequency of rage quits, and session end reasons.
     /// </summary>
     [Preserve]
-    public class SessionPatternModifier : BaseDifficultyModifier<SessionPatternConfig>
+    public sealed class SessionPatternModifier : BaseDifficultyModifier<SessionPatternConfig>
     {
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_SESSION_PATTERN;
 

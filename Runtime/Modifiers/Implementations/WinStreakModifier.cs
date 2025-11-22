@@ -1,3 +1,5 @@
+#nullable enable
+
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
@@ -14,7 +16,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
     /// Requires IWinStreakProvider to be implemented by the game
     /// </summary>
     [Preserve]
-    public class WinStreakModifier : BaseDifficultyModifier<WinStreakConfig>
+    public sealed class WinStreakModifier : BaseDifficultyModifier<WinStreakConfig>
     {
         private readonly IWinStreakProvider winStreakProvider;
 
@@ -32,17 +34,23 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             try
             {
-                Debug.Log("[WinStreakModifier] --- Calculate START ---");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                this.logger?.Debug("[WinStreakModifier] --- Calculate START ---");
+#endif
 
                 // Get data from provider - stateless approach
                 var winStreak = this.winStreakProvider.GetWinStreak();
-                Debug.Log($"[WinStreakModifier] Win streak from provider: {winStreak}");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                this.logger?.Debug($"[WinStreakModifier] Win streak from provider: {winStreak}");
+#endif
 
                 // Use strongly-typed properties instead of string parameters
                 var winThreshold = this.config.WinThreshold;
                 var stepSize = this.config.StepSize;
                 var maxBonus = this.config.MaxBonus;
-                Debug.Log($"[WinStreakModifier] Config - Threshold: {winThreshold}, StepSize: {stepSize}, MaxBonus: {maxBonus}");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                this.logger?.Debug($"[WinStreakModifier] Config - Threshold: {winThreshold}, StepSize: {stepSize}, MaxBonus: {maxBonus}");
+#endif
 
                 var value = DifficultyConstants.ZERO_VALUE;
                 var reason = "No win streak";
@@ -51,14 +59,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 {
                     // Calculate base value
                     value = (winStreak - winThreshold + 1) * stepSize;
-                    Debug.Log($"[WinStreakModifier] Raw calculation: ({winStreak} - {winThreshold} + 1) * {stepSize} = {value:F2}");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    this.logger?.Debug($"[WinStreakModifier] Raw calculation: ({winStreak} - {winThreshold} + 1) * {stepSize} = {value:F2}");
+#endif
 
                     // Apply max limit
                     var beforeClamp = value;
                     value = Mathf.Min(value, maxBonus);
                     if (beforeClamp != value)
                     {
-                        Debug.Log($"[WinStreakModifier] Clamped to max bonus: {beforeClamp:F2} → {value:F2}");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                        this.logger?.Debug($"[WinStreakModifier] Clamped to max bonus: {beforeClamp:F2} → {value:F2}");
+#endif
                     }
 
                     reason = $"Win streak: {winStreak} consecutive wins";
@@ -67,7 +79,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 }
                 else
                 {
+                    #if UNITY_EDITOR || DEVELOPMENT_BUILD
                     Debug.Log($"[WinStreakModifier] Below threshold ({winStreak} < {winThreshold}) - no adjustment");
+                    #endif
                 }
 
                 Debug.Log($"[WinStreakModifier] --- Calculate END --- Result: {value:+0.##;-0.##} ({reason})");
@@ -87,7 +101,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             }
             catch (System.Exception e)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogError($"[WinStreakModifier] ❌ ERROR: {e.Message}");
+                #endif
                 this.logger?.Error($"[WinStreakModifier] Error calculating: {e.Message}");
                 return ModifierResult.NoChange();
             }

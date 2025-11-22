@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
@@ -16,7 +18,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
     /// Requires ITimeDecayProvider to be implemented by the game
     /// </summary>
     [Preserve]
-    public class TimeDecayModifier : BaseDifficultyModifier<TimeDecayConfig>
+    public sealed class TimeDecayModifier : BaseDifficultyModifier<TimeDecayConfig>
     {
         private readonly ITimeDecayProvider timeDecayProvider;
 

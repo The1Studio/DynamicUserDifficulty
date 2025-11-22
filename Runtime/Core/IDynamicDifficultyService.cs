@@ -1,3 +1,5 @@
+#nullable enable
+
 using TheOneStudio.DynamicUserDifficulty.Models;
 
 namespace TheOneStudio.DynamicUserDifficulty.Core

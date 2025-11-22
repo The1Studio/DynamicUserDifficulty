@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
@@ -8,7 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// Configuration for Time Decay modifier with type-safe properties
     /// </summary>
     [Serializable]
-    public class TimeDecayConfig : BaseModifierConfig
+    public sealed class TimeDecayConfig : BaseModifierConfig
     {
 
         [Header("Time Decay Settings")]

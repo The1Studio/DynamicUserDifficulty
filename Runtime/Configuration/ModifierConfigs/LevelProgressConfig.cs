@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
@@ -8,7 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// Configuration for Level Progress modifier with type-safe properties
     /// </summary>
     [Serializable]
-    public class LevelProgressConfig : BaseModifierConfig
+    public sealed class LevelProgressConfig : BaseModifierConfig
     {
         [Header("Attempts Settings")]
 

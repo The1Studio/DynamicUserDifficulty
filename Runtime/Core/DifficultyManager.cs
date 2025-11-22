@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,7 +12,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Core
     /// Stateless utility class for difficulty calculations and adjustments.
     /// This class contains pure functions for difficulty management without storing any state.
     /// </summary>
-    public class DifficultyManager
+    public sealed class DifficultyManager
     {
         private readonly DifficultyConfig config;
 

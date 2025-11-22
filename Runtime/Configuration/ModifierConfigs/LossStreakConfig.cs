@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
@@ -8,7 +10,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs
     /// Configuration for Loss Streak modifier with type-safe properties
     /// </summary>
     [Serializable]
-    public class LossStreakConfig : BaseModifierConfig
+    public sealed class LossStreakConfig : BaseModifierConfig
     {
 
         [Header("Loss Streak Settings")]

@@ -1,3 +1,5 @@
+#nullable enable
+
 using TheOneStudio.DynamicUserDifficulty.Core;
 using UnityEngine;
 
@@ -86,7 +88,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             // Validate game stats first
             if (!this.gameStats.Validate(out string errorMessage))
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogError($"[DifficultyConfig] Invalid game stats: {errorMessage}");
+                #endif
                 return false;
             }
 
@@ -101,7 +105,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
             // Check if configs list is empty
             if (this.modifierConfigs.Count == 0)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning("[DifficultyConfig] No modifier configs found. Initializing defaults...");
+                #endif
                 this.modifierConfigs.InitializeDefaults();
             }
 
@@ -118,12 +124,16 @@ namespace TheOneStudio.DynamicUserDifficulty.Configuration
                 if (config != null)
                 {
                     config.GenerateFromStats(this.gameStats);
+                    #if UNITY_EDITOR || DEVELOPMENT_BUILD
                     Debug.Log($"[DifficultyConfig] Generated config for {config.ModifierType}");
+                    #endif
                     successCount++;
                 }
             }
 
+            #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log($"[DifficultyConfig] ✓ Generated {successCount}/{this.modifierConfigs.Count} configs successfully");
+            #endif
             return true;
         }
 

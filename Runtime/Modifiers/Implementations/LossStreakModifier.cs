@@ -1,3 +1,5 @@
+#nullable enable
+
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
 using TheOneStudio.DynamicUserDifficulty.Core;
 using TheOneStudio.DynamicUserDifficulty.Models;
@@ -14,7 +16,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
     /// Requires IWinStreakProvider to be implemented by the game
     /// </summary>
     [Preserve]
-    public class LossStreakModifier : BaseDifficultyModifier<LossStreakConfig>
+    public sealed class LossStreakModifier : BaseDifficultyModifier<LossStreakConfig>
     {
         private readonly IWinStreakProvider winStreakProvider;
 
@@ -31,17 +33,23 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
         {
             try
             {
-                Debug.Log("[LossStreakModifier] --- Calculate START ---");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                this.logger?.Debug("[LossStreakModifier] --- Calculate START ---");
+#endif
 
                 // Get data from provider - stateless approach
                 var lossStreak = this.winStreakProvider.GetLossStreak();
-                Debug.Log($"[LossStreakModifier] Loss streak from provider: {lossStreak}");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                this.logger?.Debug($"[LossStreakModifier] Loss streak from provider: {lossStreak}");
+#endif
 
                 // Use strongly-typed properties instead of string parameters
                 var lossThreshold = this.config.LossThreshold;
                 var stepSize = this.config.StepSize;
                 var maxReduction = this.config.MaxReduction;
-                Debug.Log($"[LossStreakModifier] Config - Threshold: {lossThreshold}, StepSize: {stepSize}, MaxReduction: {maxReduction}");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                this.logger?.Debug($"[LossStreakModifier] Config - Threshold: {lossThreshold}, StepSize: {stepSize}, MaxReduction: {maxReduction}");
+#endif
 
                 var value = DifficultyConstants.ZERO_VALUE;
                 var reason = "No loss streak";
@@ -50,14 +58,18 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 {
                     // Calculate base reduction
                     value = -(lossStreak - lossThreshold + 1) * stepSize;
-                    Debug.Log($"[LossStreakModifier] Raw calculation: -({lossStreak} - {lossThreshold} + 1) * {stepSize} = {value:F2}");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    this.logger?.Debug($"[LossStreakModifier] Raw calculation: -({lossStreak} - {lossThreshold} + 1) * {stepSize} = {value:F2}");
+#endif
 
                     // Apply max limit
                     var beforeClamp = value;
                     value = Mathf.Max(value, -maxReduction);
                     if (beforeClamp != value)
                     {
-                        Debug.Log($"[LossStreakModifier] Clamped to max reduction: {beforeClamp:F2} → {value:F2}");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                        this.logger?.Debug($"[LossStreakModifier] Clamped to max reduction: {beforeClamp:F2} → {value:F2}");
+#endif
                     }
 
                     reason = $"Loss streak: {lossStreak} consecutive losses";
@@ -66,10 +78,14 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
                 }
                 else
                 {
-                    Debug.Log($"[LossStreakModifier] Below threshold ({lossStreak} < {lossThreshold}) - no adjustment");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    this.logger?.Debug($"[LossStreakModifier] Below threshold ({lossStreak} < {lossThreshold}) - no adjustment");
+#endif
                 }
 
-                Debug.Log($"[LossStreakModifier] --- Calculate END --- Result: {value:+0.##;-0.##} ({reason})");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                this.logger?.Debug($"[LossStreakModifier] --- Calculate END --- Result: {value:+0.##;-0.##} ({reason})");
+#endif
 
                 return new()
                 {
@@ -86,7 +102,9 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers
             }
             catch (System.Exception e)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogError($"[LossStreakModifier] ❌ ERROR: {e.Message}");
+                #endif
                 this.logger?.Error($"[LossStreakModifier] Error calculating: {e.Message}");
                 return ModifierResult.NoChange();
             }

@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace TheOneStudio.DynamicUserDifficulty.Providers
 {
     /// <summary>

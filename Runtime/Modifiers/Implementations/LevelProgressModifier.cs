@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration.ModifierConfigs;
@@ -13,7 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.Modifiers.Implementations
     /// completion time, and progression speed.
     /// </summary>
     [Preserve]
-    public class LevelProgressModifier : BaseDifficultyModifier<LevelProgressConfig>
+    public sealed class LevelProgressModifier : BaseDifficultyModifier<LevelProgressConfig>
     {
         public override string ModifierName => DifficultyConstants.MODIFIER_TYPE_LEVEL_PROGRESS;
 

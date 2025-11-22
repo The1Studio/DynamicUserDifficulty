@@ -1,3 +1,5 @@
+#nullable enable
+
 using TheOne.Logging;
 using TheOneStudio.DynamicUserDifficulty.Configuration;
 using TheOneStudio.DynamicUserDifficulty.Models;
